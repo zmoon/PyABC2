@@ -1,3 +1,19 @@
+[tool.poetry]
+name = "pyabc2"
+version = "0.1.0-dev"
+description = "Python ABC notation tools"
+authors = ["zmoon <zmoon92@gmail.com>"]
+readme = "README.md"
+homepage = "https://github.com/zmoon/PyABC2"
+repository = "https://github.com/zmoon/PyABC2"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.910"
+pytest = "^6.2.5"
+
 [tool.black]
 line-length = 100
 
