@@ -54,6 +54,10 @@ class Pitch:
         octave
             Octave. By default octave is treated as unspecified.
         """
+        self._name: Optional[str]
+        self._value: int
+        self._octave: Optional[int]
+
         # if isinstance(value, Note):
         #     self._note = value
 

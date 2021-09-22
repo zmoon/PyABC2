@@ -66,9 +66,11 @@ Z:transcription     yes          yes          no         no      string
     for line in raw.split("\n")[1:]:
         key = line[0]
         # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L85
-        fields = re.match(
-            r"(.+)\s+(yes|no)\s+(yes|no)\s+(yes|no)\s+(yes|no)\s+(.+)", line[2:]
-        ).groups()
+        m = re.match(r"(.+)\s+(yes|no)\s+(yes|no)\s+(yes|no)\s+(yes|no)\s+(.+)", line[2:])
+        if m is not None:
+            fields = m.groups()
+        else:
+            raise Exception("issue parsing the info field table")
         info_field_keys[key] = InfoField(
             key,
             fields[0].strip(),
