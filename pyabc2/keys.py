@@ -2,6 +2,7 @@
 Keys and their relations
 """
 # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L94
+import warnings
 from typing import Dict, Optional, Union
 
 
@@ -77,7 +78,7 @@ class Pitch:
             self._value = value._value
             self._octave = value._octave
 
-        else:
+        elif isinstance(value, int):
             self._name = None
             if octave is None:
                 self._value = value
@@ -85,6 +86,9 @@ class Pitch:
             else:
                 self._value = value % 12
                 self._octave = octave + (value // 12)
+
+        else:
+            raise TypeError
 
     def __repr__(self):
         return f"Pitch(name='{self.name}', value={self.value}, octave={self.octave})"
@@ -124,6 +128,8 @@ class Pitch:
             val += ACCIDENTAL_DVALUES[acc]
         if root != "C":
             val = (val - Pitch.pitch_value(root)) % 12
+        if not 0 <= val < 12:  # e.g., Cb, B##
+            warnings.warn("computed pitch value outside 0--11")
         return val
 
     @property
@@ -144,8 +150,10 @@ class Pitch:
 
     def __eq__(self, other):
         # Only for other Pitch instances
-        if self.octave is None and other.octave is None:
+        if (self.octave is None) and (other.octave is None):
             return self.value == other.value
+        elif (self.octave is None) ^ (other.octave is None):  # xor
+            raise Exception("comparison ambiguous since one doesn't have octave set")
         else:
             return self.value == other.value and self.octave == other.octave
 
@@ -156,22 +164,9 @@ class Pitch:
             raise NotImplementedError
 
     def __sub__(self, x):
-        if isinstance(x, int):
-            return Pitch(self.value - x, octave=self.octave)
-        else:
-            raise NotImplementedError
+        return self + -x
 
 
 if __name__ == "__main__":
-    print(PITCH_VALUES_WRT_C)
-
-    p = Pitch(2)
-    print(p)
-    print(p.equivalent_flat, p.equivalent_sharp)
-    print(p + 2, p - 2)
 
     assert Pitch.pitch_value("C###") == Pitch.pitch_value("Eb")
-
-    print([Pitch(i) for i in range(5)])
-
-    print(Pitch("C", 4))
