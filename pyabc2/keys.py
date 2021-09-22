@@ -2,7 +2,7 @@
 Keys and their relations
 """
 # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L94
-from typing import Dict
+from typing import Dict, Optional, Union
 
 
 def _gen_pitch_values() -> Dict[str, int]:
@@ -43,13 +43,13 @@ MODE_ABBRS = {m[:3]: m for m in MODE_VALUES}
 
 class Pitch:
     # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L204-L293
-    def __init__(self, value, octave=None):
+    def __init__(self, value: Union[int, str, "Pitch"], octave: Optional[int] = None):
         """Pitch: a note value relative to C, possibly with octave specified.
 
         Parameters
         ----------
         value
-            Relative note value.
+            Relative note value OR note name OR existing Pitch instance.
         octave
             Octave. By default octave is treated as unspecified.
         """
@@ -87,20 +87,23 @@ class Pitch:
                 self._octave = octave + (value // 12)
 
     def __repr__(self):
-        return f"Pitch(name={self.name}, octave={self.octave})"
+        return f"Pitch(name='{self.name}', value={self.value}, octave={self.octave})"
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """Note name (pitch class)."""
         if self._name is not None:
             return self._name
         return CHROMATIC_NOTES[self.value % 12]
 
     @property
-    def value(self):
+    def value(self) -> int:
+        """Relative note value."""
         return self._value
 
     @property
-    def octave(self):
+    def octave(self) -> Optional[int]:
+        """Octave."""
         return self._octave
 
     @property
@@ -124,7 +127,7 @@ class Pitch:
         return val
 
     @property
-    def equivalent_sharp(self):
+    def equivalent_sharp(self) -> "Pitch":
         p = self - 1
         if len(p.name) == 1:
             return Pitch(p.name + "#", octave=self.octave)
@@ -132,7 +135,7 @@ class Pitch:
             return Pitch((self - 2).name + "##", octave=self.octave)
 
     @property
-    def equivalent_flat(self):
+    def equivalent_flat(self) -> "Pitch":
         p = self + 1
         if len(p.name) == 1:
             return Pitch(p.name + "b", octave=self.octave)
@@ -168,3 +171,7 @@ if __name__ == "__main__":
     print(p + 2, p - 2)
 
     assert Pitch.pitch_value("C###") == Pitch.pitch_value("Eb")
+
+    print([Pitch(i) for i in range(5)])
+
+    print(Pitch("C", 4))
