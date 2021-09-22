@@ -32,7 +32,7 @@ def _bool_yn(s: str) -> bool:
 
 def _gen_info_field_table() -> Dict[str, InfoField]:
     raw = """
-Field name          file header  tune header  tune body  inline  type 
+Field name          file header  tune header  tune body  inline  type
 A:area              yes          yes          no         no      string
 B:book              yes          yes          no         no      string
 C:composer          yes          yes          no         no      string
@@ -66,7 +66,9 @@ Z:transcription     yes          yes          no         no      string
     for line in raw.split("\n")[1:]:
         key = line[0]
         # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L85
-        fields = re.match(r"(.+)\s+(yes|no)\s+(yes|no)\s+(yes|no)\s+(yes|no)\s+(.+)", line[2:]).groups()
+        fields = re.match(
+            r"(.+)\s+(yes|no)\s+(yes|no)\s+(yes|no)\s+(yes|no)\s+(.+)", line[2:]
+        ).groups()
         info_field_keys[key] = InfoField(
             key,
             fields[0].strip(),
@@ -74,7 +76,7 @@ Z:transcription     yes          yes          no         no      string
             _bool_yn(fields[2]),
             _bool_yn(fields[3]),
             _bool_yn(fields[4]),
-            fields[5].strip()
+            fields[5].strip(),
         )
 
     return info_field_keys
@@ -87,7 +89,6 @@ FILE_HEADER_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_file
 TUNE_HEADER_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_header}
 TUNE_BODY_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_body}
 TUNE_INLINE_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_inline}
-
 
 
 if __name__ == "__main__":
