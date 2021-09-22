@@ -19,6 +19,8 @@ PITCH_VALUES_WRT_C = _gen_pitch_values()
 """Dict. mapping ASCII note names ("pitch classes") to their integer values
 (in the chromatic scale) with respect to C."""
 
+ACCIDENTAL_DVALUES = {"": 0, "#": 1, "b": -1}
+
 CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 """ASCII chromatic notes, starting with C at index 0."""
 
@@ -39,6 +41,130 @@ MODE_ABBRS = {m[:3]: m for m in MODE_VALUES}
 """Dict. mapping mode abbreviation to full-length mode name."""
 
 
+class Pitch:
+    # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L204-L293
+    def __init__(self, value, octave=None):
+        """Pitch: a note value relative to C, possibly with octave specified.
+
+        Parameters
+        ----------
+        value
+            Relative note value.
+        octave
+            Octave. By default octave is treated as unspecified.
+        """
+        # if isinstance(value, Note):
+        #     self._note = value
+
+        #     if len(value.note) == 1:
+        #         acc = value.key.accidentals.get(value.note[0].upper(), '')
+        #         self._name = value.note.upper() + acc
+        #         self._value = self.pitch_value(self._name)
+        #     else:
+        #         self._name = value.note.capitalize()
+        #         self._value = self.pitch_value(value.note)
+
+        #     assert octave is None
+        #     self._octave = value.octave
+
+        if isinstance(value, str):
+            self._name = value
+            self._value = self.pitch_value(value)
+            self._octave = octave
+
+        elif isinstance(value, Pitch):
+            self._name = value._name
+            self._value = value._value
+            self._octave = value._octave
+
+        else:
+            self._name = None
+            if octave is None:
+                self._value = value
+                self._octave = octave
+            else:
+                self._value = value % 12
+                self._octave = octave + (value // 12)
+
+    def __repr__(self):
+        return f"Pitch(name={self.name}, octave={self.octave})"
+
+    @property
+    def name(self):
+        if self._name is not None:
+            return self._name
+        return CHROMATIC_NOTES[self.value % 12]
+
+    @property
+    def value(self):
+        return self._value
+
+    @property
+    def octave(self):
+        return self._octave
+
+    @property
+    def abs_value(self):
+        if self.octave is None:
+            raise Exception("absolute value not meaningful with unspecified octave")
+        else:
+            return self.value + self.octave * 12
+
+    @staticmethod
+    def pitch_value(pitch: str, root: str = "C") -> int:
+        """Convert a pitch string like "A#" to a chromatic scale value relative
+        to root.
+        """
+        pitch = pitch.strip()
+        val = PITCH_VALUES_WRT_C[pitch[0].upper()]
+        for acc in pitch[1:]:
+            val += ACCIDENTAL_DVALUES[acc]
+        if root != "C":
+            val = (val - Pitch.pitch_value(root)) % 12
+        return val
+
+    @property
+    def equivalent_sharp(self):
+        p = self - 1
+        if len(p.name) == 1:
+            return Pitch(p.name + "#", octave=self.octave)
+        else:
+            return Pitch((self - 2).name + "##", octave=self.octave)
+
+    @property
+    def equivalent_flat(self):
+        p = self + 1
+        if len(p.name) == 1:
+            return Pitch(p.name + "b", octave=self.octave)
+        else:
+            return Pitch((self + 2).name + "bb", octave=self.octave)
+
+    def __eq__(self, other):
+        # Only for other Pitch instances
+        if self.octave is None and other.octave is None:
+            return self.value == other.value
+        else:
+            return self.value == other.value and self.octave == other.octave
+
+    def __add__(self, x):
+        if isinstance(x, int):
+            return Pitch(self.value + x, octave=self.octave)
+        else:
+            raise NotImplementedError
+
+    def __sub__(self, x):
+        if isinstance(x, int):
+            return Pitch(self.value - x, octave=self.octave)
+        else:
+            raise NotImplementedError
+
 
 if __name__ == "__main__":
     print(PITCH_VALUES_WRT_C)
+
+    p = Pitch(2)
+    print(p)
+    print(p.equivalent_flat, p.equivalent_sharp)
+    print(p + 2, p - 2)
+
+    assert Pitch.pitch_value("C###") == Pitch.pitch_value("Eb")
