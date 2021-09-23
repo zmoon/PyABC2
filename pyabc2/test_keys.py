@@ -139,7 +139,7 @@ def test_relatives():
 @pytest.mark.parametrize(("note", "octave", "expected_freq"), [("C", 4, 261.6256), ("A", 4, 440.0)])
 def test_etf(note, octave, expected_freq):
     p = Pitch(note, octave=octave)
-    assert p.equal_temperament_frequency == pytest.approx(expected_freq)
+    assert p.equal_temperament_frequency == p.etf == pytest.approx(expected_freq)
 
 
 def test_pitch_from_etf():
