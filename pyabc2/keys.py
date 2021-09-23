@@ -27,6 +27,13 @@ ACCIDENTAL_DVALUES = {"": 0, "#": 1, "b": -1}
 CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 """ASCII chromatic notes, starting with C at index 0."""
 
+# https://en.wikipedia.org/wiki/Solf%C3%A8ge#Movable_do_solf%C3%A8ge
+CHROMATIC_SOLFEGE = ["Do", "Di", "Re", "Me", "Mi", "Fa", "Fi", "Sol", "Le", "La", "Te", "Ti"]
+
+CHROMATIC_SCALE_DEGREE = ["1", "1+", "2", "3-", "3", "4", "4+", "5", "6-", "6", "7-", "7"]
+
+CHROMATIC_VALUES_IN_MAJOR = {0, 2, 4, 5, 7, 9, 11}
+
 MODE_VALUES = {
     "major": 0,
     "minor": 3,
@@ -72,6 +79,81 @@ IONIAN_SHARPFLAT_COUNT = {
 
 SHARP_ORDER = "FCGDAEB"
 FLAT_ORDER = "BEADGCF"
+
+
+_re_pitch = re.compile(r"(?P<note>[A-G])(?P<acc>\#|b)?\s*(?P<oct>\d+)?")
+
+
+class PitchClass:
+    """Pitch without octave specified."""
+
+    def __init__(self, name: str, *, root: str = "C"):
+        """
+        Parameters
+        ----------
+        name
+            Note name (ASCII).
+        root
+            The note set to have value=0 (normally C, which is the default).
+            The root determines what value this pitch class has.
+        """
+        self.value = Pitch.pitch_value(name, root=root)
+        """Pitch class value, as integer chromatic distance from the root (0--11)."""
+
+        self.name = name
+        """The note (pitch class) name."""
+
+        self.root = root
+        """The name of the root note (pitch class)."""
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(name={self.name}, value={self.value}, root={self.root})"
+
+    @classmethod
+    def from_pitch(cls, p: "Pitch") -> "PitchClass":
+        return cls(p.name)
+
+    @classmethod
+    def from_value(cls, v: int, *, root: str = "C") -> "PitchClass":
+        vr = PITCH_VALUES_WRT_C[root]
+        v0 = v + vr
+        name0 = CHROMATIC_NOTES[v0 % 12]
+
+        return cls(name0, root=root)
+
+    @property
+    def solfege(self) -> str:
+        """Solfege symbol. Accidentals allowed."""
+        return CHROMATIC_SOLFEGE[self.value]
+
+    @property
+    def scale_degree(self) -> int:
+        """Scale degree within the root's Ionian scale."""
+        if self.value not in CHROMATIC_VALUES_IN_MAJOR:
+            raise Exception(f"{self} is not in {self.root}'s major scale")
+
+        return int(CHROMATIC_SCALE_DEGREE[self.value])
+
+    @property
+    def scale_degree_chromatic(self) -> str:
+        """Raised/lowered scale degrees expressed with +/-."""
+        return CHROMATIC_SCALE_DEGREE[self.value]
+
+    def with_root(self, root: str) -> "PitchClass":
+        """New root."""
+        v = self.value
+        vr = PITCH_VALUES_WRT_C[self.root]
+        vrnew = PITCH_VALUES_WRT_C[root]
+        return PitchClass.from_value((v + vr - vrnew) % 12, root=root)
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            raise TypeError
+
+        return self.value == other.with_root(self.root).value
 
 
 class Pitch:  # TODO: maybe separate relative pitch / pitch class (no octave) to simplify this one
@@ -125,7 +207,7 @@ class Pitch:  # TODO: maybe separate relative pitch / pitch class (no octave) to
                 self._octave = octave + (value // 12)
 
         else:
-            raise TypeError
+            raise TypeError("invalid `value`")
 
     def __repr__(self):
         return f"Pitch(name='{self.name}', value={self.value}, octave={self.octave})"
@@ -220,6 +302,18 @@ class Pitch:  # TODO: maybe separate relative pitch / pitch class (no octave) to
         o, v = divmod(n + 8, 12)
 
         return cls(value=v, octave=o)
+
+    # @classmethod
+    # def from_name(cls, name: str) -> "Pitch":
+    #     m = _re_pitch.match(name)
+    #     if m is None:
+    #         raise ValueError(f"invalid pitch name '{name}'")
+
+    #     d = m.groupdict()
+    #     base_name = d["name"]
+    #     acc = d["acc"]
+    #     octave = d["oct"]
+    #     return cls()
 
     def __eq__(self, other):
         # Only for other Pitch instances

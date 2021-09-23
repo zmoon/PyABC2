@@ -3,7 +3,7 @@ Test keys module
 """
 import pytest
 
-from pyabc2.keys import Key, Pitch
+from pyabc2.keys import Key, Pitch, PitchClass
 
 
 @pytest.mark.parametrize("p", ["C", "Dbb"])
@@ -144,3 +144,10 @@ def test_etf(note, octave, expected_freq):
 
 def test_pitch_from_etf():
     Pitch.from_etf(440) == Pitch("A", octave=4)
+
+
+def test_root_changing():
+    p0 = PitchClass("C")
+    p = p0.with_root("Bb")
+    assert p0.name == p.name, "only value should be changing"
+    assert p.value == 2
