@@ -33,6 +33,7 @@ CHROMATIC_SOLFEGE = ["Do", "Di", "Re", "Me", "Mi", "Fa", "Fi", "Sol", "Le", "La"
 CHROMATIC_SCALE_DEGREE = ["1", "1+", "2", "3-", "3", "4", "4+", "5", "6-", "6", "7-", "7"]
 
 CHROMATIC_VALUES_IN_MAJOR = {0, 2, 4, 5, 7, 9, 11}
+# TODO: for any mode
 
 MODE_VALUES = {
     "major": 0,
@@ -110,7 +111,9 @@ class PitchClass:
         return self.name
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(name={self.name}, value={self.value}, root={self.root})"
+        return (
+            f"{self.__class__.__name__}(name='{self.name}', value={self.value}, root='{self.root}')"
+        )
 
     @classmethod
     def from_pitch(cls, p: "Pitch") -> "PitchClass":
