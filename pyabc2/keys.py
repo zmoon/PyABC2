@@ -1,9 +1,10 @@
 """
-Keys and their relations
+Pitches, notes, keys and their relations
 """
 # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L94
+import re
 import warnings
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 
 def _gen_pitch_values() -> Dict[str, int]:
@@ -21,6 +22,7 @@ PITCH_VALUES_WRT_C = _gen_pitch_values()
 (in the chromatic scale) with respect to C."""
 
 ACCIDENTAL_DVALUES = {"": 0, "#": 1, "b": -1}
+"""Change in value associated with a certain accidental mark (`#` or `b`)."""
 
 CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 """ASCII chromatic notes, starting with C at index 0."""
@@ -42,11 +44,35 @@ MODE_ABBRS = {m[:3]: m for m in MODE_VALUES}
 """Dict. mapping mode abbreviation to full-length mode name."""
 
 
-class Pitch:
+IONIAN_SHARPFLAT_COUNT = {
+    "C#": 7,
+    "F#": 6,
+    "B": 5,
+    "E": 4,
+    "A": 3,
+    "D": 2,
+    "G": 1,
+    "C": 0,
+    "F": -1,
+    "Bb": -2,
+    "Eb": -3,
+    "Ab": -4,
+    "Db": -5,
+    "Gb": -6,
+    "Cb": -7,
+}
+"""Dict. mapping chromatic note to the number of flats/sharps in its Ionian mode."""
+
+SHARP_ORDER = "FCGDAEB"
+FLAT_ORDER = "BEADGCF"
+
+
+class Pitch:  # TODO: maybe separate relative pitch / pitch class (no octave) to simplify this one
+    """A note value relative to C, possibly with octave specified."""
+
     # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L204-L293
     def __init__(self, value: Union[int, str, "Pitch"], octave: Optional[int] = None):
-        """Pitch: a note value relative to C, possibly with octave specified.
-
+        """
         Parameters
         ----------
         value
@@ -174,3 +200,116 @@ class Pitch:
 if __name__ == "__main__":
 
     assert Pitch.pitch_value("C###") == Pitch.pitch_value("Eb")
+
+
+class Key:
+    """Key, including mode."""
+
+    def __init__(
+        self, name: Optional[str] = None, root: Optional[str] = None, mode: Optional[str] = None
+    ):
+        """
+        Parameters
+        ---------
+        name
+            Key name, e.g., `D`, `Ador`, `Bbmin`, ...
+        root
+            Root of the key, e.g., `C`, `D`, ...
+        mode
+            Mode specification, e.g., `m`, `min`, `dor`.
+            (Major assumed if mode not specified.)
+        """
+        if name is not None:
+            assert root is None and mode is None, "pass either `name` or `root`+`mode`"
+            self.root, self.mode = Key.parse_key(name)
+        else:
+            assert root is not None and mode is not None, "pass either `name` or `root`+`mode`"
+            self.root = Pitch(root)
+            self.mode = mode
+
+    @staticmethod
+    def parse_key(key: str) -> Tuple["Pitch", str]:
+        # # highland pipe keys
+        # if key in ['HP', 'Hp']:
+        #     return {'F': 1, 'C': 1, 'G': 0}
+
+        m = re.match(r"([A-G])(\#|b)?\s*(\w+)?(.*)", key)
+        if m is None:
+            raise ValueError(f"Invalid key specification '{key}'")
+        base, acc, mode, extra = m.groups()
+
+        if acc is None:
+            acc = ""
+
+        # Default to major
+        if mode is None:
+            mode = "major"
+
+        # `m` as an alias for `min`
+        if mode == "m":
+            mode = "minor"
+
+        try:
+            mode = MODE_ABBRS[mode[:3].lower()]
+        except KeyError:
+            raise ValueError("Unrecognized mode specification '{mode}' from key '{key}'")
+
+        return Pitch(base + acc), mode
+
+    @property
+    def key_signature(self) -> List[str]:  # TODO: maybe change name
+        """
+        List of accidentals that should be displayed in the key
+        signature for the given key description.
+        """
+        # determine number of sharps/flats for this key by first converting
+        # to ionian, then doing the key lookup
+        key = self.relative_ionian
+        num_acc = IONIAN_SHARPFLAT_COUNT[key.root.name]
+
+        sig = []
+        # sharps or flats?
+        if num_acc > 0:
+            for i in range(num_acc):
+                sig.append(SHARP_ORDER[i] + "#")
+        else:
+            for i in range(-num_acc):
+                sig.append(FLAT_ORDER[i] + "b")
+
+        return sig
+
+    @property
+    def accidentals(self) -> Dict[str, str]:
+        """A dictionary of accidentals in the key signature,
+        mapping natural note names to the accidental applied.
+        """
+        return {p: a for p, a in self.key_signature}  # type: ignore[misc, has-type]
+
+    @property
+    def relative_ionian(self) -> "Key":
+        """
+        Return the ionian mode relative to the given key and mode.
+        """
+        key, mode = self.root, self.mode
+        rel = MODE_VALUES[mode]
+        root = Pitch((key.value + rel) % 12)
+
+        # Select flat or sharp to match the current key name
+        if "#" in key.name:
+            root2 = root.equivalent_sharp
+            if len(root2.name) == 2:
+                root = root2
+        elif "b" in key.name:
+            root2 = root.equivalent_flat
+            if len(root2.name) == 2:
+                root = root2
+
+        return Key(root=root.name, mode="ionian")
+
+    def __str__(self):
+        return f"{self.root.name}{self.mode[:3]}"
+
+    def __repr__(self):
+        return f"Key(root={self.root.name}, mode={self.mode})"
+
+    # def __eq__(self):
