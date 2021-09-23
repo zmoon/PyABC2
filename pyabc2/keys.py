@@ -44,6 +44,13 @@ MODE_ABBRS = {m[:3]: m for m in MODE_VALUES}
 """Dict. mapping mode abbreviation to full-length mode name."""
 
 
+def _mode_is_equiv(m1: str, m2: str) -> bool:
+    """Compare modes based on their integer values,
+    allowing major == ionian and minor == aeolian.
+    """
+    return MODE_VALUES[m1] == MODE_VALUES[m2]
+
+
 IONIAN_SHARPFLAT_COUNT = {
     "C#": 7,
     "F#": 6,
@@ -287,9 +294,6 @@ class Key:
 
     @property
     def relative_ionian(self) -> "Key":
-        """
-        Return the ionian mode relative to the given key and mode.
-        """
         key, mode = self.root, self.mode
         rel = MODE_VALUES[mode]
         root = Pitch((key.value + rel) % 12)
@@ -306,10 +310,43 @@ class Key:
 
         return Key(root=root.name, mode="ionian")
 
+    @property
+    def relative_major(self) -> "Key":
+        """Alias for relative_ionian."""
+        return self.relative_ionian
+
+    @property
+    def relative_aeolian(self) -> "Key":
+        # TODO: DRY (possibly make method that can do any relative mode)
+
+        key, mode = self.root, self.mode
+        rel = MODE_VALUES[mode] - MODE_VALUES["aeolian"]
+        root = Pitch((key.value + rel) % 12)
+
+        # Select flat or sharp to match the current key name
+        if "#" in key.name:
+            root2 = root.equivalent_sharp
+            if len(root2.name) == 2:
+                root = root2
+        elif "b" in key.name:
+            root2 = root.equivalent_flat
+            if len(root2.name) == 2:
+                root = root2
+
+        return Key(root=root.name, mode="aeolian")
+
+    @property
+    def relative_minor(self) -> "Key":
+        return self.relative_aeolian
+
     def __str__(self):
         return f"{self.root.name}{self.mode[:3]}"
 
     def __repr__(self):
         return f"Key(root={self.root.name}, mode={self.mode})"
 
-    # def __eq__(self):
+    def __eq__(self, other):
+        if isinstance(other, Key):
+            return self.root == other.root and _mode_is_equiv(self.mode, other.mode)
+        else:
+            raise TypeError
