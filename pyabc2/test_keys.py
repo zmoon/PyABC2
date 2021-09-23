@@ -1,3 +1,6 @@
+"""
+Test keys module
+"""
 import pytest
 
 from pyabc2.keys import Key, Pitch
