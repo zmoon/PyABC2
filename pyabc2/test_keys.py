@@ -134,3 +134,13 @@ def test_relatives():
     C = Key("C")
     assert Am.relative_ionian == Am.relative_major == C
     assert C.relative_aeolian == C.relative_minor == Am
+
+
+@pytest.mark.parametrize(("note", "octave", "expected_freq"), [("C", 4, 261.6256), ("A", 4, 440.0)])
+def test_etf(note, octave, expected_freq):
+    p = Pitch(note, octave=octave)
+    assert p.equal_temperament_frequency == pytest.approx(expected_freq)
+
+
+def test_pitch_from_etf():
+    Pitch.from_etf(440) == Pitch("A", octave=4)

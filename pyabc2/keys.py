@@ -151,8 +151,8 @@ class Pitch:  # TODO: maybe separate relative pitch / pitch class (no octave) to
     def abs_value(self):
         if self.octave is None:
             raise Exception("absolute value not meaningful with unspecified octave")
-        else:
-            return self.value + self.octave * 12
+
+        return self.value + self.octave * 12
 
     @staticmethod
     def pitch_value(pitch: str, root: str = "C") -> int:
@@ -184,6 +184,42 @@ class Pitch:  # TODO: maybe separate relative pitch / pitch class (no octave) to
             return Pitch(p.name + "b", octave=self.octave)
         else:
             return Pitch((self + 2).name + "bb", octave=self.octave)
+
+    @property
+    def equal_temperament_frequency(self) -> float:
+        """Piano key frequency.
+
+        https://en.wikipedia.org/wiki/Piano_key_frequencies
+        """
+        if self.octave is None:
+            raise Exception("cannot determine frequency without a specified octave")
+
+        n = self.octave * 12 - 8 + self.value  # C4 (middle C) is 40
+        return 440 * 2 ** ((n - 49) / 12)
+
+    @property
+    def etf(self) -> float:
+        """Alias for equal_temperament_frequency."""
+        return self.equal_temperament_frequency
+
+    @classmethod
+    def from_etf(cls, f: float) -> "Pitch":
+        from math import log2
+
+        n_f = 12 * log2(f / 440) + 49  # piano key number
+
+        n = int(round(n_f))  # closest integer piano key number
+        e = n_f - n
+        if abs(e) > 0.01:
+            warnings.warn(
+                f"more than one cent off ({e * 100:.2f}). "
+                f"Rounding {'up' if e < 0 else 'down'} "
+                f"to the nearest integer piano key."
+            )
+
+        o, v = divmod(n + 8, 12)
+
+        return cls(value=v, octave=o)
 
     def __eq__(self, other):
         # Only for other Pitch instances
@@ -337,6 +373,7 @@ class Key:
 
     @property
     def relative_minor(self) -> "Key":
+        """Alias for relative_aeolian."""
         return self.relative_aeolian
 
     def __str__(self):
@@ -350,3 +387,7 @@ class Key:
             return self.root == other.root and _mode_is_equiv(self.mode, other.mode)
         else:
             raise TypeError
+
+
+class Note:
+    """A note has a pitch and a duration."""
