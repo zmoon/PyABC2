@@ -63,7 +63,7 @@ def test_equiv_sharp_flat():
 def test_add_int_to_C(d, expected_new_name):
     p0 = Pitch.from_name("C4")
     p = p0 + d
-    assert p.name == expected_new_name
+    assert p.class_name == expected_new_name
 
     pc0 = PitchClass.from_name("C")
     pc = pc0 + d
@@ -80,7 +80,7 @@ def test_add_int_to_C(d, expected_new_name):
     ],
 )
 def test_sub_int_from_C(d, expected_new_name):
-    p0 = Pitch.from_name("C4")
+    p0 = PitchClass.from_name("C")
     p = p0 - d
     assert p.name == expected_new_name
 
@@ -90,8 +90,8 @@ def test_sub_int_from_C(d, expected_new_name):
 
 
 def test_eq():
-    assert Pitch.from_name("C4") == Pitch(0, 4)
-    assert Pitch(0, 4) != Pitch(0, 3)
+    assert Pitch.from_name("C4") == Pitch.from_class_value(0, 4) == Pitch(48)
+    assert Pitch.from_class_value(0, 4) != Pitch.from_class_value(0, 3)
 
 
 def test_nice_names_from_values():
@@ -117,7 +117,7 @@ def test_root_changing():
 
 
 def test_pitch_class_to_pitch():
-    C4 = Pitch(0, 4)
+    C4 = Pitch.from_class_value(0, 4)
 
     assert PitchClass.from_name("C").to_pitch(4) == C4
     assert PitchClass.from_name("C", root="D").to_pitch(4) == C4

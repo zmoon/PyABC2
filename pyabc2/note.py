@@ -87,21 +87,21 @@ class PitchClass:
         self.value = value
         """Pitch class value, as integer chromatic distance from the root (0--11)."""
 
-        vr = PITCH_VALUES_WRT_C[root]
-        v0 = self.value + vr
-        self.name = CHROMATIC_NOTES[v0 % 12]  # TODO: correct acc based on root?
-        """The note (pitch class) name."""
-
         self.root = root
         """The name of the root note (pitch class)."""
+
+    @property
+    def name(self) -> str:
+        """The note (pitch class) name."""
+        vr = PITCH_VALUES_WRT_C[self.root]
+        v0 = self.value + vr
+        return CHROMATIC_NOTES[v0 % 12]  # TODO: correct note/acc based on root?
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
-        return (
-            f"{self.__class__.__name__}(name='{self.name}', value={self.value}, root='{self.root}')"
-        )
+        return f"{self.__class__.__name__}(value={self.value}, root='{self.root}')"
 
     @classmethod
     def from_pitch(cls, p: "Pitch") -> "PitchClass":
@@ -158,7 +158,7 @@ class PitchClass:
         return PitchClass((v + vr - vrnew) % 12, root=root)
 
     def to_pitch(self, octave: int) -> "Pitch":
-        return Pitch(self.with_root("C").value, octave)
+        return Pitch.from_class_value(self.with_root("C").value, octave)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -191,44 +191,61 @@ class PitchClass:
         return self + -x
 
 
-# TODO: .class_name with note only and .name with class_name+octave
 # TODO: .from_name as alias for .from_spn / .from_scientific_pitch_notation
 @functools.total_ordering
 class Pitch:
     """A note with value relative to pitch class C and absolute value relative to C0."""
 
     # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L204-L293
-    def __init__(self, value: int, octave: int):
+    def __init__(self, value: int):
         """
         Parameters
         ----------
         value
-            Relative note value in a C chromatic scale.
-        octave
-            Octave. By default octave is treated as unspecified.
+            Chromatic note value relative to C0.
         """
 
-        doctave, value = divmod(value, 12)
-
         self.value = value
-        """Chromatic note value relative to C"""
-
-        self.octave = octave + doctave
-        """Octave number (e.g., A 440 is in octave 4)."""
-
-        self.name = CHROMATIC_NOTES[self.value]
-        """Note name (pitch class)."""
-
-    def __str__(self):
-        return f"{self.name}{self.octave}"
-
-    def __repr__(self):
-        return f"Pitch(name='{self.name}', value={self.value}, octave={self.octave})"
+        """Chromatic note value relative to C0."""
 
     @property
-    def abs_value(self):
-        """Value relative to C0."""
-        return self.value + self.octave * 12
+    def class_value(self) -> int:
+        """Chromatic note value of the corresponding pitch class, relative to C."""
+        return self.value % 12
+
+    @property
+    def octave(self) -> int:
+        """Octave number (e.g., A4/A440 is in octave 4)."""
+        return self.value // 12
+
+    @property
+    def class_name(self) -> str:
+        """Note name (pitch class)."""
+        return CHROMATIC_NOTES[self.class_value]
+
+    @property
+    def name(self) -> str:
+        """Note name with octave, e.g., C4, Bb2.
+        (ASCII scientific pitch notation.)
+        """
+        return f"{self.class_name}{self.octave}"
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        # return f"{self.__class__.__name__}(name='{self.name}', value={self.value}, octave={self.octave})"
+        return f"{self.__class__.__name__}(value={self.value})"
+
+    @property
+    def piano_key_number(self) -> int:
+        """For example, middle C (C4) is 40."""
+        return self.value - 8
+
+    @property
+    def n(self) -> int:
+        """Alias for piano_key_number."""
+        return self.piano_key_number
 
     @property
     def equal_temperament_frequency(self) -> float:
@@ -239,7 +256,8 @@ class Pitch:
         if self.octave is None:
             raise Exception("cannot determine frequency without a specified octave")
 
-        n = self.octave * 12 - 8 + self.value  # C4 (middle C) is 40
+        n = self.n
+
         return 440 * 2 ** ((n - 49) / 12)
 
     @property
@@ -264,23 +282,35 @@ class Pitch:
 
         o, v = divmod(n + 8, 12)
 
-        return cls(value=v, octave=o)
+        return cls.from_class_value(value=v, octave=o)
 
     @classmethod
     def from_name(cls, name: str) -> "Pitch":
+        """From scientific pitch notation (SPN).
+
+        https://en.wikipedia.org/wiki/Scientific_pitch_notation
+        """
         m = _re_pitch.match(name)
         if m is None:
             raise ValueError(f"invalid pitch name '{name}'")
 
         d = m.groupdict()
         base_note_name = d["note"]
-        acc = d["acc"] if d["acc"] is not None else ""
+        acc = d["acc"] if d["acc"] is not None else ""  # TODO: allow multi
         octave = int(d["oct"])
 
         name = f"{base_note_name}{acc}"
         value = PITCH_VALUES_WRT_C[name]
 
-        return cls(value, octave)
+        return cls.from_class_value(value, octave)
+
+    @classmethod
+    def from_class_value(cls, value: int, octave: int) -> "Pitch":
+        return cls(value + octave * 12)
+
+    @classmethod
+    def from_pitch_class(cls, pc: PitchClass, octave: int) -> "Pitch":
+        return cls(pc.with_root("C").value + octave)
 
     def to_pitch_class(self, *, root: str = "C") -> PitchClass:
         return PitchClass.from_name(self.name, root=root)
@@ -290,22 +320,21 @@ class Pitch:
         if not isinstance(other, Pitch):
             return NotImplemented
 
-        return self.abs_value == other.abs_value
+        return self.value == other.value
 
     def __lt__(self, other):
         # Only for other Pitch instances
         if not isinstance(other, Pitch):
             return NotImplemented
 
-        return self.abs_value < other.abs_value
+        return self.value < other.value
 
     def __add__(self, x):
         if isinstance(x, int):
-            doctave, dvalue = divmod(self.value + x, 12)
-            return Pitch(self.value + dvalue, self.octave + doctave)
+            return Pitch(self.value + x)
         elif isinstance(x, Pitch):
             # Adding chromatic-value-wise, not frequency-wise!
-            return Pitch(self.value + x.value, self.octave + x.octave)
+            return Pitch(self.value + x.value)
         else:
             return NotImplemented
 
@@ -313,7 +342,7 @@ class Pitch:
         if not isinstance(x, int):
             return NotImplemented
 
-        return Pitch(x * self.abs_value, octave=0)
+        return Pitch(x * self.value)
 
     def __rmul__(self, x):
         return self * x
@@ -323,3 +352,7 @@ class Pitch:
 
     def __sub__(self, x):
         return self + -x
+
+
+class Note:
+    """A note has a pitch and a duration."""

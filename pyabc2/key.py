@@ -196,7 +196,3 @@ class Key:
             return self.root == other.root and _mode_is_equiv(self.mode, other.mode)
         else:
             return NotImplemented
-
-
-class Note:
-    """A note has a pitch and a duration."""
