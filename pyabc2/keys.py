@@ -171,6 +171,7 @@ class PitchClass:
     @property
     def scale_degree_chromatic(self) -> str:
         """Raised/lowered scale degrees expressed with +/-."""
+        # TODO: roman numeral options, with leading #/b
         return CHROMATIC_SCALE_DEGREE[self.value]
 
     @property
