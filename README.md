@@ -1,4 +1,4 @@
-# pyabc2
+# PyABC2
 
 [![CI workflow status](https://github.com/zmoon/PyABC2/actions/workflows/ci.yml/badge.svg)](https://github.com/zmoon/PyABC2/actions/workflows/ci.yml)
 
