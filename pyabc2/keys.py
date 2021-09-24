@@ -2,6 +2,7 @@
 Pitches, notes, keys and their relations
 """
 # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L94
+import functools
 import re
 import warnings
 from typing import Dict, List, Optional, Tuple
@@ -204,7 +205,7 @@ class PitchClass:
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
-            raise TypeError
+            return NotImplemented
 
         return self.value == other.with_root(self.root).value
 
@@ -212,12 +213,13 @@ class PitchClass:
         if isinstance(x, int):
             return PitchClass.from_value(self.value + x, root=self.root)
         else:
-            raise NotImplementedError
+            return NotImplemented
 
     def __sub__(self, x):
         return self + -x
 
 
+@functools.total_ordering
 class Pitch:
     """A note value relative to C, possibly with octave specified."""
 
@@ -312,16 +314,23 @@ class Pitch:
     def __eq__(self, other):
         # Only for other Pitch instances
         if not isinstance(other, Pitch):
-            raise TypeError
+            return NotImplemented
 
         return self.abs_value == other.abs_value
+
+    def __lt__(self, other):
+        # Only for other Pitch instances
+        if not isinstance(other, Pitch):
+            return NotImplemented
+
+        return self.abs_value < other.abs_value
 
     def __add__(self, x):
         if isinstance(x, int):
             doctave, dvalue = divmod(self.value + x, 12)
             return Pitch(self.value + dvalue, self.octave + doctave)
         else:
-            raise NotImplementedError
+            return NotImplemented
 
     def __sub__(self, x):
         return self + -x
