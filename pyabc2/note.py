@@ -44,10 +44,9 @@ _re_pitch_class = re.compile(_s_re_pitch_class)
 _re_pitch = re.compile(rf"(?P<pitch_class>{_s_re_pitch_class})\s*(?P<octave>[0-9]+)")
 
 
-# TODO: maybe change name to relative pitch value or pitch class value
-def pitch_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
+def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
     """Convert a pitch string like 'A#' (note name / pitch class)
-    to a chromatic scale value relative to root.
+    to a chromatic scale value in 0--11 relative to root.
     """
     pitch = pitch.strip()
 
@@ -63,7 +62,7 @@ def pitch_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
 
     # Relative to root
     if root != "C":
-        val -= pitch_value(root)
+        val -= pitch_class_value(root)
 
     # Mod? (keep in 0--11)
     if mod:
@@ -116,7 +115,7 @@ class PitchClass:
 
     @classmethod
     def from_name(cls, name: str, *, root: str = "C") -> "PitchClass":
-        value = pitch_value(name, root=root, mod=True)
+        value = pitch_class_value(name, root=root, mod=True)
 
         return cls(value, root=root)
 
@@ -307,7 +306,7 @@ class Pitch:
         class_name = d["pitch_class"]
         octave = int(d["octave"])
 
-        class_value = pitch_value(class_name)
+        class_value = pitch_class_value(class_name)
 
         return cls.from_class_value(class_value, octave)
 

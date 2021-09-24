@@ -3,7 +3,7 @@ Test the note module
 """
 import pytest
 
-from pyabc2.note import Pitch, PitchClass, pitch_value
+from pyabc2.note import Pitch, PitchClass, pitch_class_value
 
 
 @pytest.mark.parametrize(
@@ -19,7 +19,7 @@ from pyabc2.note import Pitch, PitchClass, pitch_value
 )
 def test_pitch_value(name, expected_value):
     # using default root C
-    assert pitch_value(name) == expected_value
+    assert pitch_class_value(name) == expected_value
 
 
 @pytest.mark.parametrize(
@@ -32,10 +32,10 @@ def test_pitch_value(name, expected_value):
 )
 def test_pitch_value_acc_outside_octave(name, expected_value):
     with pytest.warns(UserWarning):
-        value = pitch_value(name)
+        value = pitch_class_value(name)
     assert value == expected_value
 
-    pitch_value(name, mod=True)  # no warning
+    pitch_class_value(name, mod=True)  # no warning
 
 
 @pytest.mark.parametrize("p", ["C", "Dbb"])
