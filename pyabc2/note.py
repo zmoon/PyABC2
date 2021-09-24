@@ -191,6 +191,8 @@ class PitchClass:
         return self + -x
 
 
+# TODO: .class_name with note only and .name with class_name+octave
+# TODO: .from_name as alias for .from_spn / .from_scientific_pitch_notation
 @functools.total_ordering
 class Pitch:
     """A note with value relative to pitch class C and absolute value relative to C0."""
