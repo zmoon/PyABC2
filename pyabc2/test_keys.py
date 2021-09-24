@@ -156,3 +156,6 @@ def test_pitch_class_to_pitch():
 
     assert PitchClass("C").to_pitch(4) == C4
     assert PitchClass("C", root="D").to_pitch(4) == C4
+
+
+# TODO: test add/mul Pitch(Class)

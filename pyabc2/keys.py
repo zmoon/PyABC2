@@ -212,8 +212,23 @@ class PitchClass:
     def __add__(self, x):
         if isinstance(x, int):
             return PitchClass.from_value(self.value + x, root=self.root)
+        elif isinstance(x, PitchClass):
+            vnew = self.value + x.with_root(self.root).value
+            return PitchClass.from_value(vnew, root=self.root)
         else:
             return NotImplemented
+
+    def __mul__(self, x):
+        if not isinstance(x, int):
+            return NotImplemented
+
+        return PitchClass.from_value(x * self.value, root=self.root)
+
+    def __rmul__(self, x):
+        return self * x
+
+    def __neg__(self):
+        return -1 * self
 
     def __sub__(self, x):
         return self + -x
@@ -329,8 +344,23 @@ class Pitch:
         if isinstance(x, int):
             doctave, dvalue = divmod(self.value + x, 12)
             return Pitch(self.value + dvalue, self.octave + doctave)
+        elif isinstance(x, Pitch):
+            # Adding chromatic-value-wise, not frequency-wise!
+            return Pitch(self.value + x.value, self.octave + x.octave)
         else:
             return NotImplemented
+
+    def __mul__(self, x):
+        if not isinstance(x, int):
+            return NotImplemented
+
+        return Pitch(x * self.abs_value, octave=0)
+
+    def __rmul__(self, x):
+        return self * x
+
+    def __neg__(self):
+        return -1 * self
 
     def __sub__(self, x):
         return self + -x
