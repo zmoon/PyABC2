@@ -57,6 +57,7 @@ FLAT_ORDER = "BEADGCF"
 class Key:
     """Key, including mode."""
 
+    # TODO: maybe should move name to a .from_name for consistency with Pitch(Class)
     def __init__(
         self, name: Optional[str] = None, root: Optional[str] = None, mode: Optional[str] = None
     ):

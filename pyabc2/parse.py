@@ -2,7 +2,9 @@
 ABC parsing/info
 """
 import re
-from typing import Dict, NamedTuple
+from typing import Dict, List, NamedTuple
+
+from .key import Key
 
 
 class InfoField(NamedTuple):
@@ -91,6 +93,74 @@ FILE_HEADER_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_file
 TUNE_HEADER_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_header}
 TUNE_BODY_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_body}
 TUNE_INLINE_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_inline}
+
+
+class Tune:
+    """Tune."""
+
+    def __init__(self, abc: str):
+        """
+        Parameters
+        ----------
+        abc
+            String of a single ABC tune.
+        """
+        self.abc = abc
+        """Original ABC string."""
+
+        self.header: Dict[str, str]
+        """Information contained in the tune header."""
+
+        self.title: str
+        """Tune title."""
+
+        self.type: str
+        """Tune type/rhythm."""
+
+        self.key: Key
+        """Key object corresponding to the tune's key."""
+
+        self._parse_abc()
+
+    def _parse_abc(self) -> None:
+        # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L520
+        header_lines = []
+        tune_lines = []
+        in_tune = False
+        for line in self.abc.split("\n"):
+            line = re.split(r"([^\\]|^)%", line)[0]
+            line = line.strip()
+            if line == "":
+                continue
+            if in_tune:
+                tune_lines.append(line)
+            else:
+                if line[0] in INFO_FIELDS and line[1] == ":":
+                    header_lines.append(line)
+                    if line[0] == "K":
+                        in_tune = True
+                elif line[:2] == "+:":
+                    header_lines[-1] += " " + line[2:]
+
+        self._parse_abc_header_lines(header_lines)
+
+    def _parse_abc_header_lines(self, header_lines: List[str]) -> None:
+        h = {}
+        for line in header_lines:
+            key = line[0]
+            data = line[2:].strip()
+            field_name = INFO_FIELDS[key].name
+            h[field_name] = data
+
+        self.header = h
+        self.title = h["tune title"]
+        self.type = h["rhythm"]
+        self.key = Key(h["key"])
+
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
+        )
 
 
 if __name__ == "__main__":
