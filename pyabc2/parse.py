@@ -95,6 +95,17 @@ TUNE_BODY_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_b
 TUNE_INLINE_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_inline}
 
 
+_s_re_note = (
+    r"(?P<acc>\^|\^\^|=|_|__)?"
+    r"(?P<note>[a-gA-G])"
+    r"(?P<oct>[,']*)"
+    r"(?P<num>[0-9]+)?"
+    r"(?P<slash>/+)?"
+    r"(?P<den>\d+)?"
+)
+_re_note = re.compile(_s_re_note)
+
+
 class Tune:
     """Tune."""
 
@@ -143,6 +154,7 @@ class Tune:
                     header_lines[-1] += " " + line[2:]
 
         self._parse_abc_header_lines(header_lines)
+        self._extract_notes(tune_lines)
 
     def _parse_abc_header_lines(self, header_lines: List[str]) -> None:
         h = {}
@@ -156,6 +168,12 @@ class Tune:
         self.title = h["tune title"]
         self.type = h["rhythm"]
         self.key = Key(h["key"])
+
+    def _extract_notes(self, tune_lines: str):
+        for line in tune_lines:
+            for d in [m.groupdict() for m in _re_note.finditer(line)]:
+                # print(d["note"], d["oct"], d["num"])
+                print(d)
 
     def __repr__(self):
         return (
