@@ -1,5 +1,5 @@
 """
-ABC parsing
+ABC parsing/info
 """
 import re
 from typing import Dict, NamedTuple
