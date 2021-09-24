@@ -68,6 +68,9 @@ def pitch_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
     return val
 
 
+# TODO: maybe a simplier PitchClass without root that PitchClass and Pitch could both inherit from
+
+
 class PitchClass:
     """Pitch without octave specified."""
 
