@@ -38,14 +38,21 @@ CHROMATIC_VALUES_IN_MAJOR = {0, 2, 4, 5, 7, 9, 11}
 # TODO: for any mode
 
 
-_re_pitch = re.compile(r"(?P<note>[A-G])(?P<acc>\#|b)?\s*(?P<oct>\d+)?")
+_s_re_pitch_class = r"[A-G][\#b]*"
+_re_pitch_class = re.compile(_s_re_pitch_class)
+# _s_re_pitch_class_one_acc = r"[A-G][\#|b]?"
+_re_pitch = re.compile(rf"(?P<pitch_class>{_s_re_pitch_class})\s*(?P<octave>[0-9]+)")
 
 
+# TODO: maybe change name to relative pitch value or pitch class value
 def pitch_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
     """Convert a pitch string like 'A#' (note name / pitch class)
     to a chromatic scale value relative to root.
     """
     pitch = pitch.strip()
+
+    if not _re_pitch_class.fullmatch(pitch):
+        raise ValueError(f"invalid pitch class specification '{pitch}'")
 
     # Base value
     val = PITCH_VALUES_WRT_C[pitch[0].upper()]
@@ -63,7 +70,7 @@ def pitch_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
         val %= 12
 
     if not 0 <= val < 12:  # e.g., Cb, B##
-        warnings.warn("computed pitch value outside 0--11")
+        warnings.warn("computed pitch class value outside 0--11")
 
     return val
 
@@ -290,19 +297,19 @@ class Pitch:
 
         https://en.wikipedia.org/wiki/Scientific_pitch_notation
         """
-        m = _re_pitch.match(name)
+        name = name.strip()
+
+        m = _re_pitch.fullmatch(name)
         if m is None:
             raise ValueError(f"invalid pitch name '{name}'")
 
         d = m.groupdict()
-        base_note_name = d["note"]
-        acc = d["acc"] if d["acc"] is not None else ""  # TODO: allow multi
-        octave = int(d["oct"])
+        class_name = d["pitch_class"]
+        octave = int(d["octave"])
 
-        name = f"{base_note_name}{acc}"
-        value = PITCH_VALUES_WRT_C[name]
+        class_value = pitch_value(class_name)
 
-        return cls.from_class_value(value, octave)
+        return cls.from_class_value(class_value, octave)
 
     @classmethod
     def from_class_value(cls, value: int, octave: int) -> "Pitch":
