@@ -78,8 +78,8 @@ class PitchClass:
         """
         Parameters
         ----------
-        name
-            Note name (ASCII).
+        value
+            Chromatic note value relative to the root.
         root
             The note set to have value=0 (normally C, which is the default).
             The root determines what value this pitch class has.
@@ -92,7 +92,7 @@ class PitchClass:
 
     @property
     def name(self) -> str:
-        """The note (pitch class) name."""
+        """The note (pitch class) name (ASCII)."""
         vr = PITCH_VALUES_WRT_C[self.root]
         v0 = self.value + vr
         return CHROMATIC_NOTES[v0 % 12]  # TODO: correct note/acc based on root?
@@ -151,7 +151,7 @@ class PitchClass:
             return PitchClass.from_name(pnew.name + "bb", root=self.root)
 
     def with_root(self, root: str) -> "PitchClass":
-        """New root."""
+        """New instance with a (possibly) different root."""
         v = self.value
         vr = PITCH_VALUES_WRT_C[self.root]
         vrnew = PITCH_VALUES_WRT_C[root]
