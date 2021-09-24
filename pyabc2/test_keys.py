@@ -149,3 +149,10 @@ def test_root_changing():
     p = p0.with_root("Bb")
     assert p0.name == p.name, "only value should be changing"
     assert p.value == 2
+
+
+def test_pitch_class_to_pitch():
+    C4 = Pitch(0, 4)
+
+    assert PitchClass("C").to_pitch(4) == C4
+    assert PitchClass("C", root="D").to_pitch(4) == C4

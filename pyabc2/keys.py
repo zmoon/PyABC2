@@ -198,6 +198,9 @@ class PitchClass:
         vrnew = PITCH_VALUES_WRT_C[root]
         return PitchClass.from_value((v + vr - vrnew) % 12, root=root)
 
+    def to_pitch(self, octave: int) -> "Pitch":
+        return Pitch(self.with_root("C").value, octave)
+
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             raise TypeError
