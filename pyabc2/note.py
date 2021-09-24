@@ -74,7 +74,7 @@ def pitch_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
 class PitchClass:
     """Pitch without octave specified."""
 
-    def __init__(self, name: str, *, root: str = "C"):
+    def __init__(self, value: int, *, root: str = "C"):
         """
         Parameters
         ----------
@@ -84,10 +84,12 @@ class PitchClass:
             The note set to have value=0 (normally C, which is the default).
             The root determines what value this pitch class has.
         """
-        self.value = pitch_value(name, root=root, mod=True)
+        self.value = value
         """Pitch class value, as integer chromatic distance from the root (0--11)."""
 
-        self.name = name
+        vr = PITCH_VALUES_WRT_C[root]
+        v0 = self.value + vr
+        self.name = CHROMATIC_NOTES[v0 % 12]  # TODO: correct acc based on root?
         """The note (pitch class) name."""
 
         self.root = root
@@ -103,16 +105,13 @@ class PitchClass:
 
     @classmethod
     def from_pitch(cls, p: "Pitch") -> "PitchClass":
-        return cls(p.name)
+        return cls.from_name(p.name)
 
     @classmethod
-    def from_value(cls, v: int, *, root: str = "C") -> "PitchClass":
-        # TOOD: maybe makes more sense to have value in __init__ intead and have a from_name?
-        vr = PITCH_VALUES_WRT_C[root]
-        v0 = v + vr
-        name0 = CHROMATIC_NOTES[v0 % 12]
+    def from_name(cls, name: str, *, root: str = "C") -> "PitchClass":
+        value = pitch_value(name, root=root, mod=True)
 
-        return cls(name0, root=root)
+        return cls(value, root=root)
 
     @property
     def solfege(self) -> str:
@@ -137,26 +136,26 @@ class PitchClass:
     def equivalent_sharp(self) -> "PitchClass":
         pnew = self - 1
         if len(pnew.name) == 1:
-            return PitchClass(pnew.name + "#", root=self.root)
+            return PitchClass.from_name(pnew.name + "#", root=self.root)
         else:
             pnew = self - 2
-            return PitchClass(pnew.name + "##", root=self.root)
+            return PitchClass.from_name(pnew.name + "##", root=self.root)
 
     @property
     def equivalent_flat(self) -> "PitchClass":
         pnew = self + 1
         if len(pnew.name) == 1:
-            return PitchClass(pnew.name + "b", root=self.root)
+            return PitchClass.from_name(pnew.name + "b", root=self.root)
         else:
             pnew = self + 2
-            return PitchClass(pnew.name + "bb", root=self.root)
+            return PitchClass.from_name(pnew.name + "bb", root=self.root)
 
     def with_root(self, root: str) -> "PitchClass":
         """New root."""
         v = self.value
         vr = PITCH_VALUES_WRT_C[self.root]
         vrnew = PITCH_VALUES_WRT_C[root]
-        return PitchClass.from_value((v + vr - vrnew) % 12, root=root)
+        return PitchClass((v + vr - vrnew) % 12, root=root)
 
     def to_pitch(self, octave: int) -> "Pitch":
         return Pitch(self.with_root("C").value, octave)
@@ -169,10 +168,10 @@ class PitchClass:
 
     def __add__(self, x):
         if isinstance(x, int):
-            return PitchClass.from_value(self.value + x, root=self.root)
+            return PitchClass(self.value + x, root=self.root)
         elif isinstance(x, PitchClass):
             vnew = self.value + x.with_root(self.root).value
-            return PitchClass.from_value(vnew, root=self.root)
+            return PitchClass(vnew, root=self.root)
         else:
             return NotImplemented
 
@@ -180,7 +179,7 @@ class PitchClass:
         if not isinstance(x, int):
             return NotImplemented
 
-        return PitchClass.from_value(x * self.value, root=self.root)
+        return PitchClass(x * self.value, root=self.root)
 
     def __rmul__(self, x):
         return self * x
@@ -194,7 +193,7 @@ class PitchClass:
 
 @functools.total_ordering
 class Pitch:
-    """A note value relative to C, possibly with octave specified."""
+    """A note with value relative to pitch class C and absolute value relative to C0."""
 
     # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L204-L293
     def __init__(self, value: int, octave: int):
@@ -282,7 +281,7 @@ class Pitch:
         return cls(value, octave)
 
     def to_pitch_class(self, *, root: str = "C") -> PitchClass:
-        return PitchClass(self.name, root=root)
+        return PitchClass.from_name(self.name, root=root)
 
     def __eq__(self, other):
         # Only for other Pitch instances

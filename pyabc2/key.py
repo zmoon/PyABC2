@@ -76,7 +76,7 @@ class Key:
             self.root, self.mode = Key.parse_key(name)
         else:
             assert root is not None and mode is not None, "pass either `name` or `root`+`mode`"
-            self.root = PitchClass(root)
+            self.root = PitchClass.from_name(root)
             self.mode = mode
 
     @staticmethod
@@ -106,7 +106,7 @@ class Key:
         except KeyError:
             raise ValueError("Unrecognized mode specification '{mode}' from key '{key}'")
 
-        return PitchClass(base + acc), mode
+        return PitchClass.from_name(base + acc), mode
 
     @property
     def key_signature(self) -> List[str]:  # TODO: maybe change name
@@ -141,7 +141,7 @@ class Key:
     def relative_ionian(self) -> "Key":
         key, mode = self.root, self.mode
         rel = MODE_VALUES[mode]
-        root = PitchClass.from_value((key.value + rel) % 12)
+        root = PitchClass((key.value + rel) % 12)
 
         # Select flat or sharp to match the current key name
         if "#" in key.name:
@@ -166,7 +166,7 @@ class Key:
 
         key, mode = self.root, self.mode
         rel = MODE_VALUES[mode] - MODE_VALUES["aeolian"]
-        root = PitchClass.from_value((key.value + rel) % 12)
+        root = PitchClass((key.value + rel) % 12)
 
         # Select flat or sharp to match the current key name
         if "#" in key.name:
