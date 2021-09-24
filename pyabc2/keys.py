@@ -4,7 +4,7 @@ Pitches, notes, keys and their relations
 # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L94
 import re
 import warnings
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 
 def _gen_pitch_values() -> Dict[str, int]:
@@ -85,6 +85,33 @@ FLAT_ORDER = "BEADGCF"
 _re_pitch = re.compile(r"(?P<note>[A-G])(?P<acc>\#|b)?\s*(?P<oct>\d+)?")
 
 
+def pitch_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
+    """Convert a pitch string like 'A#' (note name / pitch class)
+    to a chromatic scale value relative to root.
+    """
+    pitch = pitch.strip()
+
+    # Base value
+    val = PITCH_VALUES_WRT_C[pitch[0].upper()]
+
+    # Add any number of accidentals
+    for acc in pitch[1:]:
+        val += ACCIDENTAL_DVALUES[acc]
+
+    # Relative to root
+    if root != "C":
+        val -= pitch_value(root)
+
+    # Mod? (keep in 0--11)
+    if mod:
+        val %= 12
+
+    if not 0 <= val < 12:  # e.g., Cb, B##
+        warnings.warn("computed pitch value outside 0--11")
+
+    return val
+
+
 class PitchClass:
     """Pitch without octave specified."""
 
@@ -98,7 +125,7 @@ class PitchClass:
             The note set to have value=0 (normally C, which is the default).
             The root determines what value this pitch class has.
         """
-        self.value = Pitch.pitch_value(name, root=root)
+        self.value = pitch_value(name, root=root, mod=True)
         """Pitch class value, as integer chromatic distance from the root (0--11)."""
 
         self.name = name
@@ -121,6 +148,7 @@ class PitchClass:
 
     @classmethod
     def from_value(cls, v: int, *, root: str = "C") -> "PitchClass":
+        # TOOD: maybe makes more sense to have value in __init__ intead and have a from_name?
         vr = PITCH_VALUES_WRT_C[root]
         v0 = v + vr
         name0 = CHROMATIC_NOTES[v0 % 12]
@@ -145,6 +173,24 @@ class PitchClass:
         """Raised/lowered scale degrees expressed with +/-."""
         return CHROMATIC_SCALE_DEGREE[self.value]
 
+    @property
+    def equivalent_sharp(self) -> "PitchClass":
+        pnew = self - 1
+        if len(pnew.name) == 1:
+            return PitchClass(pnew.name + "#", root=self.root)
+        else:
+            pnew = self - 2
+            return PitchClass(pnew.name + "##", root=self.root)
+
+    @property
+    def equivalent_flat(self) -> "PitchClass":
+        pnew = self + 1
+        if len(pnew.name) == 1:
+            return PitchClass(pnew.name + "b", root=self.root)
+        else:
+            pnew = self + 2
+            return PitchClass(pnew.name + "bb", root=self.root)
+
     def with_root(self, root: str) -> "PitchClass":
         """New root."""
         v = self.value
@@ -158,117 +204,51 @@ class PitchClass:
 
         return self.value == other.with_root(self.root).value
 
+    def __add__(self, x):
+        if isinstance(x, int):
+            return PitchClass.from_value(self.value + x, root=self.root)
+        else:
+            raise NotImplementedError
 
-class Pitch:  # TODO: maybe separate relative pitch / pitch class (no octave) to simplify this one
+    def __sub__(self, x):
+        return self + -x
+
+
+class Pitch:
     """A note value relative to C, possibly with octave specified."""
 
     # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L204-L293
-    def __init__(self, value: Union[int, str, "Pitch"], octave: Optional[int] = None):
+    def __init__(self, value: int, octave: int):
         """
         Parameters
         ----------
         value
-            Relative note value OR note name OR existing Pitch instance.
+            Relative note value in a C chromatic scale.
         octave
             Octave. By default octave is treated as unspecified.
         """
-        self._name: Optional[str]
-        self._value: int
-        self._octave: Optional[int]
 
-        # if isinstance(value, Note):
-        #     self._note = value
+        doctave, value = divmod(value, 12)
 
-        #     if len(value.note) == 1:
-        #         acc = value.key.accidentals.get(value.note[0].upper(), '')
-        #         self._name = value.note.upper() + acc
-        #         self._value = self.pitch_value(self._name)
-        #     else:
-        #         self._name = value.note.capitalize()
-        #         self._value = self.pitch_value(value.note)
+        self.value = value
+        """Chromatic note value relative to C"""
 
-        #     assert octave is None
-        #     self._octave = value.octave
+        self.octave = octave + doctave
+        """Octave number (e.g., A 440 is in octave 4)."""
 
-        if isinstance(value, str):
-            self._name = value
-            self._value = self.pitch_value(value)
-            self._octave = octave
+        self.name = CHROMATIC_NOTES[self.value]
+        """Note name (pitch class)."""
 
-        elif isinstance(value, Pitch):
-            self._name = value._name
-            self._value = value._value
-            self._octave = value._octave
-
-        elif isinstance(value, int):
-            self._name = None
-            if octave is None:
-                self._value = value
-                self._octave = octave
-            else:
-                self._value = value % 12
-                self._octave = octave + (value // 12)
-
-        else:
-            raise TypeError("invalid `value`")
+    def __str__(self):
+        return f"{self.name}{self.octave}"
 
     def __repr__(self):
         return f"Pitch(name='{self.name}', value={self.value}, octave={self.octave})"
 
     @property
-    def name(self) -> str:
-        """Note name (pitch class)."""
-        if self._name is not None:
-            return self._name
-        return CHROMATIC_NOTES[self.value % 12]
-
-    @property
-    def value(self) -> int:
-        """Relative note value."""
-        return self._value
-
-    @property
-    def octave(self) -> Optional[int]:
-        """Octave."""
-        return self._octave
-
-    @property
     def abs_value(self):
-        if self.octave is None:
-            raise Exception("absolute value not meaningful with unspecified octave")
-
+        """Value relative to C0."""
         return self.value + self.octave * 12
-
-    @staticmethod
-    def pitch_value(pitch: str, root: str = "C") -> int:
-        """Convert a pitch string like "A#" to a chromatic scale value relative
-        to root.
-        """
-        pitch = pitch.strip()
-        val = PITCH_VALUES_WRT_C[pitch[0].upper()]
-        for acc in pitch[1:]:
-            val += ACCIDENTAL_DVALUES[acc]
-        if root != "C":
-            val = (val - Pitch.pitch_value(root)) % 12
-        if not 0 <= val < 12:  # e.g., Cb, B##
-            warnings.warn("computed pitch value outside 0--11")
-        return val
-
-    @property
-    def equivalent_sharp(self) -> "Pitch":
-        p = self - 1
-        if len(p.name) == 1:
-            return Pitch(p.name + "#", octave=self.octave)
-        else:
-            return Pitch((self - 2).name + "##", octave=self.octave)
-
-    @property
-    def equivalent_flat(self) -> "Pitch":
-        p = self + 1
-        if len(p.name) == 1:
-            return Pitch(p.name + "b", octave=self.octave)
-        else:
-            return Pitch((self + 2).name + "bb", octave=self.octave)
 
     @property
     def equal_temperament_frequency(self) -> float:
@@ -306,40 +286,41 @@ class Pitch:  # TODO: maybe separate relative pitch / pitch class (no octave) to
 
         return cls(value=v, octave=o)
 
-    # @classmethod
-    # def from_name(cls, name: str) -> "Pitch":
-    #     m = _re_pitch.match(name)
-    #     if m is None:
-    #         raise ValueError(f"invalid pitch name '{name}'")
+    @classmethod
+    def from_name(cls, name: str) -> "Pitch":
+        m = _re_pitch.match(name)
+        if m is None:
+            raise ValueError(f"invalid pitch name '{name}'")
 
-    #     d = m.groupdict()
-    #     base_name = d["name"]
-    #     acc = d["acc"]
-    #     octave = d["oct"]
-    #     return cls()
+        d = m.groupdict()
+        base_note_name = d["note"]
+        acc = d["acc"] if d["acc"] is not None else ""
+        octave = int(d["oct"])
+
+        name = f"{base_note_name}{acc}"
+        value = PITCH_VALUES_WRT_C[name]
+
+        return cls(value, octave)
+
+    def to_pitch_class(self, *, root: str = "C") -> PitchClass:
+        return PitchClass(self.name, root=root)
 
     def __eq__(self, other):
         # Only for other Pitch instances
-        if (self.octave is None) and (other.octave is None):
-            return self.value == other.value
-        elif (self.octave is None) ^ (other.octave is None):  # xor
-            raise Exception("comparison ambiguous since one doesn't have octave set")
-        else:
-            return self.value == other.value and self.octave == other.octave
+        if not isinstance(other, Pitch):
+            raise TypeError
+
+        return self.abs_value == other.abs_value
 
     def __add__(self, x):
         if isinstance(x, int):
-            return Pitch(self.value + x, octave=self.octave)
+            doctave, dvalue = divmod(self.value + x, 12)
+            return Pitch(self.value + dvalue, self.octave + doctave)
         else:
             raise NotImplementedError
 
     def __sub__(self, x):
         return self + -x
-
-
-if __name__ == "__main__":
-
-    assert Pitch.pitch_value("C###") == Pitch.pitch_value("Eb")
 
 
 class Key:
@@ -364,11 +345,11 @@ class Key:
             self.root, self.mode = Key.parse_key(name)
         else:
             assert root is not None and mode is not None, "pass either `name` or `root`+`mode`"
-            self.root = Pitch(root)
+            self.root = PitchClass(root)
             self.mode = mode
 
     @staticmethod
-    def parse_key(key: str) -> Tuple["Pitch", str]:
+    def parse_key(key: str) -> Tuple[PitchClass, str]:
         # # highland pipe keys
         # if key in ['HP', 'Hp']:
         #     return {'F': 1, 'C': 1, 'G': 0}
@@ -394,7 +375,7 @@ class Key:
         except KeyError:
             raise ValueError("Unrecognized mode specification '{mode}' from key '{key}'")
 
-        return Pitch(base + acc), mode
+        return PitchClass(base + acc), mode
 
     @property
     def key_signature(self) -> List[str]:  # TODO: maybe change name
@@ -429,7 +410,7 @@ class Key:
     def relative_ionian(self) -> "Key":
         key, mode = self.root, self.mode
         rel = MODE_VALUES[mode]
-        root = Pitch((key.value + rel) % 12)
+        root = PitchClass.from_value((key.value + rel) % 12)
 
         # Select flat or sharp to match the current key name
         if "#" in key.name:
@@ -454,7 +435,7 @@ class Key:
 
         key, mode = self.root, self.mode
         rel = MODE_VALUES[mode] - MODE_VALUES["aeolian"]
-        root = Pitch((key.value + rel) % 12)
+        root = PitchClass.from_value((key.value + rel) % 12)
 
         # Select flat or sharp to match the current key name
         if "#" in key.name:

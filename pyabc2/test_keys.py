@@ -3,12 +3,12 @@ Test keys module
 """
 import pytest
 
-from pyabc2.keys import Key, Pitch, PitchClass
+from pyabc2.keys import Key, Pitch, PitchClass, pitch_value
 
 
 @pytest.mark.parametrize("p", ["C", "Dbb"])
 def test_C_variants(p):
-    assert Pitch("C") == Pitch(p)
+    assert PitchClass("C") == PitchClass(p)
 
 
 @pytest.mark.parametrize(
@@ -24,7 +24,7 @@ def test_C_variants(p):
 )
 def test_pitch_value(name, expected_value):
     # using default root C
-    assert Pitch.pitch_value(name) == expected_value
+    assert pitch_value(name) == expected_value
 
 
 @pytest.mark.parametrize(
@@ -37,14 +37,14 @@ def test_pitch_value(name, expected_value):
 )
 def test_acc_outside_octave(name, expected_value):
     with pytest.warns(UserWarning):
-        p = Pitch(name)
-    assert p.value == expected_value
+        value = pitch_value(name)
+    assert value == expected_value
 
 
 def test_equiv_sharp_flat():
-    p0 = Pitch("D")
-    assert p0.equivalent_flat == Pitch("Ebb")
-    assert p0.equivalent_sharp == Pitch("C##")
+    p0 = PitchClass("D")
+    assert p0.equivalent_flat == PitchClass("Ebb")
+    assert p0.equivalent_sharp == PitchClass("C##")
 
 
 @pytest.mark.parametrize(
@@ -59,10 +59,10 @@ def test_equiv_sharp_flat():
     ],
 )
 def test_add_int_to_C(d, expected_new_name):
-    p0 = Pitch("C")
+    p0 = Pitch.from_name("C4")
     p = p0 + d
     assert p.name == expected_new_name
-    assert p.value == d
+    # assert p.value == d
 
 
 @pytest.mark.parametrize(
@@ -75,21 +75,19 @@ def test_add_int_to_C(d, expected_new_name):
     ],
 )
 def test_sub_int_from_C(d, expected_new_name):
-    p0 = Pitch("C")
+    p0 = Pitch.from_name("C4")
     p = p0 - d
     assert p.name == expected_new_name
-    assert p.value == -d
+    # assert p.value == -d
 
 
 def test_eq():
-    assert Pitch("C") == Pitch(0)
-    assert Pitch("C", 4) != Pitch("C", 3)
-    with pytest.raises(Exception):
-        Pitch("C") == Pitch("C", 4)
+    assert Pitch.from_name("C4") == Pitch(0, 4)
+    assert Pitch(0, 4) != Pitch(0, 3)
 
 
 def test_nice_names_from_values():
-    ps = [Pitch(i) for i in range(6)]
+    ps = [PitchClass.from_value(i) for i in range(6)]
     assert [p.name for p in ps] == ["C", "C#", "D", "Eb", "E", "F"]
 
 
@@ -138,12 +136,12 @@ def test_relatives():
 
 @pytest.mark.parametrize(("note", "octave", "expected_freq"), [("C", 4, 261.6256), ("A", 4, 440.0)])
 def test_etf(note, octave, expected_freq):
-    p = Pitch(note, octave=octave)
+    p = Pitch.from_name(f"{note}{octave}")
     assert p.equal_temperament_frequency == p.etf == pytest.approx(expected_freq)
 
 
 def test_pitch_from_etf():
-    Pitch.from_etf(440) == Pitch("A", octave=4)
+    Pitch.from_etf(440) == Pitch.from_name("A4")
 
 
 def test_root_changing():
