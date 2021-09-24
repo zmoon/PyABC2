@@ -141,6 +141,7 @@ class PitchClass:
     @property
     def equivalent_sharp(self) -> "PitchClass":
         pnew = self - 1
+        # TODO: currently these names just get reset with the new name property
         if len(pnew.name) == 1:
             return PitchClass.from_name(pnew.name + "#", root=self.root)
         else:
