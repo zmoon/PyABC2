@@ -361,5 +361,23 @@ class Pitch:
         return self + -x
 
 
-class Note:
+class Note(Pitch):
     """A note has a pitch and a duration."""
+
+    def __init__(self, value: int, duration: int = 1):
+
+        super().__init__(value)
+
+        self.duration = duration
+
+    def __str__(self):
+        return f"{self.name}_{self.duration}"
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(value={self.value}, duration={self.duration})"
+
+    def __eq__(self, other):
+        if not isinstance(other, Pitch):
+            return NotImplemented
+
+        return self.value == other.value and self.duration == other.duration
