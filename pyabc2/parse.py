@@ -169,7 +169,7 @@ class Tune:
         self.type = h["rhythm"]
         self.key = Key(h["key"])
 
-    def _extract_notes(self, tune_lines: List[str]):
+    def _extract_notes(self, tune_lines: List[str]) -> None:
         for line in tune_lines:
             for d in [m.groupdict() for m in _re_note.finditer(line)]:
                 # print(d["note"], d["oct"], d["num"])

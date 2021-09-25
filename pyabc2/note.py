@@ -369,6 +369,7 @@ class Note(Pitch):
         super().__init__(value)
 
         self.duration = duration
+        """Note duration, as a multiple of the base (usually one)."""
 
     def __str__(self):
         return f"{self.name}_{self.duration}"
@@ -377,7 +378,7 @@ class Note(Pitch):
         return f"{self.__class__.__name__}(value={self.value}, duration={self.duration})"
 
     def __eq__(self, other):
-        if not isinstance(other, Pitch):
+        if not isinstance(other, Note):
             return NotImplemented
 
         return self.value == other.value and self.duration == other.duration
