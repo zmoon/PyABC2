@@ -320,7 +320,7 @@ class Pitch:
         return cls(pc.with_root("C").value + octave)
 
     def to_pitch_class(self, *, root: str = "C") -> PitchClass:
-        return PitchClass.from_name(self.name, root=root)
+        return PitchClass.from_name(self.class_name, root=root)
 
     def __eq__(self, other):
         # Only for other Pitch instances
