@@ -315,6 +315,8 @@ class Pitch:
     def from_class_value(cls, value: int, octave: int) -> "Pitch":
         return cls(value + octave * 12)
 
+    # TODO: from_class_name
+
     @classmethod
     def from_pitch_class(cls, pc: PitchClass, octave: int) -> "Pitch":
         return cls(pc.with_root("C").value + octave)
@@ -361,6 +363,9 @@ class Pitch:
         return self + -x
 
 
+# TODO: make the note types hashable
+
+
 class Note(Pitch):
     """A note has a pitch and a duration."""
 
@@ -370,6 +375,8 @@ class Note(Pitch):
 
         self.duration = duration
         """Note duration, as a multiple of the base (usually one)."""
+
+        # TODO: could use fractions.Fraction for the duration or the base (=1) duration
 
     def __str__(self):
         return f"{self.name}_{self.duration}"

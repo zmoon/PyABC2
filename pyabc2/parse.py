@@ -2,9 +2,10 @@
 ABC parsing/info
 """
 import re
-from typing import Dict, List, NamedTuple
+from typing import Dict, List, NamedTuple, Optional
 
 from .key import Key
+from .note import Note, pitch_class_value
 
 
 class InfoField(NamedTuple):
@@ -122,7 +123,7 @@ class Tune:
         self.header: Dict[str, str]
         """Information contained in the tune header."""
 
-        self.title: str
+        self.title: Optional[str] = None
         """Tune title."""
 
         self.type: str
@@ -130,6 +131,8 @@ class Tune:
 
         self.key: Key
         """Key object corresponding to the tune's key."""
+
+        self.measures: List[List[Note]]
 
         self._parse_abc()
 
@@ -155,6 +158,7 @@ class Tune:
 
         self._parse_abc_header_lines(header_lines)
         self._extract_notes(tune_lines)
+        self._extract_measures(tune_lines)
 
     def _parse_abc_header_lines(self, header_lines: List[str]) -> None:
         h = {}
@@ -173,7 +177,70 @@ class Tune:
         for line in tune_lines:
             for d in [m.groupdict() for m in _re_note.finditer(line)]:
                 # print(d["note"], d["oct"], d["num"])
-                print(d)
+                # print(d)
+                pass
+
+    def _extract_measures(self, tune_lines: List[str]) -> None:
+        i_measure = i_measure_repeat = 0
+        measures = []
+        for line in tune_lines:
+
+            if line.startswith("|:"):
+                # Left repeat detected -- save start measure for tune extension
+                i_measure_repeat = i_measure
+
+            # In line, find measures
+            for m_measure in re.finditer(r"([^\|\:]+)(\:?\|+\:?)", line):
+                within_measure, right_sep = m_measure.groups()
+
+                if right_sep.endswith(":"):
+                    # Left repeat detected within line
+                    i_measure_repeat = i_measure + 1
+
+                # if right_sep == "||":
+                #     print("soft end")
+
+                measure = []
+
+                # In measure, find note groups
+                # Currently not doing anything with note group, but may want to in the future
+                for note_group in within_measure.split(" "):
+
+                    # In note group, find notes
+                    for m_note in _re_note.finditer(note_group):
+
+                        if m_note is None:
+                            raise ValueError(f"no notes in this note group? {note_group!r}")
+
+                        d = m_note.groupdict()
+
+                        class_name = d["note"]
+
+                        # Compute octave
+                        oct_base = 4 if class_name.isupper() else 5
+                        octave = oct_base + d["oct"].count("'") - d["oct"].count(",")
+
+                        # Compute value
+                        value = pitch_class_value(class_name.upper()) + 12 * octave
+
+                        # Determine duration
+                        duration = int(d["num"]) if d["num"] is not None else 1
+
+                        measure.append(Note(value, duration))
+
+                measures.append(measure)
+
+                # print(" ".join(str(n) for n in measure))
+
+                if right_sep.startswith(":"):
+                    # Right repeat detected -- extend tune from the last left repeat
+                    repeated = measures[i_measure_repeat:]
+                    measures.extend(repeated)
+                    i_measure += len(repeated)
+
+                i_measure += 1
+
+        self.measures = measures
 
     def __repr__(self):
         return (
