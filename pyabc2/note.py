@@ -389,3 +389,7 @@ class Note(Pitch):
             return NotImplemented
 
         return self.value == other.value and self.duration == other.duration
+
+    # TODO: to/from ABC methods
+
+    # TODO: some other to methods
