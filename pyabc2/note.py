@@ -6,7 +6,7 @@ Pitch class (e.g., C), Pitch (e.g., C4), Note (pitch + duration), ...
 import functools
 import re
 import warnings
-from typing import Dict
+from typing import Dict, Optional
 
 
 def _gen_pitch_values() -> Dict[str, int]:
@@ -366,6 +366,38 @@ class Pitch:
 # TODO: make the note types hashable
 
 
+_s_re_note = (
+    r"(?P<acc>\^|\^\^|=|_|__)?"
+    r"(?P<note>[a-gA-G])"
+    r"(?P<oct>[,']*)"
+    r"(?P<num>[0-9]+)?"
+    r"(?P<slash>/+)?"
+    r"(?P<den>\d+)?"
+)
+_re_note = re.compile(_s_re_note)
+
+_OCTAVE_BASE_DEFAULT = 4
+
+_ACCIDENTAL_TO_ABC = {"#": "^", "b": "_"}
+
+
+def _octave_from_abc_parts(note: str, oct: Optional[str] = None, *, base: int = 4):
+    """
+    Parameters
+    ----------
+    base
+        The octave number of the uppercase notes with no `,` or `'` (C, D, E, F, ...).
+    """
+    doctave_from_case = 0 if note.isupper() else 1
+    if oct is not None:
+        doctave_plus = oct.count("'")
+        doctave_minus = oct.count(",")
+    else:
+        doctave_plus = doctave_minus = 0
+
+    return base + doctave_from_case + doctave_plus - doctave_minus
+
+
 class Note(Pitch):
     """A note has a pitch and a duration."""
 
@@ -390,6 +422,70 @@ class Note(Pitch):
 
         return self.value == other.value and self.duration == other.duration
 
-    # TODO: to/from ABC methods
+    # TODO: deal with key / key signature
+    @classmethod
+    def from_abc(cls, abc: str, *, octave_base: int = _OCTAVE_BASE_DEFAULT):
+        m = _re_note.match(abc)
+        return cls._from_abc_match(m, octave_base=octave_base)
+
+    @classmethod
+    def _from_abc_match(
+        cls, m: Optional[re.Match[str]], *, octave_base: int = _OCTAVE_BASE_DEFAULT
+    ):
+        if m is None:
+            raise ValueError("invalid ABC note specification")
+            # TODO: would be nice to have the input string in this error message
+
+        g = m.groupdict()
+
+        note = g["note"]
+        octave_marks = g["oct"]
+        acc_marks = g["acc"]
+
+        octave = _octave_from_abc_parts(note, octave_marks, base=octave_base)
+        class_name = note.upper()
+
+        # Compute value
+        dvalue_acc = 0 if acc_marks is None else acc_marks.count("^") - acc_marks.count("_")
+        value = pitch_class_value(class_name) + 12 * octave + dvalue_acc
+
+        # Determine duration
+        if g["slash"] is not None:
+            raise ValueError("only whole multiples of L supported at this time")
+        duration = int(g["num"]) if g["num"] is not None else 1
+
+        return cls(value, duration)
+
+    def to_abc(self, *, octave_base: int = _OCTAVE_BASE_DEFAULT):
+        octave = self.octave
+        note_name = self.class_name
+
+        # Accidental(s). Hack for now
+        # TODO: add some accidental properties and stuff to PitchClass
+        if len(note_name) == 1:
+            note_nat = note_name
+            acc = ""
+        elif len(note_name) == 2:
+            note_nat = note_name[0]
+            acc = _ACCIDENTAL_TO_ABC[note_name[1]]
+        else:
+            raise NotImplementedError(r"note name longer than 2 chars {note_name!r}")
+
+        # Lowercase letter if in 2nd octave or more
+        if octave > octave_base:
+            note_nat = note_nat.lower()
+
+        # Octave marks
+        if octave < octave_base:
+            octave_marks = "," * (octave_base - octave)
+        elif octave in (octave_base, octave_base + 1):
+            octave_marks = ""
+        else:
+            octave_marks = "'" * (octave - octave_base + 1)
+
+        # Duration
+        duration = self.duration
+
+        return f"{acc}{note_nat}{octave_marks}{duration}"
 
     # TODO: some other to methods

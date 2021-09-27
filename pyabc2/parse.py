@@ -5,7 +5,7 @@ import re
 from typing import Dict, List, NamedTuple, Optional
 
 from .key import Key
-from .note import Note, pitch_class_value
+from .note import Note, _re_note
 
 
 class InfoField(NamedTuple):
@@ -96,17 +96,7 @@ TUNE_BODY_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_b
 TUNE_INLINE_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_inline}
 
 
-_s_re_note = (
-    r"(?P<acc>\^|\^\^|=|_|__)?"
-    r"(?P<note>[a-gA-G])"
-    r"(?P<oct>[,']*)"
-    r"(?P<num>[0-9]+)?"
-    r"(?P<slash>/+)?"
-    r"(?P<den>\d+)?"
-)
-_re_note = re.compile(_s_re_note)
-
-
+# TODO: maybe should go in a tune module
 class Tune:
     """Tune."""
 
@@ -212,21 +202,7 @@ class Tune:
                         if m_note is None:
                             raise ValueError(f"no notes in this note group? {note_group!r}")
 
-                        d = m_note.groupdict()
-
-                        class_name = d["note"]
-
-                        # Compute octave
-                        oct_base = 4 if class_name.isupper() else 5
-                        octave = oct_base + d["oct"].count("'") - d["oct"].count(",")
-
-                        # Compute value
-                        value = pitch_class_value(class_name.upper()) + 12 * octave
-
-                        # Determine duration
-                        duration = int(d["num"]) if d["num"] is not None else 1
-
-                        measure.append(Note(value, duration))
+                        measure.append(Note._from_abc_match(m_note))
 
                 measures.append(measure)
 
