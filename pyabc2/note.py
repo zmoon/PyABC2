@@ -82,7 +82,7 @@ class Note(Pitch):
         octave_base: int = _OCTAVE_BASE_DEFAULT,
     ):
         # `re.Match[str]` seems to work only in 3.9+ ?
-        # TOOD: key could be a string or Key instance to make it simpler?
+        # TODO: key could be a string or Key instance to make it simpler?
         if m is None:
             raise ValueError("invalid ABC note specification")
             # TODO: would be nice to have the input string in this error message

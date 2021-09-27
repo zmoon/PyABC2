@@ -1,5 +1,5 @@
 """
-Test the note module
+Test the pitch and note modules
 """
 import pytest
 
