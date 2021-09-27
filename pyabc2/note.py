@@ -153,4 +153,11 @@ class Note(Pitch):
 
         return f"{acc}{note_nat}{octave_marks}{s_duration}"
 
-    # TODO: some other to methods
+    def to_pitch(self) -> Pitch:
+        return Pitch(self.value)
+
+    @classmethod
+    def from_pitch(cls, p: Pitch, *, duration: int = 1) -> "Note":
+        return cls(p.value, duration)
+
+    # TODO: mark inherited from_* methods from Pitch as not implemented?

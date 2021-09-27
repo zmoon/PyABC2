@@ -325,6 +325,11 @@ class Pitch:
     def to_pitch_class(self, *, root: str = "C") -> PitchClass:
         return PitchClass.from_name(self.class_name, root=root)
 
+    def to_note(self, *, duration: int = 1):
+        from .note import Note
+
+        return Note(self.value, duration=duration)
+
     def __eq__(self, other):
         # Only for other Pitch instances
         if not isinstance(other, self.__class__):
