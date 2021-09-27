@@ -149,7 +149,8 @@ class Note(Pitch):
 
         # Duration
         duration = self.duration
+        s_duration = "" if duration == 1 else str(duration)  # duration is 1 implied so not needed
 
-        return f"{acc}{note_nat}{octave_marks}{duration}"
+        return f"{acc}{note_nat}{octave_marks}{s_duration}"
 
     # TODO: some other to methods

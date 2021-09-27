@@ -223,11 +223,11 @@ class Tune:
             f"{self.__class__.__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
         )
 
-
-if __name__ == "__main__":
-    for k, info in INFO_FIELDS.items():
-        if k == "G":
-            break
-        print(f"{k} => {info}")
-
-    print(TUNE_INLINE_FIELD_KEYS)
+    def print_measures(self, *, note_format: str = "ABC"):
+        """Print measures to check parsing."""
+        nd = len(str(len(self.measures)))
+        for i, measure in enumerate(self.measures, start=1):
+            if note_format == "ABC":
+                print(f"{i:0{nd}d}: {' '.join(n.to_abc(key=self.key) for n in measure)}")
+            else:
+                raise ValueError(f"invalid note format {note_format!r}")
