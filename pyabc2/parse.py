@@ -2,7 +2,7 @@
 ABC parsing/info
 """
 import re
-from typing import Dict, List, NamedTuple, Optional
+from typing import Dict, Iterator, List, NamedTuple, Optional
 
 from .key import Key
 from .note import Note, _re_note
@@ -231,3 +231,7 @@ class Tune:
                 print(f"{i:0{nd}d}: {' '.join(n.to_abc(key=self.key) for n in measure)}")
             else:
                 raise ValueError(f"invalid note format {note_format!r}")
+
+    def iter_notes(self) -> Iterator[Note]:
+        """Iterator (generator) for `Note`s of the tune."""
+        return (n for m in self.measures for n in m)
