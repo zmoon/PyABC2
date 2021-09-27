@@ -3,7 +3,9 @@ Test the note module
 """
 import pytest
 
-from pyabc2.note import Note, Pitch, PitchClass, pitch_class_value
+from pyabc2.key import Key
+from pyabc2.note import Note
+from pyabc2.pitch import Pitch, PitchClass, pitch_class_value
 
 
 @pytest.mark.parametrize(
@@ -147,6 +149,12 @@ def test_note_from_abc(abc, expected_str_rep):
     assert str(Note.from_abc(abc)) == expected_str_rep
 
 
+def test_note_from_abc_key():
+    assert Note.from_abc("F", key=Key("D")) == Note.from_abc("^F")
+
+
 def test_note_to_from_abc_consistency():
     n = Note(49, duration=2)
     assert Note.from_abc(n.to_abc()) == n
+
+    assert Note.from_abc(n.to_abc(key=Key("C#")), key=Key("C#")) == n

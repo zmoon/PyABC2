@@ -5,7 +5,7 @@ Key (e.g., G, Em, Ador)
 import re
 from typing import Dict, List, Optional, Tuple
 
-from .note import PitchClass
+from .pitch import PitchClass
 
 MODE_VALUES = {
     "major": 0,
