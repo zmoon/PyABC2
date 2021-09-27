@@ -147,7 +147,6 @@ class Tune:
                     header_lines[-1] += " " + line[2:]
 
         self._parse_abc_header_lines(header_lines)
-        self._extract_notes(tune_lines)
         self._extract_measures(tune_lines)
 
     def _parse_abc_header_lines(self, header_lines: List[str]) -> None:
@@ -163,23 +162,17 @@ class Tune:
         self.type = h["rhythm"]
         self.key = Key(h["key"])
 
-    def _extract_notes(self, tune_lines: List[str]) -> None:
-        for line in tune_lines:
-            for d in [m.groupdict() for m in _re_note.finditer(line)]:
-                # print(d["note"], d["oct"], d["num"])
-                # print(d)
-                pass
-
     def _extract_measures(self, tune_lines: List[str]) -> None:
+        # 0. Lines
         i_measure = i_measure_repeat = 0
         measures = []
         for line in tune_lines:
 
             if line.startswith("|:"):
-                # Left repeat detected -- save start measure for tune extension
+                # Left repeat detected -- new starting measure for a repeated section
                 i_measure_repeat = i_measure
 
-            # In line, find measures
+            # 1. In line, find measures
             for m_measure in re.finditer(r"([^\|\:]+)(\:?\|+\:?)", line):
                 within_measure, right_sep = m_measure.groups()
 
@@ -187,16 +180,13 @@ class Tune:
                     # Left repeat detected within line
                     i_measure_repeat = i_measure + 1
 
-                # if right_sep == "||":
-                #     print("soft end")
-
                 measure = []
 
-                # In measure, find note groups
+                # 2. In measure, find note groups
                 # Currently not doing anything with note group, but may want to in the future
                 for note_group in within_measure.split(" "):
 
-                    # In note group, find notes
+                    # 3. In note group, find notes
                     for m_note in _re_note.finditer(note_group):
 
                         if m_note is None:
@@ -205,8 +195,6 @@ class Tune:
                         measure.append(Note._from_abc_match(m_note))
 
                 measures.append(measure)
-
-                # print(" ".join(str(n) for n in measure))
 
                 if right_sep.startswith(":"):
                     # Right repeat detected -- extend tune from the last left repeat
