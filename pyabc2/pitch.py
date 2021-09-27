@@ -325,24 +325,24 @@ class Pitch:
 
     def __eq__(self, other):
         # Only for other Pitch instances
-        if not isinstance(other, Pitch):
+        if not isinstance(other, self.__class__):
             return NotImplemented
 
         return self.value == other.value
 
     def __lt__(self, other):
         # Only for other Pitch instances
-        if not isinstance(other, Pitch):
+        if not isinstance(other, self.__class__):
             return NotImplemented
 
         return self.value < other.value
 
     def __add__(self, x):
         if isinstance(x, int):
-            return Pitch(self.value + x)
-        elif isinstance(x, Pitch):
+            return self.__class__(self.value + x)
+        elif isinstance(x, self.__class__):
             # Adding chromatic-value-wise, not frequency-wise!
-            return Pitch(self.value + x.value)
+            return self.__class__(self.value + x.value)
         else:
             return NotImplemented
 
@@ -350,7 +350,7 @@ class Pitch:
         if not isinstance(x, int):
             return NotImplemented
 
-        return Pitch(x * self.value)
+        return self.__class__(x * self.value)
 
     def __rmul__(self, x):
         return self * x
