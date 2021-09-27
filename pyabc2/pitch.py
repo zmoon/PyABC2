@@ -118,6 +118,8 @@ class PitchClass:
 
         return cls(value, root=root)
 
+    # TODO: scale degree and such for any mode?
+
     @property
     def solfege(self) -> str:
         """Solfege symbol. Accidentals allowed."""
