@@ -77,7 +77,7 @@ def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
 
 
 class PitchClass:
-    """Pitch without octave specified."""
+    """Pitch without octave."""
 
     def __init__(self, value: int, *, root: str = "C"):
         """
@@ -202,7 +202,7 @@ class PitchClass:
 # TODO: .from_name as alias for .from_spn / .from_scientific_pitch_notation
 @functools.total_ordering
 class Pitch:
-    """A note with value relative to pitch class C and absolute value relative to C0."""
+    """A pitch with value relative to C0."""
 
     # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L204-L293
     def __init__(self, value: int):
