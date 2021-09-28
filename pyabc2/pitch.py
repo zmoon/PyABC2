@@ -101,6 +101,8 @@ def _to_roman(n: int) -> str:
 class PitchClass:
     """Pitch without octave."""
 
+    # TODO: rooting can be done easily by just subtracting from an instance, so `root` not needed?
+
     def __init__(self, value: int, *, root: str = "C"):
         """
         Parameters

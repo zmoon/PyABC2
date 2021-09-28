@@ -46,5 +46,6 @@ def test_key_sig():
 def test_relatives():
     Am = Key("Am")
     C = Key("C")
-    assert Am.relative_ionian == Am.relative_major == C
-    assert C.relative_aeolian == C.relative_minor == Am
+    assert Am.relative("ionian") == Am.relative_major == C
+    assert C.relative("aeolian") == C.relative_minor == Am
+    assert Key("Ador").relative_major == Key("G")

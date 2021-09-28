@@ -185,7 +185,7 @@ class Key:
         """
         # determine number of sharps/flats for this key by first converting
         # to ionian, then doing the key lookup
-        key = self.relative_ionian
+        key = self.relative_major
         num_acc = IONIAN_SHARPFLAT_COUNT[key.root.name]
 
         sig = []
@@ -206,53 +206,30 @@ class Key:
         """
         return {p: a for p, a in self.key_signature}  # type: ignore[misc, has-type]
 
-    @property
-    def relative_ionian(self) -> "Key":
-        key, mode = self.root, self.mode
-        rel = MODE_VALUES[mode]
+    def relative(self, mode: str) -> "Key":
+        key, mode0 = self.root, self.mode
+        rel = MODE_VALUES[mode0] - MODE_VALUES[mode]
         root = PitchClass((key.value + rel) % 12)
 
         # Select flat or sharp to match the current key name
         if "#" in key.name:
             root2 = root.equivalent_sharp
-            if len(root2.name) == 2:
+            if len(root2.name) == 2:  # sharp used
                 root = root2
         elif "b" in key.name:
             root2 = root.equivalent_flat
-            if len(root2.name) == 2:
+            if len(root2.name) == 2:  # flat used
                 root = root2
 
-        return Key(root=root.name, mode="ionian")
+        return Key(root=root.name, mode=mode)
 
     @property
     def relative_major(self) -> "Key":
-        """Alias for relative_ionian."""
-        return self.relative_ionian
-
-    @property
-    def relative_aeolian(self) -> "Key":
-        # TODO: DRY (possibly make method that can do any relative mode)
-
-        key, mode = self.root, self.mode
-        rel = MODE_VALUES[mode] - MODE_VALUES["aeolian"]
-        root = PitchClass((key.value + rel) % 12)
-
-        # Select flat or sharp to match the current key name
-        if "#" in key.name:
-            root2 = root.equivalent_sharp
-            if len(root2.name) == 2:
-                root = root2
-        elif "b" in key.name:
-            root2 = root.equivalent_flat
-            if len(root2.name) == 2:
-                root = root2
-
-        return Key(root=root.name, mode="aeolian")
+        return self.relative("major")
 
     @property
     def relative_minor(self) -> "Key":
-        """Alias for relative_aeolian."""
-        return self.relative_aeolian
+        return self.relative("minor")
 
     @property
     def scale(self) -> List[PitchClass]:
