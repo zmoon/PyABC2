@@ -44,6 +44,10 @@ _DEFAULT_KEY = Key("Cmaj")
 _DEFAULT_UNIT_DURATION = Fraction("1/8")
 
 
+def _raise_not_implemented_error():
+    raise NotImplementedError
+
+
 class Note(Pitch):
     """A note has a pitch and a duration."""
 
@@ -180,11 +184,12 @@ class Note(Pitch):
 
         return f"{acc}{note_nat}{octave_marks}{s_duration}"
 
-    def to_pitch(self) -> Pitch:
-        return Pitch(self.value)
-
     @classmethod
     def from_pitch(cls, p: Pitch, *, duration: Fraction = _DEFAULT_UNIT_DURATION) -> "Note":
         return cls(p.value, duration)
 
-    # TODO: mark inherited from_* methods from Pitch as not implemented?
+    def to_pitch(self) -> Pitch:
+        return Pitch(self.value)
+
+    # Hack for now to block these inherited constructors that don't support unit duration input
+    from_class_value = from_etf = from_name = from_pitch_class = _raise_not_implemented_error  # type: ignore[assignment]
