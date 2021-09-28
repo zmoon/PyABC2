@@ -5,7 +5,8 @@ Pitch class (e.g., C), Pitch (e.g., C4)
 import functools
 import re
 import warnings
-from typing import Dict
+from fractions import Fraction
+from typing import Dict, Optional
 
 
 def _gen_pitch_values() -> Dict[str, int]:
@@ -325,8 +326,11 @@ class Pitch:
     def to_pitch_class(self, *, root: str = "C") -> PitchClass:
         return PitchClass.from_name(self.class_name, root=root)
 
-    def to_note(self, *, duration: int = 1):
-        from .note import Note
+    def to_note(self, *, duration: Optional[Fraction] = None):
+        from .note import _DEFAULT_UNIT_DURATION, Note
+
+        if duration is None:
+            duration = _DEFAULT_UNIT_DURATION
 
         return Note(self.value, duration=duration)
 

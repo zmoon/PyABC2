@@ -2,6 +2,7 @@
 Note class (pitch + duration)
 """
 import re
+from fractions import Fraction
 from typing import Optional
 
 from .key import Key
@@ -17,7 +18,6 @@ _s_re_note = (
 )
 _re_note = re.compile(_s_re_note)
 
-_OCTAVE_BASE_DEFAULT = 4
 
 _ACCIDENTAL_TO_ABC = {"#": "^", "b": "_"}
 
@@ -39,18 +39,20 @@ def _octave_from_abc_parts(note: str, oct: Optional[str] = None, *, base: int = 
     return base + doctave_from_case + doctave_plus - doctave_minus
 
 
+_OCTAVE_BASE_DEFAULT = 4
 _DEFAULT_KEY = Key("Cmaj")
+_DEFAULT_UNIT_DURATION = Fraction("1/8")
 
 
 class Note(Pitch):
     """A note has a pitch and a duration."""
 
-    def __init__(self, value: int, duration: int = 1):
+    def __init__(self, value: int, duration: Fraction = _DEFAULT_UNIT_DURATION):
 
         super().__init__(value)
 
         self.duration = duration
-        """Note duration, as a multiple of the base (usually one)."""
+        """Note duration. By default, 1/8, an eighth note."""
 
         # TODO: could use fractions.Fraction for the duration or the base (=1) duration
 
@@ -68,10 +70,15 @@ class Note(Pitch):
 
     @classmethod
     def from_abc(
-        cls, abc: str, *, key: Key = _DEFAULT_KEY, octave_base: int = _OCTAVE_BASE_DEFAULT
+        cls,
+        abc: str,
+        *,
+        key: Key = _DEFAULT_KEY,
+        octave_base: int = _OCTAVE_BASE_DEFAULT,
+        unit_duration: Fraction = _DEFAULT_UNIT_DURATION,
     ):
         m = _re_note.match(abc)
-        return cls._from_abc_match(m, octave_base=octave_base, key=key)
+        return cls._from_abc_match(m, key=key, octave_base=octave_base, unit_duration=unit_duration)
 
     @classmethod
     def _from_abc_match(
@@ -80,6 +87,7 @@ class Note(Pitch):
         *,
         key: Key = _DEFAULT_KEY,
         octave_base: int = _OCTAVE_BASE_DEFAULT,
+        unit_duration: Fraction = _DEFAULT_UNIT_DURATION,
     ):
         # `re.Match[str]` seems to work only in 3.9+ ?
         # TODO: key could be a string or Key instance to make it simpler?
@@ -111,17 +119,33 @@ class Note(Pitch):
 
         # Determine duration
         if g["slash"] is not None:
-            raise ValueError("only whole multiples of L supported at this time")
-        duration = int(g["num"]) if g["num"] is not None else 1
+            # raise ValueError("only whole multiples of L supported at this time")
+            if g["num"] is None and g["den"] is None:
+                # Special case: `/` as shorthand for 1/2
+                relative_duration = Fraction("1/2") ** g["slash"].count("/")
+            elif g["den"] is not None:
+                # When only denominator, numerator 1 is assumed
+                assert g["slash"] == "/", "there should only be one `/` when denominator is used"
+                relative_duration = Fraction(f"1/{g['den']}")
+            else:
+                raise ValueError("invalid relative duration spec.")
+        else:
+            relative_duration = Fraction(g["num"]) if g["num"] is not None else Fraction(1)
 
-        return cls(value, duration)
+        return cls(value, relative_duration * unit_duration)
 
-    def to_abc(self, *, key: Key = _DEFAULT_KEY, octave_base: int = _OCTAVE_BASE_DEFAULT):
+    def to_abc(
+        self,
+        *,
+        key: Key = _DEFAULT_KEY,
+        octave_base: int = _OCTAVE_BASE_DEFAULT,
+        unit_duration: Fraction = _DEFAULT_UNIT_DURATION,
+    ):
         octave = self.octave
         note_name = self.class_name
 
         # Accidental(s). Hack for now
-        # TODO: add some accidental properties and stuff to PitchClass
+        # TODO: add some accidental properties and stuff to PitchClass?
         if len(note_name) == 1:
             note_nat = note_name
             acc = ""
@@ -148,8 +172,13 @@ class Note(Pitch):
             octave_marks = "'" * (octave - octave_base + 1)
 
         # Duration
-        duration = self.duration
-        s_duration = "" if duration == 1 else str(duration)  # duration is 1 implied so not needed
+        relative_duration = self.duration / unit_duration
+        if relative_duration == 1:
+            s_duration = ""  # relative duration 1 is implied so not needed
+        elif relative_duration.numerator == 1:
+            s_duration = f"/{relative_duration.denominator}"  # numerator 1 implied so not needed
+        else:
+            s_duration = str(relative_duration)
 
         return f"{acc}{note_nat}{octave_marks}{s_duration}"
 
@@ -157,7 +186,7 @@ class Note(Pitch):
         return Pitch(self.value)
 
     @classmethod
-    def from_pitch(cls, p: Pitch, *, duration: int = 1) -> "Note":
+    def from_pitch(cls, p: Pitch, *, duration: Fraction = _DEFAULT_UNIT_DURATION) -> "Note":
         return cls(p.value, duration)
 
     # TODO: mark inherited from_* methods from Pitch as not implemented?

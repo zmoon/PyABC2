@@ -137,12 +137,20 @@ def test_pitch_to_pitch_class():
 @pytest.mark.parametrize(
     ("abc", "expected_str_rep"),
     [
-        ("C", "C4_1"),
-        ("C,,", "C2_1"),
-        ("C,,'", "C3_1"),
-        ("_B,2,", "Bb3_2"),
-        ("^f", "F#5_1"),
-        ("^^f',,3", "G4_3"),
+        # Octave
+        ("C", "C4_1/8"),
+        ("C,,", "C2_1/8"),
+        ("C,,'", "C3_1/8"),
+        #
+        # Accidentals
+        ("_B,2,", "Bb3_1/4"),
+        ("^f", "F#5_1/8"),
+        ("^^f',,3", "G4_3/8"),
+        #
+        # Relative duration
+        ("C/", "C4_1/16"),
+        ("C//", "C4_1/32"),
+        ("C/3", "C4_1/24"),
     ],
 )
 def test_note_from_abc(abc, expected_str_rep):
