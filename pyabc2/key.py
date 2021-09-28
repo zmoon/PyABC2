@@ -3,6 +3,7 @@ Key (e.g., G, Em, Ador)
 """
 # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L94
 import re
+import warnings
 from typing import Dict, List, Optional, Tuple
 
 from .pitch import PitchClass
@@ -31,6 +32,70 @@ def _mode_is_equiv(m1: str, m2: str) -> bool:
     return MODE_VALUES[m1] == MODE_VALUES[m2]
 
 
+CHROMATIC_VALUES_IN_MAJOR = [0, 2, 4, 5, 7, 9, 11]
+
+MODE_SCALE_DEGREE = {
+    "major": 1,
+    "ionian": 1,
+    "dorian": 2,
+    "phrygian": 3,
+    "lydian": 4,
+    "mixolydian": 5,
+    "minor": 6,
+    "aeolian": 6,
+    "locrian": 7,
+}
+"""Scale degree of the major scale that we would set as the tonic to get the given mode.
+For example, if we start on A within the context of the C major scale (scale degree 6),
+we get A minor.
+"""
+
+
+def _scale_chromatic_values(mode: str) -> List[int]:
+    i = MODE_SCALE_DEGREE[mode]
+    i0 = i - 1
+
+    vs_wrt_major = CHROMATIC_VALUES_IN_MAJOR[i0:] + CHROMATIC_VALUES_IN_MAJOR[:i0]
+    dv = MODE_VALUES[mode]
+
+    return [(v + dv) % 12 for v in vs_wrt_major]
+
+
+def _scale_intervals(
+    values: List[int],
+    *,
+    include_upper: bool = True,
+) -> List[str]:
+    """Return list of intervals ('W' or 'H').
+
+    Parameters
+    ----------
+    values
+        Chromatic values (7 of them).
+    include_upper : bool, optional
+        Whether to return 7 intervals by computing the interval from scale degree 7 to 8,
+        by default True.
+    """
+    assert len(values) == 7
+
+    if include_upper:
+        values.append(12)
+
+    intervals = []
+    for v1, v2 in zip(values[:-1], values[1:]):
+        dv = v2 - v1
+        if dv == 2:
+            interval = "W"
+        elif dv == 1:
+            interval = "H"
+        else:
+            raise ValueError("strange interval (not W/H)")
+        intervals.append(interval)
+    # TODO: should make a class for interval!
+
+    return intervals
+
+
 IONIAN_SHARPFLAT_COUNT = {
     "C#": 7,
     "F#": 6,
@@ -50,8 +115,8 @@ IONIAN_SHARPFLAT_COUNT = {
 }
 """Dict. mapping chromatic note to the number of flats/sharps in its Ionian mode."""
 
-SHARP_ORDER = "FCGDAEB"
-FLAT_ORDER = "BEADGCF"
+SHARP_ORDER = list("FCGDAEB")
+FLAT_ORDER = list("BEADGCF")
 
 
 class Key:
@@ -90,6 +155,8 @@ class Key:
         if m is None:
             raise ValueError(f"Invalid key specification '{key}'")
         base, acc, mode, extra = m.groups()
+        if extra != "":
+            warnings.warn(f"extra info {extra!r} in key spec {key!r} ignored")
 
         if acc is None:
             acc = ""
@@ -108,6 +175,7 @@ class Key:
             raise ValueError("Unrecognized mode specification '{mode}' from key '{key}'")
 
         return PitchClass.from_name(base + acc), mode
+        # TODO: probably should either return a Key or be private / maybe outside class
 
     @property
     def key_signature(self) -> List[str]:  # TODO: maybe change name
@@ -185,6 +253,18 @@ class Key:
     def relative_minor(self) -> "Key":
         """Alias for relative_aeolian."""
         return self.relative_aeolian
+
+    @property
+    def scale(self) -> List[PitchClass]:
+        """Notes (pitch classes) of the scale."""
+        pc1 = self.root
+        return [pc1 + v for v in _scale_chromatic_values(self.mode)]
+
+    def print_scale(self) -> None:
+        print(" ".join(str(pc) for pc in self.scale))
+
+    # TODO: scale as scale degrees in the major context
+    # TODO: scale cf. major/minor?
 
     def __str__(self):
         return f"{self.root.name}{self.mode[:3]}"

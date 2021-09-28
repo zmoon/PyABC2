@@ -37,9 +37,6 @@ CHROMATIC_SOLFEGE = ["Do", "Di", "Re", "Me", "Mi", "Fa", "Fi", "Sol", "Le", "La"
 
 CHROMATIC_SCALE_DEGREE = ["1", "#1", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
 
-CHROMATIC_VALUES_IN_MAJOR = {0, 2, 4, 5, 7, 9, 11}
-# TODO: for any mode
-
 
 _S_RE_PITCH_CLASS = r"[A-G][\#b]*"
 _RE_PITCH_CLASS = re.compile(_S_RE_PITCH_CLASS)
@@ -153,6 +150,8 @@ class PitchClass:
     @property
     def scale_degree(self) -> int:
         """Scale degree within the root's Ionian scale."""
+        from .key import CHROMATIC_VALUES_IN_MAJOR
+
         if self.value not in CHROMATIC_VALUES_IN_MAJOR:
             raise Exception(f"{self} is not in {self.root}'s major scale")
 
