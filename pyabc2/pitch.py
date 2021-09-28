@@ -38,10 +38,10 @@ CHROMATIC_VALUES_IN_MAJOR = {0, 2, 4, 5, 7, 9, 11}
 # TODO: for any mode
 
 
-_s_re_pitch_class = r"[A-G][\#b]*"
-_re_pitch_class = re.compile(_s_re_pitch_class)
-# _s_re_pitch_class_one_acc = r"[A-G][\#|b]?"
-_re_pitch = re.compile(rf"(?P<pitch_class>{_s_re_pitch_class})\s*(?P<octave>[0-9]+)")
+_S_RE_PITCH_CLASS = r"[A-G][\#b]*"
+_RE_PITCH_CLASS = re.compile(_S_RE_PITCH_CLASS)
+# _S_RE_PITCH_CLASS_ONE_ACC = r"[A-G][\#|b]?"
+_RE_PITCH = re.compile(rf"(?P<pitch_class>{_S_RE_PITCH_CLASS})" r"\s*" r"(?P<octave>[0-9]+)")
 
 
 def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
@@ -50,7 +50,7 @@ def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
     """
     pitch = pitch.strip()
 
-    if not _re_pitch_class.fullmatch(pitch):
+    if not _RE_PITCH_CLASS.fullmatch(pitch):
         raise ValueError(f"invalid pitch class specification '{pitch}'")
 
     # Base value
@@ -301,7 +301,7 @@ class Pitch:
         """
         name = name.strip()
 
-        m = _re_pitch.fullmatch(name)
+        m = _RE_PITCH.fullmatch(name)
         if m is None:
             raise ValueError(f"invalid pitch name '{name}'")
 

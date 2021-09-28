@@ -8,15 +8,15 @@ from typing import Optional
 from .key import Key
 from .pitch import ACCIDENTAL_DVALUES, Pitch, pitch_class_value
 
-_s_re_note = (
+_S_RE_NOTE = (
     r"(?P<acc>\^|\^\^|=|_|__)?"
     r"(?P<note>[a-gA-G])"
     r"(?P<oct>[,']*)"
     r"(?P<num>[0-9]+)?"
     r"(?P<slash>/+)?"
-    r"(?P<den>\d+)?"
+    r"(?P<den>[0-9]+)?"
 )
-_re_note = re.compile(_s_re_note)
+_RE_NOTE = re.compile(_S_RE_NOTE)
 
 
 _ACCIDENTAL_TO_ABC = {"#": "^", "b": "_"}
@@ -39,7 +39,7 @@ def _octave_from_abc_parts(note: str, oct: Optional[str] = None, *, base: int = 
     return base + doctave_from_case + doctave_plus - doctave_minus
 
 
-_OCTAVE_BASE_DEFAULT = 4
+_DEFAULT_OCTAVE_BASE = 4
 _DEFAULT_KEY = Key("Cmaj")
 _DEFAULT_UNIT_DURATION = Fraction("1/8")
 
@@ -74,10 +74,10 @@ class Note(Pitch):
         abc: str,
         *,
         key: Key = _DEFAULT_KEY,
-        octave_base: int = _OCTAVE_BASE_DEFAULT,
+        octave_base: int = _DEFAULT_OCTAVE_BASE,
         unit_duration: Fraction = _DEFAULT_UNIT_DURATION,
     ):
-        m = _re_note.match(abc)
+        m = _RE_NOTE.match(abc)
         return cls._from_abc_match(m, key=key, octave_base=octave_base, unit_duration=unit_duration)
 
     @classmethod
@@ -86,7 +86,7 @@ class Note(Pitch):
         m: Optional[re.Match],
         *,
         key: Key = _DEFAULT_KEY,
-        octave_base: int = _OCTAVE_BASE_DEFAULT,
+        octave_base: int = _DEFAULT_OCTAVE_BASE,
         unit_duration: Fraction = _DEFAULT_UNIT_DURATION,
     ):
         # `re.Match[str]` seems to work only in 3.9+ ?
@@ -138,7 +138,7 @@ class Note(Pitch):
         self,
         *,
         key: Key = _DEFAULT_KEY,
-        octave_base: int = _OCTAVE_BASE_DEFAULT,
+        octave_base: int = _DEFAULT_OCTAVE_BASE,
         unit_duration: Fraction = _DEFAULT_UNIT_DURATION,
     ):
         octave = self.octave

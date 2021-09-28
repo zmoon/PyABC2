@@ -5,7 +5,7 @@ import re
 from typing import Dict, Iterator, List, NamedTuple, Optional
 
 from .key import Key
-from .note import Note, _re_note
+from .note import _RE_NOTE, Note
 
 
 class InfoField(NamedTuple):
@@ -187,7 +187,7 @@ class Tune:
                 for note_group in within_measure.split(" "):
 
                     # 3. In note group, find notes
-                    for m_note in _re_note.finditer(note_group):
+                    for m_note in _RE_NOTE.finditer(note_group):
 
                         if m_note is None:
                             raise ValueError(f"no notes in this note group? {note_group!r}")
