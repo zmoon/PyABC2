@@ -1,7 +1,7 @@
 """
 Test ABC parsing
 """
-from pyabc2.parse import Tune
+from pyabc2.parse import INFO_FIELDS, Tune
 
 # Norbeck version
 # http://www.norbeck.nu/abc/display.asp?rhythm=jig&ref=12
@@ -26,3 +26,7 @@ def test_simple_tune():
     assert t.title == "Have a Drink with Me"
     assert t.key == Key("G")
     assert t.type == "jig"
+
+
+def test_info_fields():
+    assert INFO_FIELDS["T"].name == "tune title"

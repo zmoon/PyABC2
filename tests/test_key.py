@@ -11,7 +11,7 @@ def many_possible_key_name_inputs():
     from itertools import product
 
     from pyabc2.key import MODE_VALUES
-    from pyabc2.note import CHROMATIC_NOTES
+    from pyabc2.pitch import CHROMATIC_NOTES
 
     # Base list of keys as C chromatic notes
     keys = CHROMATIC_NOTES

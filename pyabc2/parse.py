@@ -2,9 +2,10 @@
 ABC parsing/info
 """
 import re
-from typing import Dict, List, NamedTuple
+from typing import Dict, Iterator, List, NamedTuple, Optional
 
 from .key import Key
+from .note import _RE_NOTE, Note
 
 
 class InfoField(NamedTuple):
@@ -95,6 +96,7 @@ TUNE_BODY_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_b
 TUNE_INLINE_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_inline}
 
 
+# TODO: maybe should go in a tune module
 class Tune:
     """Tune."""
 
@@ -111,7 +113,7 @@ class Tune:
         self.header: Dict[str, str]
         """Information contained in the tune header."""
 
-        self.title: str
+        self.title: Optional[str] = None
         """Tune title."""
 
         self.type: str
@@ -119,6 +121,8 @@ class Tune:
 
         self.key: Key
         """Key object corresponding to the tune's key."""
+
+        self.measures: List[List[Note]]
 
         self._parse_abc()
 
@@ -143,6 +147,7 @@ class Tune:
                     header_lines[-1] += " " + line[2:]
 
         self._parse_abc_header_lines(header_lines)
+        self._extract_measures(tune_lines)
 
     def _parse_abc_header_lines(self, header_lines: List[str]) -> None:
         h = {}
@@ -157,16 +162,64 @@ class Tune:
         self.type = h["rhythm"]
         self.key = Key(h["key"])
 
+    def _extract_measures(self, tune_lines: List[str]) -> None:
+        # 0. Lines
+        i_measure = i_measure_repeat = 0
+        measures = []
+        for line in tune_lines:
+
+            if line.startswith("|:"):
+                # Left repeat detected -- new starting measure for a repeated section
+                i_measure_repeat = i_measure
+
+            # 1. In line, find measures
+            for m_measure in re.finditer(r"([^\|\:]+)(\:?\|+\:?)", line):
+                within_measure, right_sep = m_measure.groups()
+
+                if right_sep.endswith(":"):
+                    # Left repeat detected within line
+                    i_measure_repeat = i_measure + 1
+
+                measure = []
+
+                # 2. In measure, find note groups
+                # Currently not doing anything with note group, but may want to in the future
+                for note_group in within_measure.split(" "):
+
+                    # 3. In note group, find notes
+                    for m_note in _RE_NOTE.finditer(note_group):
+
+                        if m_note is None:
+                            raise ValueError(f"no notes in this note group? {note_group!r}")
+
+                        measure.append(Note._from_abc_match(m_note))
+
+                measures.append(measure)
+
+                if right_sep.startswith(":"):
+                    # Right repeat detected -- extend tune from the last left repeat
+                    repeated = measures[i_measure_repeat:]
+                    measures.extend(repeated)
+                    i_measure += len(repeated)
+
+                i_measure += 1
+
+        self.measures = measures
+
     def __repr__(self):
         return (
             f"{self.__class__.__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
         )
 
+    def print_measures(self, *, note_format: str = "ABC"):
+        """Print measures to check parsing."""
+        nd = len(str(len(self.measures)))
+        for i, measure in enumerate(self.measures, start=1):
+            if note_format == "ABC":
+                print(f"{i:0{nd}d}: {' '.join(n.to_abc(key=self.key) for n in measure)}")
+            else:
+                raise ValueError(f"invalid note format {note_format!r}")
 
-if __name__ == "__main__":
-    for k, info in INFO_FIELDS.items():
-        if k == "G":
-            break
-        print(f"{k} => {info}")
-
-    print(TUNE_INLINE_FIELD_KEYS)
+    def iter_notes(self) -> Iterator[Note]:
+        """Iterator (generator) for `Note`s of the tune."""
+        return (n for m in self.measures for n in m)
