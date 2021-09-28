@@ -54,8 +54,6 @@ class Note(Pitch):
         self.duration = duration
         """Note duration. By default, 1/8, an eighth note."""
 
-        # TODO: could use fractions.Fraction for the duration or the base (=1) duration
-
     def __str__(self):
         return f"{self.name}_{self.duration}"
 
