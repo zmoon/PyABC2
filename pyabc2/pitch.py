@@ -434,3 +434,66 @@ class Pitch:
 
 
 # TODO: make the note types hashable
+
+
+# https://en.wikipedia.org/wiki/File:Main_intervals_from_C.png
+MAIN_INTERVAL_SHORT_NAMES = [
+    "P1",
+    "m2",
+    "M2",
+    "m3",
+    "M3",
+    "P4",
+    "A4",
+    "P5",
+    "m6",
+    "M6",
+    "m7",
+    "M7",
+    "P8",
+]
+
+
+@functools.total_ordering
+class SimpleInterval:
+    """An interval that is at most one octave."""
+
+    def __init__(self, value: int) -> None:
+
+        if 0 <= value <= 12:
+            value_ = value
+        else:
+            abs_value = abs(value)
+            mod_abs_value = abs_value % 12
+            if mod_abs_value == 0 and abs_value >= 12:
+                value_ = 12
+            else:
+                value_ = mod_abs_value
+            warnings.warn(
+                f"input value {value} not between 0 and 12 " f"has been coerced to {value_}"
+            )
+        self.value = value_
+        """Number of semitones."""
+
+    @property
+    def name(self) -> str:
+        """Major, minor, or perfect interval short name."""
+        return MAIN_INTERVAL_SHORT_NAMES[self.value]
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}(value={self.value})"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+
+        return self.value == other.value
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+
+        return self.value < other.value

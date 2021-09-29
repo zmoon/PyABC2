@@ -5,7 +5,7 @@ import pytest
 
 from pyabc2.key import Key
 from pyabc2.note import Note
-from pyabc2.pitch import Pitch, PitchClass, pitch_class_value
+from pyabc2.pitch import Pitch, PitchClass, SimpleInterval, pitch_class_value
 
 
 @pytest.mark.parametrize(
@@ -166,3 +166,16 @@ def test_note_to_from_abc_consistency():
     assert Note.from_abc(n.to_abc()) == n
 
     assert Note.from_abc(n.to_abc(key=Key("C#")), key=Key("C#")) == n
+
+
+@pytest.mark.parametrize(
+    ("v", "expected_name"),
+    [
+        (0, "P1"),
+        (2, "M2"),
+        (10, "m7"),
+        (12, "P8"),
+    ],
+)
+def test_simple_interval_name(v, expected_name):
+    assert SimpleInterval(v).name == expected_name
