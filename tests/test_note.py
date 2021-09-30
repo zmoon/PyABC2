@@ -5,7 +5,7 @@ import pytest
 
 from pyabc2.key import Key
 from pyabc2.note import Note
-from pyabc2.pitch import Pitch, PitchClass, pitch_class_value
+from pyabc2.pitch import Pitch, PitchClass, SignedInterval, SimpleInterval, pitch_class_value
 
 
 @pytest.mark.parametrize(
@@ -166,3 +166,55 @@ def test_note_to_from_abc_consistency():
     assert Note.from_abc(n.to_abc()) == n
 
     assert Note.from_abc(n.to_abc(key=Key("C#")), key=Key("C#")) == n
+
+
+@pytest.mark.parametrize(
+    ("v", "expected_name"),
+    [
+        (0, "P1"),
+        (2, "M2"),
+        (10, "m7"),
+        (12, "P8"),
+        (24, "P8"),
+    ],
+)
+def test_simple_interval_name(v, expected_name):
+    if 0 <= v <= 12:
+        assert SimpleInterval(v).name == expected_name
+    else:
+        with pytest.warns(UserWarning):
+            assert SimpleInterval(v).name == expected_name
+
+
+@pytest.mark.parametrize(
+    ("v", "expected_name"),
+    [
+        (0, "P1"),
+        (2, "M2"),
+        (3, "m3"),
+        (15, "P8+m3"),
+        (27, "2(P8)+m3"),
+        (-27, "-[2(P8)+m3]"),
+    ],
+)
+def test_signed_interval_name(v, expected_name):
+    assert SignedInterval(v).name == expected_name
+
+
+def test_interval_returned_from_pitch_sub():
+    assert Pitch(50) - Pitch(40) == SignedInterval(10)
+    assert Pitch(40) - Pitch(50) == SignedInterval(-10)
+    assert PitchClass(7) - PitchClass(0) == SimpleInterval(7)
+    with pytest.warns(UserWarning):
+        assert PitchClass(0) - PitchClass(7) == SimpleInterval(7)
+
+
+def test_add_interval_to_pitch():
+    assert Pitch(40) + SignedInterval(-10) == Pitch(30)
+    assert PitchClass(0) + SimpleInterval(5) == PitchClass(5)
+
+
+def test_simple_interval_inverse():
+    m3 = SimpleInterval.from_name("m3")
+    assert m3.value == 3
+    assert m3.inverse.name == "M6"

@@ -26,3 +26,6 @@ ignore = [
   "W503", # line break before binary operator
   "E226", # missing whitespace around arithmetic operator - not always more readable imho
 ]
+
+[tool.isort]
+line_length = 100
