@@ -6,7 +6,7 @@ https://www.norbeck.nu/abc/
 from pathlib import Path
 from typing import List, Union
 
-# from ..parse import Tune
+from ..parse import Tune
 
 HERE = Path(__file__).parent
 
@@ -62,7 +62,47 @@ def load(which: Union[str, List[str]] = "all"):
 
     _maybe_download()
 
-    # def load_one_file(fp: Path):
+    def load_one_file(fp: Path):
+
+        blocks = []
+
+        with open(fp, "r") as f:
+
+            block = ""
+            iblock = -1
+            add = False
+            in_header = True
+
+            for line in f:
+                if line.startswith("X:"):
+                    # New tune, reset
+                    block = line
+                    iblock += 1
+                    add = True
+                    in_header = False
+                    continue
+
+                if line.startswith("P:"):
+                    # Variations, skip and wait until next block
+                    add = False
+
+                if add:
+                    block += line
+
+                if line.strip() == "" and not in_header:
+                    # Between tune blocks, save
+                    blocks.append(block.strip())
+
+        tunes = []
+        for abc in blocks:
+
+            try:
+                tunes.append(Tune(abc))
+
+            except Exception as e:
+                raise Exception(
+                    f"loading this ABC:\n---\n{abc}\n---\nfailed " f"with error message '{e}'"
+                ) from e
 
     if which == ["all"]:
 
@@ -80,4 +120,4 @@ def load(which: Union[str, List[str]] = "all"):
             fps = SAVE_TO.glob(f"{_TYPE_PREF[tune_type]}*.abc")
 
             for fp in fps:
-                print(fp)
+                load_one_file(fp)
