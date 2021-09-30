@@ -123,14 +123,20 @@ class Note(Pitch):
         if g["slash"] is not None:
             # raise ValueError("only whole multiples of L supported at this time")
             if g["num"] is None and g["den"] is None:
-                # Special case: `/` as shorthand for 1/2
+                # Special case: `/` as shorthand for 1/2 and can be multiple
                 relative_duration = Fraction("1/2") ** g["slash"].count("/")
             elif g["den"] is not None:
                 # When only denominator, numerator 1 is assumed
-                assert g["slash"] == "/", "there should only be one `/` when denominator is used"
+                assert (
+                    g["slash"] == "/"
+                ), "there should only be one `/` when only denominator is used"
                 relative_duration = Fraction(f"1/{g['den']}")
+            elif g["num"] is not None:
+                # When only numerator, denominator 2 is assumed
+                assert g["slash"] == "/", "there should be only one `/` when only numerator is used"
+                relative_duration = Fraction(f"{g['num']}/2")
             else:
-                raise ValueError("invalid relative duration spec.")
+                raise ValueError(f"invalid relative duration spec. in {m.group(0)!r}")
         else:
             relative_duration = Fraction(g["num"]) if g["num"] is not None else Fraction(1)
 

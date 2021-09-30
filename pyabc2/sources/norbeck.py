@@ -13,7 +13,7 @@ HERE = Path(__file__).parent
 SAVE_TO = HERE / "_norbeck"
 
 
-def download():
+def download() -> None:
     import io
     import zipfile
 
@@ -42,13 +42,56 @@ _TYPE_PREF = {
 # TODO: add more of the types
 
 
-def _maybe_download():
+def _maybe_download() -> None:
     if not list(SAVE_TO.glob("*.abc")):
         print("downloading missing files...")
         download()
 
 
-def load(which: Union[str, List[str]] = "all"):
+def _load_one_file(fp: Path) -> List[Tune]:
+
+    blocks = []
+
+    with open(fp, "r") as f:
+
+        block = ""
+        iblock = -1
+        add = False
+        in_header = True
+
+        for line in f:
+            if line.startswith("X:"):
+                # New tune, reset
+                block = line
+                iblock += 1
+                add = True
+                in_header = False
+                continue
+
+            if line.startswith("P:"):
+                # Variations, skip and wait until next block
+                add = False
+
+            if add:
+                block += line
+
+            if line.strip() == "" and not in_header:
+                # Between tune blocks, save
+                blocks.append(block.strip())
+
+    tunes = []
+    for abc in blocks:
+
+        try:
+            tunes.append(Tune(abc))
+
+        except Exception as e:
+            raise Exception(f"loading this ABC:\n---\n{abc}\n---\nfailed") from e
+
+    return tunes
+
+
+def load(which: Union[str, List[str]] = "all") -> List[Tune]:
     """
     Load a list of tunes, by type(s) or all of them.
 
@@ -62,50 +105,7 @@ def load(which: Union[str, List[str]] = "all"):
 
     _maybe_download()
 
-    def load_one_file(fp: Path):
-
-        blocks = []
-
-        with open(fp, "r") as f:
-
-            block = ""
-            iblock = -1
-            add = False
-            in_header = True
-
-            for line in f:
-                if line.startswith("X:"):
-                    # New tune, reset
-                    block = line
-                    iblock += 1
-                    add = True
-                    in_header = False
-                    continue
-
-                if line.startswith("P:"):
-                    # Variations, skip and wait until next block
-                    add = False
-
-                if add:
-                    block += line
-
-                if line.strip() == "" and not in_header:
-                    # Between tune blocks, save
-                    blocks.append(block.strip())
-
-        tunes = []
-        for abc in blocks:
-
-            try:
-                tunes.append(Tune(abc))
-
-            except Exception as e:
-                raise Exception(
-                    f"loading this ABC:\n---\n{abc}\n---\nfailed " f"with error message '{e}'"
-                ) from e
-
     if which == ["all"]:
-
         fps = SAVE_TO.glob("*.abc")
 
     else:
@@ -119,5 +119,8 @@ def load(which: Union[str, List[str]] = "all"):
 
             fps = SAVE_TO.glob(f"{_TYPE_PREF[tune_type]}*.abc")
 
-            for fp in fps:
-                load_one_file(fp)
+    tunes = []
+    for fp in fps:
+        tunes.extend(_load_one_file(fp))
+
+    return tunes
