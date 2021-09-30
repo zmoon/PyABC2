@@ -157,6 +157,8 @@ class Tune:
             field_name = INFO_FIELDS[key].name
             h[field_name] = data
 
+        # TODO: need to support multiple instances of same field, like multiple titles
+
         self.header = h
         self.title = h["tune title"]
         self.type = h["rhythm"]
@@ -164,7 +166,7 @@ class Tune:
 
     def _extract_measures(self, tune_lines: List[str]) -> None:
         # 0. Lines
-        i_measure = i_measure_repeat = 0
+        i_measure = i_measure_repeat = i_ending = 0
         measures = []
         for line in tune_lines:
 
@@ -179,6 +181,12 @@ class Tune:
                 if right_sep.endswith(":"):
                     # Left repeat detected within line
                     i_measure_repeat = i_measure + 1
+
+                if within_measure.startswith("1"):
+                    i_ending = i_measure
+
+                if within_measure.startswith("3"):
+                    raise ValueError("3 or more endings not currently supported")
 
                 measure = []
 
@@ -198,7 +206,11 @@ class Tune:
 
                 if right_sep.startswith(":"):
                     # Right repeat detected -- extend tune from the last left repeat
-                    repeated = measures[i_measure_repeat:]
+                    if i_ending:
+                        repeated = measures[i_measure_repeat:i_ending]
+                        i_ending = 0  # reset
+                    else:
+                        repeated = measures[i_measure_repeat:]
                     measures.extend(repeated)
                     i_measure += len(repeated)
 
