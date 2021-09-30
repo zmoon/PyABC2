@@ -456,7 +456,9 @@ MAIN_INTERVAL_SHORT_NAMES = [
 
 @functools.total_ordering
 class SimpleInterval:
-    """An interval that is at most one octave."""
+    """An interval that is at most one octave.
+    Direction, e.g., in a melodic interval, is not incorporated.
+    """
 
     def __init__(self, value: int) -> None:
 
@@ -473,12 +475,16 @@ class SimpleInterval:
                 f"input value {value} not between 0 and 12 " f"has been coerced to {value_}"
             )
         self.value = value_
-        """Number of semitones."""
+        """Number of semitones (half-steps)."""
 
     @property
     def name(self) -> str:
         """Major, minor, or perfect interval short name."""
         return MAIN_INTERVAL_SHORT_NAMES[self.value]
+
+    @property
+    def whole_steps(self) -> float:
+        return self.value / 2
 
     def __str__(self) -> str:
         return self.name
@@ -497,3 +503,41 @@ class SimpleInterval:
             return NotImplemented
 
         return self.value < other.value
+
+
+class SignedInterval(SimpleInterval):
+    """An interval that can be more than one octave and with sign (direction) included."""
+
+    def __init__(self, value: int) -> None:
+
+        self.value = value
+        """Number of semitones (half-steps)."""
+
+    @property
+    def name(self) -> str:
+        is_neg = self.value < 0
+
+        n_o, i0 = divmod(abs(self.value), 12)
+
+        if n_o >= 2:
+            s_o = f"{n_o}({MAIN_INTERVAL_SHORT_NAMES[-1]})"
+        elif n_o == 1:
+            s_o = f"{MAIN_INTERVAL_SHORT_NAMES[-1]}"
+        else:  # 0
+            s_o = ""
+
+        s_i0 = MAIN_INTERVAL_SHORT_NAMES[i0] if i0 != 0 else ""
+
+        if s_o and not s_i0:
+            s = s_o
+        elif s_i0 and not s_o:
+            s = s_i0
+        elif not s_o and not s_i0:
+            s = MAIN_INTERVAL_SHORT_NAMES[0]
+        else:
+            s = f"{s_o}+{s_i0}"
+
+        if is_neg:
+            s = f"-[{s}]"
+
+        return s

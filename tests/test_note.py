@@ -5,7 +5,7 @@ import pytest
 
 from pyabc2.key import Key
 from pyabc2.note import Note
-from pyabc2.pitch import Pitch, PitchClass, SimpleInterval, pitch_class_value
+from pyabc2.pitch import Pitch, PitchClass, SignedInterval, SimpleInterval, pitch_class_value
 
 
 @pytest.mark.parametrize(
@@ -179,3 +179,18 @@ def test_note_to_from_abc_consistency():
 )
 def test_simple_interval_name(v, expected_name):
     assert SimpleInterval(v).name == expected_name
+
+
+@pytest.mark.parametrize(
+    ("v", "expected_name"),
+    [
+        (0, "P1"),
+        (2, "M2"),
+        (3, "m3"),
+        (15, "P8+m3"),
+        (27, "2(P8)+m3"),
+        (-27, "-[2(P8)+m3]"),
+    ],
+)
+def test_signed_interval_name(v, expected_name):
+    assert SignedInterval(v).name == expected_name
