@@ -175,10 +175,15 @@ def test_note_to_from_abc_consistency():
         (2, "M2"),
         (10, "m7"),
         (12, "P8"),
+        (24, "P8"),
     ],
 )
 def test_simple_interval_name(v, expected_name):
-    assert SimpleInterval(v).name == expected_name
+    if 0 <= v <= 12:
+        assert SimpleInterval(v).name == expected_name
+    else:
+        with pytest.warns(UserWarning):
+            assert SimpleInterval(v).name == expected_name
 
 
 @pytest.mark.parametrize(
@@ -194,3 +199,16 @@ def test_simple_interval_name(v, expected_name):
 )
 def test_signed_interval_name(v, expected_name):
     assert SignedInterval(v).name == expected_name
+
+
+def test_interval_returned_from_pitch_sub():
+    assert Pitch(50) - Pitch(40) == SignedInterval(10)
+    assert Pitch(40) - Pitch(50) == SignedInterval(-10)
+    assert PitchClass(7) - PitchClass(0) == SimpleInterval(7)
+    with pytest.warns(UserWarning):
+        assert PitchClass(0) - PitchClass(7) == SimpleInterval(7)
+
+
+def test_add_interval_to_pitch():
+    assert Pitch(40) + SignedInterval(-10) == Pitch(30)
+    assert PitchClass(0) + SimpleInterval(5) == PitchClass(5)

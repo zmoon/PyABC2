@@ -241,6 +241,9 @@ class PitchClass:
         elif isinstance(x, PitchClass):
             vnew = self.value + x.with_root(self.root).value
             return PitchClass(vnew, root=self.root)
+        elif isinstance(x, SimpleInterval):
+            # elif type(x) is SimpleInterval:
+            return PitchClass(self.value + x.value, root=self.root)
         else:
             return NotImplemented
 
@@ -257,7 +260,12 @@ class PitchClass:
         return -1 * self
 
     def __sub__(self, x):
-        return self + -x
+        if isinstance(x, int):
+            return self + -x
+        elif isinstance(x, type(self)):
+            return SimpleInterval(self.value - x.value)
+        else:
+            return NotImplemented
 
 
 # TODO: .from_name as alias for .from_spn / .from_scientific_pitch_notation
@@ -396,24 +404,24 @@ class Pitch:
 
     def __eq__(self, other):
         # Only for other Pitch instances
-        if not isinstance(other, self.__class__):
+        if not isinstance(other, type(self)):
             return NotImplemented
 
         return self.value == other.value
 
     def __lt__(self, other):
         # Only for other Pitch instances
-        if not isinstance(other, self.__class__):
+        if not isinstance(other, type(self)):
             return NotImplemented
 
         return self.value < other.value
 
     def __add__(self, x):
         if isinstance(x, int):
-            return self.__class__(self.value + x)
-        elif isinstance(x, self.__class__):
+            return type(self)(self.value + x)
+        elif isinstance(x, (type(self), SimpleInterval)):
             # Adding chromatic-value-wise, not frequency-wise!
-            return self.__class__(self.value + x.value)
+            return type(self)(self.value + x.value)
         else:
             return NotImplemented
 
@@ -421,7 +429,7 @@ class Pitch:
         if not isinstance(x, int):
             return NotImplemented
 
-        return self.__class__(x * self.value)
+        return type(self)(x * self.value)
 
     def __rmul__(self, x):
         return self * x
@@ -430,7 +438,14 @@ class Pitch:
         return -1 * self
 
     def __sub__(self, x):
-        return self + -x
+        if isinstance(x, int):
+            return self + -x
+        elif isinstance(x, SimpleInterval):
+            return self + -x.value
+        elif isinstance(x, type(self)):
+            return SignedInterval(self.value - x.value)
+        else:
+            return NotImplemented
 
 
 # TODO: make the note types hashable
