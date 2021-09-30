@@ -505,6 +505,13 @@ class SimpleInterval:
     def inverse(self) -> "SimpleInterval":
         return type(self)(12 - self.value)
 
+    @classmethod
+    def from_name(cls, name: str) -> "SimpleInterval":
+        if name not in MAIN_INTERVAL_SHORT_NAMES:
+            raise ValueError(f"interval name {name!r} not recognized")
+
+        return cls(MAIN_INTERVAL_SHORT_NAMES.index(name))
+
     def __str__(self) -> str:
         return self.name
 

@@ -212,3 +212,9 @@ def test_interval_returned_from_pitch_sub():
 def test_add_interval_to_pitch():
     assert Pitch(40) + SignedInterval(-10) == Pitch(30)
     assert PitchClass(0) + SimpleInterval(5) == PitchClass(5)
+
+
+def test_simple_interval_inverse():
+    m3 = SimpleInterval.from_name("m3")
+    assert m3.value == 3
+    assert m3.inverse.name == "M6"
