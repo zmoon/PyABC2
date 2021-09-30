@@ -501,6 +501,10 @@ class SimpleInterval:
     def whole_steps(self) -> float:
         return self.value / 2
 
+    @property
+    def inverse(self) -> "SimpleInterval":
+        return type(self)(12 - self.value)
+
     def __str__(self) -> str:
         return self.name
 
