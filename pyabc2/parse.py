@@ -175,7 +175,7 @@ class Tune:
                 i_measure_repeat = i_measure
 
             # 1. In line, find measures
-            for m_measure in re.finditer(r"([^\|\:]+)(\:?\|+\:?)", line):
+            for m_measure in re.finditer(r"([^\|\:\]]+)(\:?\|+\:?)", line):
                 within_measure, right_sep = m_measure.groups()
 
                 if right_sep.endswith(":"):
