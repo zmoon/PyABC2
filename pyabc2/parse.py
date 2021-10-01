@@ -188,10 +188,10 @@ class Tune:
                     # Left repeat detected within line
                     i_measure_repeat = i_measure + 1
 
-                if within_measure.startswith("1"):
+                if within_measure.startswith(("1", "[1", " [1")):
                     i_ending = i_measure
 
-                if within_measure.startswith("3"):
+                if within_measure.startswith(("3", "[3", " [3")):
                     raise ValueError("3 or more endings not currently supported")
 
                 measure = []
