@@ -113,8 +113,11 @@ class Tune:
         self.header: Dict[str, str]
         """Information contained in the tune header."""
 
-        self.title: Optional[str] = None
-        """Tune title."""
+        self.title: Optional[str]
+        """Tune primary title (first in the ABC)."""
+
+        self.titles: List[str]
+        """All tune titles."""
 
         self.type: str
         """Tune type/rhythm."""
@@ -141,7 +144,7 @@ class Tune:
             else:
                 if line[0] in INFO_FIELDS and line[1] == ":":
                     header_lines.append(line)
-                    if line[0] == "K":
+                    if line[0] == "K":  # is K always last??
                         in_tune = True
                 elif line[:2] == "+:":
                     header_lines[-1] += " " + line[2:]
@@ -150,21 +153,26 @@ class Tune:
         self._extract_measures(tune_lines)
 
     def _parse_abc_header_lines(self, header_lines: List[str]) -> None:
-        h = {}
+        h: Dict[str, str] = {}
         for line in header_lines:
             key = line[0]
             data = line[2:].strip()
             field_name = INFO_FIELDS[key].name
-            h[field_name] = data
+            n_field = sum(field_name in k for k in h.keys())
+            if n_field == 0:
+                h[field_name] = data
+            else:
+                h[f"{field_name} {n_field+1}"] = data
 
         self.header = h
-        self.title = h["tune title"]
-        self.type = h["rhythm"]
-        self.key = Key(h["key"])
+        self.title = h.get("tune title", None)
+        self.titles = [v for k, v in h.items() if "tune title" in k]
+        self.type = h.get("rhythm", "?")  # TODO: guess from L/M ?
+        self.key = Key(h.get("key", "C"))
 
     def _extract_measures(self, tune_lines: List[str]) -> None:
         # 0. Lines
-        i_measure = i_measure_repeat = 0
+        i_measure = i_measure_repeat = i_ending = 0
         measures = []
         for line in tune_lines:
 
@@ -173,12 +181,20 @@ class Tune:
                 i_measure_repeat = i_measure
 
             # 1. In line, find measures
-            for m_measure in re.finditer(r"([^\|\:]+)(\:?\|+\:?)", line):
+            for m_measure in re.finditer(r"([^\|\:\]]+)(\:?\|+\:?)", line):
                 within_measure, right_sep = m_measure.groups()
 
                 if right_sep.endswith(":"):
                     # Left repeat detected within line
                     i_measure_repeat = i_measure + 1
+
+                if within_measure.startswith(("1", "[1", " [1")):
+                    i_ending = i_measure
+
+                if within_measure.startswith(("3", "[3", " [3")):
+                    raise ValueError("3 or more endings not currently supported")
+
+                # TODO: check for inline meter change; validate measure beat count?
 
                 measure = []
 
@@ -186,8 +202,13 @@ class Tune:
                 # Currently not doing anything with note group, but may want to in the future
                 for note_group in within_measure.split(" "):
 
+                    # TODO: deal with `>` and `<` dotted rhythm modifiers between notes
+                    # https://abcnotation.com/wiki/abc:standard:v2.1#broken_rhythm
+
                     # 3. In note group, find notes
                     for m_note in _RE_NOTE.finditer(note_group):
+
+                        # TODO: parse/store rests, maybe have an additional iterator for "rhythmic elements" or something
 
                         if m_note is None:
                             raise ValueError(f"no notes in this note group? {note_group!r}")
@@ -198,7 +219,11 @@ class Tune:
 
                 if right_sep.startswith(":"):
                     # Right repeat detected -- extend tune from the last left repeat
-                    repeated = measures[i_measure_repeat:]
+                    if i_ending:
+                        repeated = measures[i_measure_repeat:i_ending]
+                        i_ending = 0  # reset
+                    else:
+                        repeated = measures[i_measure_repeat:]
                     measures.extend(repeated)
                     i_measure += len(repeated)
 

@@ -9,6 +9,7 @@ repository = "https://github.com/zmoon/PyABC2"
 
 [tool.poetry.dependencies]
 python = "^3.7"
+requests = "^2.26.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.910"

@@ -1,3 +1,5 @@
+pyabc2/sources/_*
+!pyabc2/sources/__init__.py
 poetry.lock
 
 
