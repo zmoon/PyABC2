@@ -113,8 +113,11 @@ class Tune:
         self.header: Dict[str, str]
         """Information contained in the tune header."""
 
-        self.title: Optional[str] = None
-        """Tune title."""
+        self.title: Optional[str]
+        """Tune primary title (first in the ABC)."""
+
+        self.titles: List[str]
+        """All tune titles."""
 
         self.type: str
         """Tune type/rhythm."""
@@ -141,7 +144,7 @@ class Tune:
             else:
                 if line[0] in INFO_FIELDS and line[1] == ":":
                     header_lines.append(line)
-                    if line[0] == "K":
+                    if line[0] == "K":  # is K always last??
                         in_tune = True
                 elif line[:2] == "+:":
                     header_lines[-1] += " " + line[2:]
@@ -150,19 +153,22 @@ class Tune:
         self._extract_measures(tune_lines)
 
     def _parse_abc_header_lines(self, header_lines: List[str]) -> None:
-        h = {}
+        h: Dict[str, str] = {}
         for line in header_lines:
             key = line[0]
             data = line[2:].strip()
             field_name = INFO_FIELDS[key].name
-            h[field_name] = data
-
-        # TODO: need to support multiple instances of same field, like multiple titles
+            n_field = sum(field_name in k for k in h.keys())
+            if n_field == 0:
+                h[field_name] = data
+            else:
+                h[f"{field_name} {n_field+1}"] = data
 
         self.header = h
-        self.title = h["tune title"]
-        self.type = h["rhythm"]
-        self.key = Key(h["key"])
+        self.title = h.get("tune title", None)
+        self.titles = [v for k, v in h.items() if "tune title" in k]
+        self.type = h.get("rhythm", "?")  # TODO: guess from L/M ?
+        self.key = Key(h.get("key", "C"))
 
     def _extract_measures(self, tune_lines: List[str]) -> None:
         # 0. Lines

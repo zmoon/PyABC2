@@ -61,3 +61,17 @@ def test_repeats_with_endings():
     t = Tune(abc)
 
     assert " ".join(n.to_abc() for n in t.iter_notes()) == "G A A G a a B C B c"
+
+
+def test_header_multiple_field_instances():
+    abc = """
+    T: hi
+    T: hii
+    N: note1
+    N:note2
+    """.strip()
+
+    t = Tune(abc)
+
+    assert t.titles == ["hi", "hii"]
+    assert t.header["notes"] == "note1"
