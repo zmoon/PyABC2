@@ -81,7 +81,7 @@ def _load_one_file(fp: Path) -> List[Tune]:
                 # Between tune blocks, save
                 blocks.append(block.strip())
 
-    tunes = []
+    tunes: List[Tune] = []
     for abc in blocks:
 
         try:
@@ -89,6 +89,13 @@ def _load_one_file(fp: Path) -> List[Tune]:
 
         except Exception as e:
             raise Exception(f"loading this ABC:\n---\n{abc}\n---\nfailed") from e
+
+    # Add norbeck.com URLs
+    for tune in tunes:
+        # example: https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=10
+        ref = tune.header["reference number"]
+        rhy = tune.type
+        tune.url = f"https://www.norbeck.nu/abc/display.asp?rhythm={rhy}&ref={ref}"
 
     return tunes
 

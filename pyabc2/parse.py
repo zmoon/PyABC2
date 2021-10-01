@@ -125,6 +125,9 @@ class Tune:
         self.key: Key
         """Key object corresponding to the tune's key."""
 
+        self.url: Optional[str] = None
+        """Revelant URL for this particular tune/setting."""
+
         self.measures: List[List[Note]]
 
         self._parse_abc()
