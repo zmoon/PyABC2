@@ -194,11 +194,16 @@ class Tune:
                 if within_measure.startswith(("3", "[3", " [3")):
                     raise ValueError("3 or more endings not currently supported")
 
+                # TODO: check for inline meter change; validate measure beat count?
+
                 measure = []
 
                 # 2. In measure, find note groups
                 # Currently not doing anything with note group, but may want to in the future
                 for note_group in within_measure.split(" "):
+
+                    # TODO: deal with `>` and `<` dotted rhythm modifiers between notes
+                    # https://abcnotation.com/wiki/abc:standard:v2.1#broken_rhythm
 
                     # 3. In note group, find notes
                     for m_note in _RE_NOTE.finditer(note_group):

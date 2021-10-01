@@ -35,11 +35,13 @@ def download() -> None:
                     f.write(zf.read())
 
 
-_TYPE_PREF = {
+_TYPE_PREFIX = {
     "reels": "hnr",
     "jigs": "hnj",
+    "hornpipes": "hnhp",
+    "polkas": "hnp",
+    "slip jigs": "hnsj",
 }
-# TODO: add more of the types
 
 
 def _maybe_download() -> None:
@@ -91,6 +93,9 @@ def _load_one_file(fp: Path) -> List[Tune]:
     return tunes
 
 
+# TODO: ASCII accent mark notation to unicode (+ stripped version)?
+
+
 def load(which: Union[str, List[str]] = "all") -> List[Tune]:
     """
     Load a list of tunes, by type(s) or all of them.
@@ -111,13 +116,13 @@ def load(which: Union[str, List[str]] = "all") -> List[Tune]:
     else:
         for tune_type in which:
 
-            if tune_type not in _TYPE_PREF:
+            if tune_type not in _TYPE_PREFIX:
                 raise ValueError(
                     f"tune type {tune_type!r} invalid or not supported. "
-                    f"Try one of: {', '.join(repr(s) for s in _TYPE_PREF)}."
+                    f"Try one of: {', '.join(repr(s) for s in _TYPE_PREFIX)}."
                 )
 
-            fps = SAVE_TO.glob(f"{_TYPE_PREF[tune_type]}*.abc")
+            fps = SAVE_TO.glob(f"{_TYPE_PREFIX[tune_type]}*.abc")
 
     tunes = []
     for fp in fps:
