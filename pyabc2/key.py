@@ -139,6 +139,9 @@ class Key:
         """
         if name is not None:
             assert root is None and mode is None, "pass either `name` or `root`+`mode`"
+            # Handle occasional `K:` line used to indicate default key (C) and tune start
+            if name == "":
+                name = "C"
             self.root, self.mode = Key.parse_key(name)
         else:
             assert root is not None and mode is not None, "pass either `name` or `root`+`mode`"
