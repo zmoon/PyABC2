@@ -50,7 +50,15 @@ def _maybe_download() -> None:
         download()
 
 
-def _load_one_file(fp: Path) -> List[Tune]:
+_COMBINING_ACCENT_FROM_ASCII_SYM = {
+    "'": "\u0301",  # acute
+    "^": "\u0302",  # circumflex
+    '"': "\u0308",  # umlaut
+}
+
+
+def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
+    import re
 
     blocks = []
 
@@ -84,15 +92,36 @@ def _load_one_file(fp: Path) -> List[Tune]:
     tunes: List[Tune] = []
     for abc in blocks:
 
+        # Deal with LaTeX-style diacritic escape codes
+        abc_ = abc
+        for m in re.finditer(r"\\\{?(?P<dcsym>.)(?P<letter>[a-zA-Z])\}?", abc):
+            s = m.group(0)
+
+            gd = m.groupdict()
+            dcsym = gd["dcsym"]
+            letter = gd["letter"]
+
+            if gd["dcsym"] not in _COMBINING_ACCENT_FROM_ASCII_SYM:
+                raise ValueError(f"diacritic escape code `\\{gd['dcsym']}` not recognized")
+
+            if ascii_only:
+                snew = letter
+            else:
+                snew = letter + _COMBINING_ACCENT_FROM_ASCII_SYM[dcsym]
+                # Note: could use unicodedata to apply a normalization
+                # to give single accented characters instead of two code points
+
+            abc_ = abc_.replace(s, snew)
+
         try:
-            tunes.append(Tune(abc))
+            tunes.append(Tune(abc_))
 
         except Exception as e:
             raise Exception(f"loading this ABC:\n---\n{abc}\n---\nfailed") from e
 
-    # Add norbeck.com URLs
+    # Add norbeck.nu/abc/ URLs
     for tune in tunes:
-        # example: https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=10
+        # Example: https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=10
         ref = tune.header["reference number"]
         rhy = tune.type
         tune.url = f"https://www.norbeck.nu/abc/display.asp?rhythm={rhy}&ref={ref}"
@@ -100,10 +129,7 @@ def _load_one_file(fp: Path) -> List[Tune]:
     return tunes
 
 
-# TODO: ASCII accent mark notation to unicode (+ stripped version)?
-
-
-def load(which: Union[str, List[str]] = "all") -> List[Tune]:
+def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> List[Tune]:
     """
     Load a list of tunes, by type(s) or all of them.
 
@@ -111,6 +137,9 @@ def load(which: Union[str, List[str]] = "all") -> List[Tune]:
     ----------
     which
         reels, jigs, hornpipes,
+    ascii_only
+        Whether to drop the implied diacritic symbols, e.g., `\'o` (`True`)
+        or add the corresponding unicode characters (`False`).
     """
     if isinstance(which, str):
         which = [which]
@@ -133,6 +162,6 @@ def load(which: Union[str, List[str]] = "all") -> List[Tune]:
 
     tunes = []
     for fp in fps:
-        tunes.extend(_load_one_file(fp))
+        tunes.extend(_load_one_file(fp, ascii_only=ascii_only))
 
     return tunes
