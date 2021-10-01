@@ -208,6 +208,8 @@ class Tune:
                     # 3. In note group, find notes
                     for m_note in _RE_NOTE.finditer(note_group):
 
+                        # TODO: parse/store rests, maybe have an additional iterator for "rhythmic elements" or something
+
                         if m_note is None:
                             raise ValueError(f"no notes in this note group? {note_group!r}")
 
