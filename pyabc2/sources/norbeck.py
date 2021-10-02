@@ -101,13 +101,17 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
             dcsym = gd["dcsym"]
             letter = gd["letter"]
 
-            if gd["dcsym"] not in _COMBINING_ACCENT_FROM_ASCII_SYM:
-                raise ValueError(f"diacritic escape code `\\{gd['dcsym']}` not recognized")
+            ca = _COMBINING_ACCENT_FROM_ASCII_SYM.get(dcsym)
+            if ca is None:
+                raise ValueError(
+                    f"diacritic escape code `\\{dcsym}` not recognized "
+                    f"in this ABC:\n---\n{abc}\n---"
+                )
 
             if ascii_only:
                 snew = letter
             else:
-                snew = letter + _COMBINING_ACCENT_FROM_ASCII_SYM[dcsym]
+                snew = letter + ca
                 # Note: could use unicodedata to apply a normalization
                 # to give single accented characters instead of two code points
 
