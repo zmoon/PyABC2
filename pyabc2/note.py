@@ -21,6 +21,17 @@ _RE_NOTE = re.compile(_S_RE_NOTE)
 
 _ACCIDENTAL_TO_ABC = {"#": "^", "b": "_"}
 
+_DURATION_FRAC_TO_HTML = {
+    Fraction("1"): "&#119133;",
+    Fraction("1/2"): "&#119134;",
+    Fraction("1/4"): "&#119135;",
+    Fraction("1/8"): "&#119136;",
+    Fraction("1/16"): "&#119137;",
+    Fraction("1/32"): "&#119138;",
+    Fraction("1/64"): "&#119139;",
+    Fraction("1/128"): "&#119140;",
+}
+
 
 def _octave_from_abc_parts(note: str, oct: Optional[str] = None, *, base: int = 4):
     """
@@ -63,6 +74,13 @@ class Note(Pitch):
 
     def __repr__(self):
         return f"{self.__class__.__name__}(value={self.value}, duration={self.duration})"
+
+    def _repr_html_(self):
+        p = super()._repr_html_()
+        d = self.duration
+        d1, nd1 = d / d.numerator, d.numerator
+        # TODO: dotting for odd nd1? ties?
+        return p + _DURATION_FRAC_TO_HTML[d1] + f"<sub>{nd1}</sub>"
 
     def __eq__(self, other):
         if not isinstance(other, Note):
