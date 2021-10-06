@@ -96,6 +96,46 @@ TUNE_BODY_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_b
 TUNE_INLINE_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_inline}
 
 
+_ABCJS_VERSION = "6.0.0-beta.33"
+
+_fmt_abcjs_complete_page = """
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>{title:s}</title>
+    <script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
+  </head>
+  <body>
+    <div id="notation"></div>
+
+    <script>
+      const tune = "{abc:s}";
+      const params = {{}};
+      ABCJS.renderAbc("notation", tune, params);
+    </script>
+  </body>
+</html>
+""".lstrip()
+
+# <script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
+_fmt_abcjs = """
+<div id="notation-{notation_id:s}">hi</div>
+
+<script>
+  const tune = "{abc:s}";
+  const params = {{}};
+  ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
+</script>
+""".lstrip()
+
+_fmt_abcjs2 = """
+const tune = "{abc:s}";
+const params = {{}};
+ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
+""".lstrip()
+
+
 # TODO: maybe should go in a tune module
 class Tune:
     """Tune."""
@@ -238,6 +278,15 @@ class Tune:
         return (
             f"{self.__class__.__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
         )
+
+    def _repr_html_(self):
+        import uuid
+
+        notation_id = str(uuid.uuid4())
+        notation_id = "1234"
+        abc = "\\n".join(line for line in self.abc.strip().splitlines())
+
+        return _fmt_abcjs.format(abc=abc, notation_id=notation_id, abcjs_version=_ABCJS_VERSION)
 
     def print_measures(self, *, note_format: str = "ABC"):
         """Print measures to check parsing."""
