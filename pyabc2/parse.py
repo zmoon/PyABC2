@@ -127,6 +127,12 @@ _fmt_abcjs = """
   const params = {{}};
   ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
 </script>
+
+<script>
+  const tune = "{abc:s}";
+  const params = {{}};
+  ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
+</script>
 """.lstrip()
 
 _fmt_abcjs2 = """
@@ -283,10 +289,22 @@ class Tune:
         import uuid
 
         notation_id = str(uuid.uuid4())
-        notation_id = "1234"
         abc = "\\n".join(line for line in self.abc.strip().splitlines())
 
-        return _fmt_abcjs.format(abc=abc, notation_id=notation_id, abcjs_version=_ABCJS_VERSION)
+        # return _fmt_abcjs.format(abc=abc, notation_id=notation_id, abcjs_version=_ABCJS_VERSION)
+
+        # It seems that if I just return <script> within the HTML,
+        # it is never loaded.
+        # https://discourse.jupyter.org/t/running-javascript-in-a-html-cell-fails-on-first-load/6707/3
+        # But we can use IPython display to make it work.
+
+        from IPython.display import HTML, Javascript, display
+
+        html = HTML(f"<div id=notation-{notation_id}>hi</div>")
+        display(html)
+
+        js = Javascript(_fmt_abcjs2.format(abc=abc, notation_id=notation_id))
+        display(js)
 
     def print_measures(self, *, note_format: str = "ABC"):
         """Print measures to check parsing."""
