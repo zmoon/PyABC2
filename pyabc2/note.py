@@ -79,8 +79,19 @@ class Note(Pitch):
         p = super()._repr_html_()
         d = self.duration
         d1, nd1 = d / d.numerator, d.numerator
-        # TODO: dotting for odd nd1? ties?
-        return p + _DURATION_FRAC_TO_HTML[d1] + f"<sub>{nd1}</sub>"
+
+        if nd1 == 3 and d1 <= 0.5:
+            # Go up one level and add dot
+            return f"{p}{_DURATION_FRAC_TO_HTML[d1*2]}."
+        elif nd1 == 1:
+            return f"{p}{_DURATION_FRAC_TO_HTML[d1]}"
+        else:
+            # 2 or more whole notes (biggest duration)
+            # or whole note(s) + additional
+            # or 5 1/8 notes
+            # etc.
+            # TODO: ties or adding multiples
+            return f"{p}({nd1}{_DURATION_FRAC_TO_HTML[d1]})"
 
     def __eq__(self, other):
         if not isinstance(other, Note):
@@ -148,6 +159,9 @@ class Note(Pitch):
                 relative_duration = Fraction("1/2") ** sla.count("/")
             elif num is not None and den is not None:
                 # We have both numerator and denominator
+                assert (
+                    sla == "/"
+                ), "there should only be one `/` when using both numerator and denominator"
                 relative_duration = Fraction(f"{num}/{den}")
             elif den is not None:
                 # When only denominator, numerator 1 is assumed
@@ -156,6 +170,7 @@ class Note(Pitch):
             elif num is not None:
                 # When only numerator, denominator 2 is assumed
                 assert sla == "/", "there should be only one `/` when only numerator is used"
+                # ^ Not 100% sure about this though
                 relative_duration = Fraction(f"{num}/2")
             else:
                 raise ValueError(f"invalid relative duration spec. in {m.group(0)!r}")
