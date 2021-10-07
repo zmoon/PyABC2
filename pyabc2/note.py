@@ -138,25 +138,30 @@ class Note(Pitch):
         value = pitch_class_value(class_name) + 12 * octave + dvalue_acc + dvalue_key
 
         # Determine duration
-        if g["slash"] is not None:
+        sla = g["slash"]
+        num = g["num"]
+        den = g["den"]
+        if sla is not None:
             # raise ValueError("only whole multiples of L supported at this time")
-            if g["num"] is None and g["den"] is None:
+            if num is None and den is None:
                 # Special case: `/` as shorthand for 1/2 and can be multiple
-                relative_duration = Fraction("1/2") ** g["slash"].count("/")
-            elif g["den"] is not None:
+                relative_duration = Fraction("1/2") ** sla.count("/")
+            elif num is not None and den is not None:
+                # We have both numerator and denominator
+                relative_duration = Fraction(f"{num}/{den}")
+            elif den is not None:
                 # When only denominator, numerator 1 is assumed
-                assert (
-                    g["slash"] == "/"
-                ), "there should only be one `/` when only denominator is used"
-                relative_duration = Fraction(f"1/{g['den']}")
-            elif g["num"] is not None:
+                assert sla == "/", "there should only be one `/` when only denominator is used"
+                relative_duration = Fraction(f"1/{den}")
+            elif num is not None:
                 # When only numerator, denominator 2 is assumed
-                assert g["slash"] == "/", "there should be only one `/` when only numerator is used"
-                relative_duration = Fraction(f"{g['num']}/2")
+                assert sla == "/", "there should be only one `/` when only numerator is used"
+                relative_duration = Fraction(f"{num}/2")
             else:
                 raise ValueError(f"invalid relative duration spec. in {m.group(0)!r}")
+                # (Shouldn't ever get here.)
         else:
-            relative_duration = Fraction(g["num"]) if g["num"] is not None else Fraction(1)
+            relative_duration = Fraction(num) if num is not None else Fraction(1)
 
         return cls(value, relative_duration * unit_duration)
 

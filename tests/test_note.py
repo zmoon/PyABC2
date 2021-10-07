@@ -152,6 +152,7 @@ def test_pitch_to_pitch_class():
         ("C//", "C4_1/32"),
         ("C/3", "C4_1/24"),
         ("C3/", "C4_3/16"),  # dotted eigth note
+        ("C3/2", "C4_3/16"),
     ],
 )
 def test_note_from_abc(abc, expected_str_rep):
