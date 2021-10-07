@@ -143,7 +143,7 @@ ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
 
 _fmt_abcjs_load = """
 <script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
-"""
+""".lstrip()
 
 
 def load_abcjs() -> None:
