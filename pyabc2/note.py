@@ -21,6 +21,17 @@ _RE_NOTE = re.compile(_S_RE_NOTE)
 
 _ACCIDENTAL_TO_ABC = {"#": "^", "b": "_"}
 
+_DURATION_FRAC_TO_HTML = {
+    Fraction("1"): "&#119133;",
+    Fraction("1/2"): "&#119134;",
+    Fraction("1/4"): "&#119135;",
+    Fraction("1/8"): "&#119136;",
+    Fraction("1/16"): "&#119137;",
+    Fraction("1/32"): "&#119138;",
+    Fraction("1/64"): "&#119139;",
+    Fraction("1/128"): "&#119140;",
+}
+
 
 def _octave_from_abc_parts(note: str, oct: Optional[str] = None, *, base: int = 4):
     """
@@ -63,6 +74,24 @@ class Note(Pitch):
 
     def __repr__(self):
         return f"{self.__class__.__name__}(value={self.value}, duration={self.duration})"
+
+    def _repr_html_(self):
+        p = super()._repr_html_()
+        d = self.duration
+        d1, nd1 = d / d.numerator, d.numerator
+
+        if nd1 == 3 and d1 <= 0.5:
+            # Go up one level and add dot
+            return f"{p}{_DURATION_FRAC_TO_HTML[d1*2]}."
+        elif nd1 == 1:
+            return f"{p}{_DURATION_FRAC_TO_HTML[d1]}"
+        else:
+            # 2 or more whole notes (biggest duration)
+            # or whole note(s) + additional
+            # or 5 1/8 notes
+            # etc.
+            # TODO: ties or adding multiples
+            return f"{p}({nd1}{_DURATION_FRAC_TO_HTML[d1]})"
 
     def __eq__(self, other):
         if not isinstance(other, Note):
@@ -120,25 +149,34 @@ class Note(Pitch):
         value = pitch_class_value(class_name) + 12 * octave + dvalue_acc + dvalue_key
 
         # Determine duration
-        if g["slash"] is not None:
+        sla = g["slash"]
+        num = g["num"]
+        den = g["den"]
+        if sla is not None:
             # raise ValueError("only whole multiples of L supported at this time")
-            if g["num"] is None and g["den"] is None:
+            if num is None and den is None:
                 # Special case: `/` as shorthand for 1/2 and can be multiple
-                relative_duration = Fraction("1/2") ** g["slash"].count("/")
-            elif g["den"] is not None:
-                # When only denominator, numerator 1 is assumed
+                relative_duration = Fraction("1/2") ** sla.count("/")
+            elif num is not None and den is not None:
+                # We have both numerator and denominator
                 assert (
-                    g["slash"] == "/"
-                ), "there should only be one `/` when only denominator is used"
-                relative_duration = Fraction(f"1/{g['den']}")
-            elif g["num"] is not None:
+                    sla == "/"
+                ), "there should only be one `/` when using both numerator and denominator"
+                relative_duration = Fraction(f"{num}/{den}")
+            elif den is not None:
+                # When only denominator, numerator 1 is assumed
+                assert sla == "/", "there should only be one `/` when only denominator is used"
+                relative_duration = Fraction(f"1/{den}")
+            elif num is not None:
                 # When only numerator, denominator 2 is assumed
-                assert g["slash"] == "/", "there should be only one `/` when only numerator is used"
-                relative_duration = Fraction(f"{g['num']}/2")
+                assert sla == "/", "there should be only one `/` when only numerator is used"
+                # ^ Not 100% sure about this though
+                relative_duration = Fraction(f"{num}/2")
             else:
                 raise ValueError(f"invalid relative duration spec. in {m.group(0)!r}")
+                # (Shouldn't ever get here.)
         else:
-            relative_duration = Fraction(g["num"]) if g["num"] is not None else Fraction(1)
+            relative_duration = Fraction(num) if num is not None else Fraction(1)
 
         return cls(value, relative_duration * unit_duration)
 

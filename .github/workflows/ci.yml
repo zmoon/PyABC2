@@ -37,3 +37,10 @@ jobs:
     - name: Check type annotations
       run: |
         poetry run mypy --install-types --non-interactive .
+
+    - name: Run the example notebooks
+      run: |
+        cd examples
+        for f in *.ipynb; do
+          poetry run jupyter nbconvert --to notebook --execute $f
+        done

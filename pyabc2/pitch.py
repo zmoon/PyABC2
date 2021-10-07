@@ -28,6 +28,14 @@ ACCIDENTAL_DVALUES = {"": 0, "#": 1, "b": -1}
 
 ACCIDENTAL_ASCII_TO_UNICODE = {"": "", "#": "♯", "b": "♭", "##": "𝄪", "bb": "𝄫", "=": "♮"}
 ACCIDENTAL_ASCII_TO_PM = {"": "", "#": "+", "b": "-", "=": "="}
+ACCIDENTAL_ASCII_TO_HTML = {
+    "": "",
+    "#": "&sharp;",
+    "b": "&flat;",
+    "=": "&natural;",
+    "bb": "&#119083;",
+    "##": "&#119082;",
+}
 
 CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 """ASCII chromatic notes, starting with C at index 0."""
@@ -131,6 +139,10 @@ class PitchClass:
 
     def __repr__(self):
         return f"{self.__class__.__name__}(value={self.value}, root='{self.root}')"
+
+    def _repr_html_(self):
+        name = self.name
+        return name[0] + "".join(ACCIDENTAL_ASCII_TO_HTML[c] for c in name[1:])
 
     @classmethod
     def from_pitch(cls, p: "Pitch") -> "PitchClass":
@@ -313,6 +325,10 @@ class Pitch:
     def __repr__(self):
         # return f"{self.__class__.__name__}(name='{self.name}', value={self.value}, octave={self.octave})"
         return f"{self.__class__.__name__}(value={self.value})"
+
+    def _repr_html_(self):
+        cn = self.to_pitch_class()._repr_html_()
+        return f"{cn}<sub>{self.octave}</sub>"
 
     @property
     def piano_key_number(self) -> int:

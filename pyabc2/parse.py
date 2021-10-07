@@ -96,6 +96,74 @@ TUNE_BODY_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_b
 TUNE_INLINE_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_inline}
 
 
+_ABCJS_VERSION = "6.0.0-beta.33"
+
+_FMT_ABCJS_COMPLETE_PAGE_HTML = """\
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>{title:s}</title>
+    <script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
+  </head>
+  <body>
+    <div id="notation"></div>
+
+    <script>
+      const tune = "{abc:s}";
+      const params = {{}};
+      ABCJS.renderAbc("notation", tune, params);
+    </script>
+  </body>
+</html>
+"""
+
+_FMT_ABCJS_LOAD_HTML = """\
+<script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
+"""
+
+_FMT_ABCJS_BODY_HTML = """\
+<div id="notation-{notation_id:s}">hi</div>
+
+<script>
+  const tune = "{abc:s}";
+  const params = {{}};
+  ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
+</script>
+"""
+
+_FMT_ABCJS_RENDER_JS = """\
+const tune = "{abc:s}";
+const params = {{}};
+ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
+"""
+
+
+def load_abcjs() -> None:
+    """Load abcjs into Jupyter from CDN using IPython display."""
+    from IPython.display import HTML, display  # type: ignore
+
+    html = HTML(_FMT_ABCJS_LOAD_HTML.format(abcjs_version=_ABCJS_VERSION))
+    display(html)
+
+
+def _in_jupyter() -> bool:
+    # Reference: https://stackoverflow.com/a/47428575
+    try:
+        from IPython.core import getipython  # type: ignore
+    except (ImportError, ModuleNotFoundError):
+        return False
+
+    # <class 'ipykernel.zmqshell.ZMQInteractiveShell'>
+    return "zmqshell" in str(type(getipython.get_ipython()))
+
+
+def _load_abcjs_if_in_jupyter() -> None:
+    if _in_jupyter():
+        load_abcjs()
+        print("abcjs loaded")
+
+
 # TODO: maybe should go in a tune module
 class Tune:
     """Tune."""
@@ -238,6 +306,27 @@ class Tune:
         return (
             f"{self.__class__.__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
         )
+
+    def _repr_html_(self):
+        import uuid
+
+        notation_id = str(uuid.uuid4())
+        abc = "\\n".join(line for line in self.abc.strip().splitlines())
+
+        # return _fmt_abcjs.format(abc=abc, notation_id=notation_id, abcjs_version=_ABCJS_VERSION)
+
+        # It seems that if I just return <script> within the HTML,
+        # it is never loaded.
+        # https://discourse.jupyter.org/t/running-javascript-in-a-html-cell-fails-on-first-load/6707/3
+        # But we can use IPython display to make it work.
+
+        from IPython.display import HTML, Javascript, display
+
+        html = HTML(f"<div id=notation-{notation_id}>hi</div>")
+        display(html)
+
+        js = Javascript(_FMT_ABCJS_RENDER_JS.format(abc=abc, notation_id=notation_id))
+        display(js)
 
     def print_measures(self, *, note_format: str = "ABC"):
         """Print measures to check parsing."""
