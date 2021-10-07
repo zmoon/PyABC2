@@ -148,7 +148,7 @@ _fmt_abcjs_load = """
 
 def load_abcjs() -> None:
     """Load abcjs into Jupyter from CDN using IPython display."""
-    from IPython.display import HTML, display
+    from IPython.display import HTML, display  # type: ignore
 
     html = HTML(_fmt_abcjs_load.format(abcjs_version=_ABCJS_VERSION))
     display(html)
@@ -156,7 +156,7 @@ def load_abcjs() -> None:
 
 def _in_jupyter() -> bool:
     try:
-        from IPython.core import getipython
+        from IPython.core import getipython  # type: ignore
     except (ImportError, ModuleNotFoundError):
         return False
 
