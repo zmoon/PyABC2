@@ -141,6 +141,34 @@ const params = {{}};
 ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
 """.lstrip()
 
+_fmt_abcjs_load = """
+<script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
+"""
+
+
+def load_abcjs() -> None:
+    """Load abcjs into Jupyter from CDN using IPython display."""
+    from IPython.display import HTML, display
+
+    html = HTML(_fmt_abcjs_load.format(abcjs_version=_ABCJS_VERSION))
+    display(html)
+
+
+def _in_jupyter() -> bool:
+    try:
+        from IPython.core import getipython
+    except (ImportError, ModuleNotFoundError):
+        return False
+
+    # <class 'ipykernel.zmqshell.ZMQInteractiveShell'>
+    return "zmqshell" in str(type(getipython.get_ipython()))
+
+
+def _load_abcjs_if_in_jupyter() -> None:
+    if _in_jupyter():
+        load_abcjs()
+        print("abcjs loaded")
+
 
 # TODO: maybe should go in a tune module
 class Tune:
