@@ -98,7 +98,7 @@ TUNE_INLINE_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune
 
 _ABCJS_VERSION = "6.0.0-beta.33"
 
-_fmt_abcjs_complete_page = """
+_FMT_ABCJS_COMPLETE_PAGE_HTML = """\
 <!DOCTYPE html>
 <html>
   <head>
@@ -116,10 +116,13 @@ _fmt_abcjs_complete_page = """
     </script>
   </body>
 </html>
-""".lstrip()
+"""
 
-# <script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
-_fmt_abcjs = """
+_FMT_ABCJS_LOAD_HTML = """\
+<script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
+"""
+
+_FMT_ABCJS_BODY_HTML = """\
 <div id="notation-{notation_id:s}">hi</div>
 
 <script>
@@ -127,34 +130,25 @@ _fmt_abcjs = """
   const params = {{}};
   ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
 </script>
+"""
 
-<script>
-  const tune = "{abc:s}";
-  const params = {{}};
-  ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
-</script>
-""".lstrip()
-
-_fmt_abcjs2 = """
+_FMT_ABCJS_RENDER_JS = """\
 const tune = "{abc:s}";
 const params = {{}};
 ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
-""".lstrip()
-
-_fmt_abcjs_load = """
-<script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
-""".lstrip()
+"""
 
 
 def load_abcjs() -> None:
     """Load abcjs into Jupyter from CDN using IPython display."""
     from IPython.display import HTML, display  # type: ignore
 
-    html = HTML(_fmt_abcjs_load.format(abcjs_version=_ABCJS_VERSION))
+    html = HTML(_FMT_ABCJS_LOAD_HTML.format(abcjs_version=_ABCJS_VERSION))
     display(html)
 
 
 def _in_jupyter() -> bool:
+    # Reference: https://stackoverflow.com/a/47428575
     try:
         from IPython.core import getipython  # type: ignore
     except (ImportError, ModuleNotFoundError):
@@ -331,7 +325,7 @@ class Tune:
         html = HTML(f"<div id=notation-{notation_id}>hi</div>")
         display(html)
 
-        js = Javascript(_fmt_abcjs2.format(abc=abc, notation_id=notation_id))
+        js = Javascript(_FMT_ABCJS_RENDER_JS.format(abc=abc, notation_id=notation_id))
         display(js)
 
     def print_measures(self, *, note_format: str = "ABC"):
