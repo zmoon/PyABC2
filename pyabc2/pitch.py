@@ -37,6 +37,7 @@ ACCIDENTAL_ASCII_TO_HTML = {
     "##": "&#119082;",
 }
 
+# CHROMATIC_NOTES = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 """ASCII chromatic notes, starting with C at index 0."""
 
@@ -127,12 +128,27 @@ class PitchClass:
         self.root = root
         """The name of the root note (pitch class)."""
 
+        self._name: Optional[str] = None
+
     @property
     def name(self) -> str:
         """The note (pitch class) name (ASCII)."""
-        vr = PITCH_VALUES_WRT_C[self.root]
-        v0 = self.value + vr
-        return CHROMATIC_NOTES[v0 % 12]  # TODO: correct note/acc based on root?
+        if self._name is None:
+            vr = PITCH_VALUES_WRT_C[self.root]
+            v0 = self.value + vr
+            return CHROMATIC_NOTES[v0 % 12]  # TODO: correct note/acc based on root?
+        else:
+            return self._name
+
+    @property
+    def nat(self) -> str:
+        """Natural note name (without accidentals)."""
+        return self.name[0]
+
+    @property
+    def acc(self) -> str:
+        """Accidentals in the note name."""
+        return self.name[1:]
 
     def __str__(self):
         return self.name
@@ -152,7 +168,10 @@ class PitchClass:
     def from_name(cls, name: str, *, root: str = "C") -> "PitchClass":
         value = pitch_class_value(name, root=root, mod=True)
 
-        return cls(value, root=root)
+        pc = cls(value, root=root)
+        pc._name = name
+
+        return pc
 
     # TODO: scale degree and such for any mode?
 
@@ -215,7 +234,6 @@ class PitchClass:
     @property
     def equivalent_sharp(self) -> "PitchClass":
         pnew = self - 1
-        # TODO: currently these names just get reset with the new name property
         if len(pnew.name) == 1:
             return PitchClass.from_name(pnew.name + "#", root=self.root)
         else:
@@ -230,6 +248,21 @@ class PitchClass:
         else:
             pnew = self + 2
             return PitchClass.from_name(pnew.name + "bb", root=self.root)
+
+    # @property
+    # def equivalent_natural(self) -> Optional["PitchClass"]:
+    #     if not self.acc:
+    #         return type(self)(self.value, root=self.root)
+    #     else:
+    #         na = len(self.acc)
+    #         if na % 2 == 0:  # and all same sign
+    #             if self.acc[0] == "#":
+    #                 new_name = self.name[:1]
+    #             else:
+    #                 pnew = self - na
+    #             return type(self).from_name(new_name, root=self.root)
+    #         else:
+    #             return None
 
     def with_root(self, root: str) -> "PitchClass":
         """New instance with a (possibly) different root."""

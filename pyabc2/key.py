@@ -62,8 +62,10 @@ MODE_VALUES = {
 #     "loc": ["1", "2", "#2", "3", "#3", "4", "5", "5#", "6", "#6", "7", "#7"],
 # }
 
-# MAJOR_CHROMATIC_SCALE_DEGREES = ["1", "#1", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
+MAJOR_CHROMATIC_SCALE_DEGREES = ["1", "b2", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
 # _MAJOR_CHROMATIC_SCALE_DEGREE_STEPS = [2, 1, 2, 2, 1, 2, 2]
+
+CMAJ_LETTERS = ["C", "D", "E", "F", "G", "A", "B"]
 
 
 def _mode_is_equiv(m1: str, m2: str) -> bool:
@@ -141,6 +143,14 @@ def _mode_chromatic_scale_degrees(mode: str, *, acc_format: str = "#") -> List[s
         csds[i] = s_
 
     return csds
+
+
+def _mode_scale_degrees_wrt_major(mode: str) -> List[str]:
+    sds = [MAJOR_CHROMATIC_SCALE_DEGREES[i] for i in _scale_chromatic_values(mode)]
+    if mode == "loc":
+        # Express Locrian in flats: #4 -> b5
+        sds[4] = "b5"
+    return sds
 
 
 def _scale_intervals(
@@ -268,13 +278,13 @@ class Key:
         List of accidentals that should be displayed in the key
         signature for the given key description.
         """
-        # determine number of sharps/flats for this key by first converting
-        # to ionian, then doing the key lookup
+        # Determine number of sharps/flats for this key by first converting
+        # to Ionian, then doing the key lookup.
         key = self.relative_major
         num_acc = IONIAN_SHARPFLAT_COUNT[key.root.name]
 
         sig = []
-        # sharps or flats?
+        # Sharps or flats?
         if num_acc > 0:
             for i in range(num_acc):
                 sig.append(SHARP_ORDER[i] + "#")
@@ -291,23 +301,49 @@ class Key:
         """
         return {p: a for p, a in self.key_signature}  # type: ignore[misc, has-type]
 
-    def relative(self, mode: str) -> "Key":
+    def relative(self, mode: str, *, match_acc: bool = False) -> "Key":
         mode = _validate_and_normalize_mode_name(mode)
         key, mode0 = self.root, self._mode
+
         rel = MODE_VALUES[mode0] - MODE_VALUES[mode]
         root = PitchClass((key.value + rel) % 12)
 
-        # Select flat or sharp to match the current key name
-        if "#" in key.name:
-            root2 = root.equivalent_sharp
-            if len(root2.name) == 2:  # sharp used
-                root = root2
-        elif "b" in key.name:
-            root2 = root.equivalent_flat
-            if len(root2.name) == 2:  # flat used
-                root = root2
+        root_es = root.equivalent_sharp
+        root_ef = root.equivalent_flat
 
-        return Key(root=root.name, mode=mode)
+        if match_acc:
+            # Select flat or sharp to match the current key name
+
+            # TODO: PitchClass from value with acc option?
+            if "#" in key.name:
+                if root_es.acc == "#":  # single sharp used
+                    root_name = root_es.name
+            elif "b" in key.name:
+                if root_ef.acc == "b":  # single flat used
+                    root_name = root_ef.name
+            else:
+                root_name = root.name
+
+        else:
+            # Use the letter that it should be in the scale
+            sd0 = MODE_SCALE_DEGREE[mode0]
+            sd = MODE_SCALE_DEGREE[mode]
+            inn = (CMAJ_LETTERS.index(self.root.nat) + (sd - sd0)) % 7
+            new_nat = CMAJ_LETTERS[inn]
+
+            # We can't use `.accidentals` since it uses `.relative_major`
+            # (causes stack overflow)
+            if root.nat != new_nat:
+                if root_es.nat == new_nat:
+                    root_name = root_es.name
+                elif root_ef.nat == new_nat:
+                    root_name = root_ef.name
+                else:
+                    raise Exception
+            else:
+                root_name = root.name
+
+        return Key(root=root_name, mode=mode)
 
     @property
     def relative_major(self) -> "Key":
@@ -320,17 +356,20 @@ class Key:
     @property
     def scale(self) -> List[PitchClass]:
         """Notes (pitch classes) of the scale."""
-        pc1 = self.root
-        return [pc1 + v for v in _scale_chromatic_values(self.mode)]
+        ir = CMAJ_LETTERS.index(self.root.nat)
+        nats = CMAJ_LETTERS[ir:] + CMAJ_LETTERS[:ir]
+        notes = [n + self.accidentals.get(n, "") for n in nats]
+        return [PitchClass.from_name(n) for n in notes]
 
     def print_scale(self) -> None:
-        print(" ".join(str(pc) for pc in self.scale))
+        print(" ".join(f"{str(pc):2}" for pc in self.scale))
 
-    def print_scale_degrees(self, **kwargs) -> None:
-        print(" ".join(pc.scale_degree_chromatic(**kwargs) for pc in self.scale))
+    @property
+    def scale_degrees_wrt_major(self) -> List[str]:
+        return _mode_scale_degrees_wrt_major(self._mode)
 
-    # TODO: scale as scale degrees in the major context
-    # TODO: scale cf. major/minor?
+    def print_scale_degrees_wrt_major(self, **kwargs) -> None:
+        print(" ".join(f"{sd:2}" for sd in self.scale_degrees_wrt_major))
 
     def __str__(self):
         return f"{self.root.name}{self._mode}"

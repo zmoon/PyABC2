@@ -66,3 +66,15 @@ def test_mode_chromatic_scale_degrees(mode, acc_format):
     csds = _mode_chromatic_scale_degrees(mode, acc_format=acc_format)
     assert len(csds) == 12
     assert all(len(s) in [1, 2, 5] and s[-1:-2:-1] in "1234567" for s in csds)
+
+
+@pytest.mark.parametrize("mode", MODE_VALUES)
+def test_mode_scale_degrees_wrt_major(mode):
+    # They should be the same no matter the root.
+    from pyabc2.key import IONIAN_SHARPFLAT_COUNT
+
+    roots = list(IONIAN_SHARPFLAT_COUNT)
+
+    sdss = [Key(f"{r}{mode}").scale_degrees_wrt_major for r in roots]
+
+    assert all(sds == sdss[0] for sds in sdss)
