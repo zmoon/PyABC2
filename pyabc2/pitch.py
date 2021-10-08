@@ -102,7 +102,7 @@ class PitchClass:
         value
             Chromatic note value relative to C.
         """
-        self.value: int = value
+        self.value: int = value % 12
         """Pitch class value, as integer chromatic distance from the root (0--11)."""
 
         self._name: Optional[str] = None
@@ -156,37 +156,29 @@ class PitchClass:
 
     @property
     def equivalent_sharp(self) -> "PitchClass":
-        pnew = self - 1
-        if len(pnew.name) == 1:
-            return PitchClass.from_name(pnew.name + "#")
+        pcnew = self - 1
+        if len(pcnew.name) == 1:
+            return PitchClass.from_name(pcnew.name + "#")
         else:
-            pnew = self - 2
-            return PitchClass.from_name(pnew.name + "##")
+            pcnew = self - 2
+            return PitchClass.from_name(pcnew.name + "##")
 
     @property
     def equivalent_flat(self) -> "PitchClass":
-        pnew = self + 1
-        if len(pnew.name) == 1:
-            return PitchClass.from_name(pnew.name + "b")
+        pcnew = self + 1
+        if len(pcnew.name) == 1:
+            return PitchClass.from_name(pcnew.name + "b")
         else:
-            pnew = self + 2
-            return PitchClass.from_name(pnew.name + "bb")
+            pcnew = self + 2
+            return PitchClass.from_name(pcnew.name + "bb")
 
-    # TODO
-    # @property
-    # def equivalent_natural(self) -> Optional["PitchClass"]:
-    #     if not self.acc:
-    #         return type(self)(self.value)
-    #     else:
-    #         na = len(self.acc)
-    #         if na % 2 == 0:  # and all same sign
-    #             if self.acc[0] == "#":
-    #                 new_name = self.name[:1]
-    #             else:
-    #                 pnew = self - na
-    #             return type(self).from_name(new_name)
-    #         else:
-    #             return None
+    @property
+    def equivalent_natural(self) -> Optional["PitchClass"]:
+        pcnew = type(self)(self.value)
+        if not pcnew.acc:
+            return pcnew
+        else:
+            return None
 
     def to_pitch(self, octave: int) -> "Pitch":
         return Pitch.from_class_value(self.value, octave)
