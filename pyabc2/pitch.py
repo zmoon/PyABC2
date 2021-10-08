@@ -94,7 +94,7 @@ def _validate_pitch_class_name(name: str) -> None:
     """1 or 2 #/b, 1 =, or no accidentals."""
     acc = name[1:]
     if acc:
-        msg0 = f"invalid name {name!r}"
+        msg0 = f"invalid pitch class name {name!r}"
         if any(c not in ACCIDENTAL_DVALUES for c in acc):
             raise ValueError(
                 f"{msg0}. Invalid accidental symbol. "
@@ -262,6 +262,8 @@ class Pitch:
         self.value = value
         """Chromatic note value relative to C0."""
 
+        self._class_name: Optional[str] = None
+
     @property
     def class_value(self) -> int:
         """Chromatic note value of the corresponding pitch class, relative to C."""
@@ -275,7 +277,10 @@ class Pitch:
     @property
     def class_name(self) -> str:
         """Note name (pitch class)."""
-        return NICE_C_CHROMATIC_NOTES[self.class_value]
+        if self._class_name is None:
+            return NICE_C_CHROMATIC_NOTES[self.class_value]
+        else:
+            return self._class_name
 
     @property
     def name(self) -> str:
@@ -358,9 +363,14 @@ class Pitch:
         class_name = d["pitch_class"]
         octave = int(d["octave"])
 
+        _validate_pitch_class_name(class_name)
+
         class_value = pitch_class_value(class_name)
 
-        return cls.from_class_value(class_value, octave)
+        p = cls.from_class_value(class_value, octave)
+        p._class_name = class_name
+
+        return p
 
     @classmethod
     def from_class_value(cls, value: int, octave: int) -> "Pitch":
@@ -403,7 +413,7 @@ class Pitch:
         if isinstance(x, int):
             return type(self)(self.value + x)
         elif isinstance(x, (type(self), SimpleInterval)):
-            # Adding chromatic-value-wise, not frequency-wise!
+            # NOTE: Adding chromatic-value-wise, not frequency-wise!
             return type(self)(self.value + x.value)
         else:
             return NotImplemented
