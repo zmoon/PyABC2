@@ -148,13 +148,15 @@ class PitchClass:
         """Accidentals in the note name."""
         return self.name[1:]
 
-    # TODO: .isnat(ural)?
+    @property
+    def isnat(self) -> bool:
+        return not self.acc
 
     def __str__(self):
         return self.name
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(value={self.value})"
+        return f"{type(self).__name__}(value={self.value}, name={self.name!r})"
 
     def _repr_html_(self):
         name = self.name
@@ -293,8 +295,7 @@ class Pitch:
         return self.name
 
     def __repr__(self):
-        # return f"{self.__class__.__name__}(name='{self.name}', value={self.value}, octave={self.octave})"
-        return f"{self.__class__.__name__}(value={self.value})"
+        return f"{type(self).__name__}(value={self.value}, name={self.name!r})"
 
     def _repr_html_(self):
         cn = self.to_pitch_class()._repr_html_()

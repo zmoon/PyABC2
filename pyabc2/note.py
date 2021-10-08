@@ -73,7 +73,7 @@ class Note(Pitch):
         return f"{self.name}_{self.duration}"
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(value={self.value}, duration={self.duration})"
+        return f"{type(self).__name__}(value={self.value}, duration={self.duration})"
 
     def _repr_html_(self):
         p = super()._repr_html_()
@@ -191,7 +191,6 @@ class Note(Pitch):
         note_name = self.class_name
 
         # Accidental(s). Hack for now
-        # TODO: add some accidental properties and stuff to PitchClass?
         if len(note_name) == 1:
             note_nat = note_name
             acc = ""
@@ -199,7 +198,7 @@ class Note(Pitch):
             note_nat = note_name[0]
             acc = _ACCIDENTAL_TO_ABC[note_name[1]]
         else:
-            raise NotImplementedError(r"note name longer than 2 chars {note_name!r}")
+            raise NotImplementedError(f"note name longer than 2 chars {note_name!r}")
 
         # Adjust for key sig
         if acc and note_nat in key.accidentals:
