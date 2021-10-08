@@ -43,8 +43,8 @@ CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "
 # https://en.wikipedia.org/wiki/Solf%C3%A8ge#Movable_do_solf%C3%A8ge
 CHROMATIC_SOLFEGE = ["Do", "Di", "Re", "Me", "Mi", "Fa", "Fi", "Sol", "Le", "La", "Te", "Ti"]
 
-CHROMATIC_SCALE_DEGREE = ["1", "#1", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
-
+# CHROMATIC_SCALE_DEGREE = ["1", "#1", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
+CHROMATIC_SCALE_DEGREE = ["1", "b2", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
 
 _S_RE_PITCH_CLASS = r"[A-G][\#b]*"
 _RE_PITCH_CLASS = re.compile(_S_RE_PITCH_CLASS)
@@ -283,7 +283,9 @@ class PitchClass:
 # TODO: .from_name as alias for .from_spn / .from_scientific_pitch_notation
 @functools.total_ordering
 class Pitch:
-    """A pitch with value relative to C0."""
+    """A pitch with value relative to C0.
+    Note names are expressed in the context of C major.
+    """
 
     # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L204-L293
     def __init__(self, value: int):
