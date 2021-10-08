@@ -69,7 +69,7 @@ def test_add_int_to_C(d, expected_new_name):
 
     pc0 = PitchClass.from_name("C")
     pc = pc0 + d
-    assert pc.value == d
+    assert pc.name == expected_new_name
 
 
 @pytest.mark.parametrize(
@@ -88,7 +88,7 @@ def test_sub_int_from_C(d, expected_new_name):
 
     pc0 = PitchClass.from_name("C")
     pc = pc0 - d
-    assert pc.value == -d
+    assert pc.name == expected_new_name
 
 
 def test_eq():

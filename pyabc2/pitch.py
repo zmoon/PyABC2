@@ -345,7 +345,9 @@ class Pitch:
     def from_class_value(cls, value: int, octave: int) -> "Pitch":
         return cls(value + octave * 12)
 
-    # TODO: from_class_name
+    @classmethod
+    def from_class_name(cls, class_name: str, octave: int) -> "Pitch":
+        return cls.from_name(f"{class_name}{octave}")
 
     @classmethod
     def from_pitch_class(cls, pc: PitchClass, octave: int) -> "Pitch":

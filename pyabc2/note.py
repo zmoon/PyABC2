@@ -236,4 +236,4 @@ class Note(Pitch):
         return Pitch(self.value)
 
     # Hack for now to block these inherited constructors that don't support unit duration input
-    from_class_value = from_etf = from_name = from_pitch_class = _raise_not_implemented_error  # type: ignore[assignment]
+    from_class_value = from_etf = from_name = from_pitch_class = from_class_name = _raise_not_implemented_error  # type: ignore[assignment]
