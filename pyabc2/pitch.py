@@ -54,7 +54,7 @@ NICE_C_CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", 
 The more common accidentals are used.
 """
 
-_S_RE_PITCH_CLASS = r"[A-G][\#b]*"
+_S_RE_PITCH_CLASS = r"[A-G][\#b\=]*"
 _RE_PITCH_CLASS = re.compile(_S_RE_PITCH_CLASS)
 # _S_RE_PITCH_CLASS_ONE_ACC = r"[A-G][\#|b]?"
 _RE_PITCH = re.compile(rf"(?P<pitch_class>{_S_RE_PITCH_CLASS})" r"\s*" r"(?P<octave>[0-9]+)")
@@ -88,6 +88,29 @@ def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
         warnings.warn("computed pitch class value outside 0--11")
 
     return val
+
+
+def _validate_pitch_class_name(name: str) -> None:
+    """1 or 2 #/b, 1 =, or no accidentals."""
+    acc = name[1:]
+    if acc:
+        msg0 = f"invalid name {name!r}"
+        if any(c not in ACCIDENTAL_DVALUES for c in acc):
+            raise ValueError(
+                f"{msg0}. Invalid accidental symbol. "
+                f"Valid ones are: {', '.join(ACCIDENTAL_DVALUES)}"
+            )
+
+        acc_set = set(acc)
+        n_acc = len(acc)
+
+        if len(acc_set) != 1:
+            raise ValueError(f"{msg0}. Mixed #/b/= not allowed.")
+
+        if acc_set in ({"#"}, {"b"}) and n_acc > 2:
+            raise ValueError(f"{msg0}. 2 #/b at most allowed.")
+        elif acc_set == {"="} and n_acc > 1:
+            raise ValueError(f"{msg0}. 1 = at most allowed.")
 
 
 class PitchClass:
@@ -143,9 +166,7 @@ class PitchClass:
 
     @classmethod
     def from_name(cls, name: str) -> "PitchClass":
-        acc = name[1:]
-        if acc and (len(acc) > 2 or len(set(acc)) != 1):
-            raise ValueError(f"invalid name {name!r}. Mixed #/b not allowed and 2 at most.")
+        _validate_pitch_class_name(name)
 
         value = pitch_class_value(name, mod=True)
 
