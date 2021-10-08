@@ -13,10 +13,10 @@ def many_possible_key_name_inputs():
     from itertools import product
 
     from pyabc2.key import MODE_VALUES
-    from pyabc2.pitch import CHROMATIC_NOTES
+    from pyabc2.pitch import NICE_C_CHROMATIC_NOTES
 
     # Base list of keys as C chromatic notes
-    keys = CHROMATIC_NOTES
+    keys = NICE_C_CHROMATIC_NOTES
 
     # List of modes in sentence case
     modes = [m.capitalize() for m in MODE_VALUES]

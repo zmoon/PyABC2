@@ -23,12 +23,24 @@ PITCH_VALUES_WRT_C = _gen_pitch_values()
 """Dict. mapping ASCII note names ("pitch classes") to their integer values
 (in the chromatic scale) with respect to C."""
 
-ACCIDENTAL_DVALUES = {"": 0, "#": 1, "b": -1}
+ACCIDENTAL_DVALUES = {"": 0, "#": 1, "b": -1, "=": 0}
 """Change in value associated with a certain accidental mark (`#` or `b`)."""
 
-ACCIDENTAL_ASCII_TO_UNICODE = {"": "", "#": "♯", "b": "♭", "##": "𝄪", "bb": "𝄫", "=": "♮"}
-ACCIDENTAL_ASCII_TO_PM = {"": "", "#": "+", "b": "-", "=": "="}
-ACCIDENTAL_ASCII_TO_HTML = {
+_ACCIDENTAL_ASCII_TO_UNICODE = {
+    "": "",
+    "#": "♯",
+    "b": "♭",
+    "##": "𝄪",
+    "bb": "𝄫",
+    "=": "♮",
+}
+_ACCIDENTAL_ASCII_TO_PM = {
+    "": "",
+    "#": "+",
+    "b": "-",
+    "=": "=",
+}
+_ACCIDENTAL_ASCII_TO_HTML = {
     "": "",
     "#": "&sharp;",
     "b": "&flat;",
@@ -37,15 +49,10 @@ ACCIDENTAL_ASCII_TO_HTML = {
     "##": "&#119082;",
 }
 
-# CHROMATIC_NOTES = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
-CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
-"""ASCII chromatic notes, starting with C at index 0."""
-
-# https://en.wikipedia.org/wiki/Solf%C3%A8ge#Movable_do_solf%C3%A8ge
-CHROMATIC_SOLFEGE = ["Do", "Di", "Re", "Me", "Mi", "Fa", "Fi", "Sol", "Le", "La", "Te", "Ti"]
-
-# CHROMATIC_SCALE_DEGREE = ["1", "#1", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
-CHROMATIC_SCALE_DEGREE = ["1", "b2", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
+NICE_C_CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
+"""ASCII chromatic notes, starting with C at index 0.
+The more common accidentals are used.
+"""
 
 _S_RE_PITCH_CLASS = r"[A-G][\#b]*"
 _RE_PITCH_CLASS = re.compile(_S_RE_PITCH_CLASS)
@@ -83,50 +90,20 @@ def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
     return val
 
 
-def _to_roman(n: int) -> str:
-    # based on https://stackoverflow.com/a/47713392
-    if n >= 40:  # XL
-        raise NotImplementedError
-    roman_vals = (
-        # ...
-        (10, "X"),
-        (9, "XI"),
-        (5, "V"),
-        (4, "IV"),
-        (1, "I"),
-    )
-    chars = []
-    for i, r in roman_vals:
-        f, n = divmod(n, i)
-        chars.append(r * f)
-        if n == 0:
-            break
-    return "".join(chars)
-
-
-# TODO: maybe a simplier PitchClass without root that PitchClass and Pitch could both inherit from
-
-
 class PitchClass:
-    """Pitch without octave."""
+    """Pitch without octave.
+    Value as integer chromatic distance from C.
+    """
 
-    # TODO: rooting can be done easily by just subtracting from an instance, so `root` not needed?
-
-    def __init__(self, value: int, *, root: str = "C"):
+    def __init__(self, value: int):
         """
         Parameters
         ----------
         value
-            Chromatic note value relative to the root.
-        root
-            The note set to have value=0 (normally C, which is the default).
-            The root determines what value this pitch class has.
+            Chromatic note value relative to C.
         """
-        self.value = value
+        self.value: int = value
         """Pitch class value, as integer chromatic distance from the root (0--11)."""
-
-        self.root = root
-        """The name of the root note (pitch class)."""
 
         self._name: Optional[str] = None
 
@@ -134,9 +111,7 @@ class PitchClass:
     def name(self) -> str:
         """The note (pitch class) name (ASCII)."""
         if self._name is None:
-            vr = PITCH_VALUES_WRT_C[self.root]
-            v0 = self.value + vr
-            return CHROMATIC_NOTES[v0 % 12]  # TODO: correct note/acc based on root?
+            return NICE_C_CHROMATIC_NOTES[self.value % 12]
         else:
             return self._name
 
@@ -150,109 +125,58 @@ class PitchClass:
         """Accidentals in the note name."""
         return self.name[1:]
 
+    # TODO: .isnat(ural)?
+
     def __str__(self):
         return self.name
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(value={self.value}, root='{self.root}')"
+        return f"{self.__class__.__name__}(value={self.value})"
 
     def _repr_html_(self):
         name = self.name
-        return name[0] + "".join(ACCIDENTAL_ASCII_TO_HTML[c] for c in name[1:])
+        return name[0] + "".join(_ACCIDENTAL_ASCII_TO_HTML[c] for c in name[1:])
 
     @classmethod
     def from_pitch(cls, p: "Pitch") -> "PitchClass":
         return cls.from_name(p.name)
 
     @classmethod
-    def from_name(cls, name: str, *, root: str = "C") -> "PitchClass":
-        value = pitch_class_value(name, root=root, mod=True)
+    def from_name(cls, name: str) -> "PitchClass":
+        acc = name[1:]
+        if acc and (len(acc) > 2 or len(set(acc)) != 1):
+            raise ValueError(f"invalid name {name!r}. Mixed #/b not allowed and 2 at most.")
 
-        pc = cls(value, root=root)
+        value = pitch_class_value(name, mod=True)
+
+        pc = cls(value)
         pc._name = name
 
         return pc
-
-    # TODO: scale degree and such for any mode?
-
-    @property
-    def solfege(self) -> str:
-        """Solfege symbol. Accidentals allowed."""
-        return CHROMATIC_SOLFEGE[self.value]
-
-    @property
-    def scale_degree(self) -> int:
-        """Scale degree within the root's Ionian scale."""
-        from .key import CHROMATIC_VALUES_IN_MAJOR
-
-        if self.value not in CHROMATIC_VALUES_IN_MAJOR:
-            raise Exception(f"{self} is not in {self.root}'s major scale")
-
-        return int(CHROMATIC_SCALE_DEGREE[self.value])
-
-    def scale_degree_chromatic(
-        self, *, number_format: str = "arabic", acc_format: str = "ascii"
-    ) -> str:
-        """String representation of scale degree, allowing for raised/lowered wrt. major scale.
-
-        Parameters
-        ----------
-        number_format : {"arabic", "roman", "roman_lower"}
-        acc_format : {"ascii", "unicode", "pm"}
-        """
-        s = CHROMATIC_SCALE_DEGREE[self.value]  # ascii arabic
-        if len(s) == 2:
-            acc, n = s[0], int(s[1])
-        else:
-            acc, n = "", int(s)
-
-        # Adjust accidental repr
-        if acc_format == "unicode":
-            acc = ACCIDENTAL_ASCII_TO_UNICODE[acc]
-        elif acc_format == "ascii":
-            pass
-        elif acc_format == "pm":
-            acc = ACCIDENTAL_ASCII_TO_PM[acc]
-        else:
-            raise ValueError("invalid `acc_format`")
-
-        # Number repr
-        if number_format == "arabic":
-            s_n = str(n)
-        elif number_format == "roman":
-            s_n = str(_to_roman(n))
-        elif number_format == "roman_lower":
-            s_n = str(_to_roman(n)).lower()
-        else:
-            raise ValueError("invalid `number_format`")
-
-        if acc_format == "pm":
-            return s_n + acc
-        else:
-            return acc + s_n
 
     @property
     def equivalent_sharp(self) -> "PitchClass":
         pnew = self - 1
         if len(pnew.name) == 1:
-            return PitchClass.from_name(pnew.name + "#", root=self.root)
+            return PitchClass.from_name(pnew.name + "#")
         else:
             pnew = self - 2
-            return PitchClass.from_name(pnew.name + "##", root=self.root)
+            return PitchClass.from_name(pnew.name + "##")
 
     @property
     def equivalent_flat(self) -> "PitchClass":
         pnew = self + 1
         if len(pnew.name) == 1:
-            return PitchClass.from_name(pnew.name + "b", root=self.root)
+            return PitchClass.from_name(pnew.name + "b")
         else:
             pnew = self + 2
-            return PitchClass.from_name(pnew.name + "bb", root=self.root)
+            return PitchClass.from_name(pnew.name + "bb")
 
+    # TODO
     # @property
     # def equivalent_natural(self) -> Optional["PitchClass"]:
     #     if not self.acc:
-    #         return type(self)(self.value, root=self.root)
+    #         return type(self)(self.value)
     #     else:
     #         na = len(self.acc)
     #         if na % 2 == 0:  # and all same sign
@@ -260,35 +184,28 @@ class PitchClass:
     #                 new_name = self.name[:1]
     #             else:
     #                 pnew = self - na
-    #             return type(self).from_name(new_name, root=self.root)
+    #             return type(self).from_name(new_name)
     #         else:
     #             return None
 
-    def with_root(self, root: str) -> "PitchClass":
-        """New instance with a (possibly) different root."""
-        v = self.value
-        vr = PITCH_VALUES_WRT_C[self.root]
-        vrnew = PITCH_VALUES_WRT_C[root]
-        return PitchClass((v + vr - vrnew) % 12, root=root)
-
     def to_pitch(self, octave: int) -> "Pitch":
-        return Pitch.from_class_value(self.with_root("C").value, octave)
+        return Pitch.from_class_value(self.value, octave)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
 
-        return self.value == other.with_root(self.root).value
+        return self.value == other.value
 
     def __add__(self, x):
         if isinstance(x, int):
-            return PitchClass(self.value + x, root=self.root)
-        elif isinstance(x, PitchClass):
-            vnew = self.value + x.with_root(self.root).value
-            return PitchClass(vnew, root=self.root)
+            return type(self)(self.value + x)
+        elif isinstance(x, type(self)):
+            vnew = self.value + x.value
+            return type(self)(vnew)
         elif isinstance(x, SimpleInterval):
             # elif type(x) is SimpleInterval:
-            return PitchClass(self.value + x.value, root=self.root)
+            return type(self)(self.value + x.value)
         else:
             return NotImplemented
 
@@ -296,7 +213,7 @@ class PitchClass:
         if not isinstance(x, int):
             return NotImplemented
 
-        return PitchClass(x * self.value, root=self.root)
+        return type(self)(x * self.value)
 
     def __rmul__(self, x):
         return self * x
@@ -345,7 +262,7 @@ class Pitch:
     @property
     def class_name(self) -> str:
         """Note name (pitch class)."""
-        return CHROMATIC_NOTES[self.class_value]
+        return NICE_C_CHROMATIC_NOTES[self.class_value]
 
     @property
     def name(self) -> str:
@@ -440,10 +357,10 @@ class Pitch:
 
     @classmethod
     def from_pitch_class(cls, pc: PitchClass, octave: int) -> "Pitch":
-        return cls(pc.with_root("C").value + octave)
+        return cls(pc.value + octave)
 
-    def to_pitch_class(self, *, root: str = "C") -> PitchClass:
-        return PitchClass.from_name(self.class_name, root=root)
+    def to_pitch_class(self) -> PitchClass:
+        return PitchClass.from_name(self.class_name)
 
     def to_note(self, *, duration: Optional[Fraction] = None):
         from .note import _DEFAULT_UNIT_DURATION, Note

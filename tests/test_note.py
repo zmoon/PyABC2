@@ -111,18 +111,10 @@ def test_pitch_from_etf():
     Pitch.from_etf(440) == Pitch.from_name("A4")
 
 
-def test_root_changing():
-    p0 = PitchClass.from_name("C")
-    p = p0.with_root("Bb")
-    assert p0.name == p.name, "only value should be changing"
-    assert p.value == 2
-
-
 def test_pitch_class_to_pitch():
     C4 = Pitch.from_class_value(0, 4)
 
     assert PitchClass.from_name("C").to_pitch(4) == C4
-    assert PitchClass.from_name("C", root="D").to_pitch(4) == C4
 
 
 def test_pitch_to_pitch_class():

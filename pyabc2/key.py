@@ -65,6 +65,12 @@ MODE_VALUES = {
 MAJOR_CHROMATIC_SCALE_DEGREES = ["1", "b2", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
 # _MAJOR_CHROMATIC_SCALE_DEGREE_STEPS = [2, 1, 2, 2, 1, 2, 2]
 
+# https://en.wikipedia.org/wiki/Solf%C3%A8ge#Movable_do_solf%C3%A8ge
+CHROMATIC_SOLFEGE = ["Do", "Di", "Re", "Me", "Mi", "Fa", "Fi", "Sol", "Le", "La", "Te", "Ti"]
+
+# CHROMATIC_SCALE_DEGREE = ["1", "#1", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
+CHROMATIC_SCALE_DEGREE = ["1", "b2", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
+
 CMAJ_LETTERS = ["C", "D", "E", "F", "G", "A", "B"]
 
 
@@ -384,6 +390,27 @@ class Key:
             return NotImplemented
 
 
+def _to_roman(n: int) -> str:
+    # based on https://stackoverflow.com/a/47713392
+    if n >= 40:  # XL
+        raise NotImplementedError
+    roman_vals = (
+        # ...
+        (10, "X"),
+        (9, "XI"),
+        (5, "V"),
+        (4, "IV"),
+        (1, "I"),
+    )
+    chars = []
+    for i, r in roman_vals:
+        f, n = divmod(n, i)
+        chars.append(r * f)
+        if n == 0:
+            break
+    return "".join(chars)
+
+
 class ContextualizedPitchClass(PitchClass):
     """A pitch class that knows how it fits in a scale (key/mode),
     giving context for expression of scale degrees and note names.
@@ -399,9 +426,65 @@ class ContextualizedPitchClass(PitchClass):
         if isinstance(key, str):
             key = Key(key)
 
-        super().__init__(value, root=key.root.name)
+        super().__init__(value)
 
         self.key = key
 
     def __repr__(self):
         return f"{type(self).__name__}(value={self.value}, key={str(self.key)})"
+
+    # @property
+    # def solfege(self) -> str:
+    #     """Solfege symbol. Accidentals allowed."""
+    #     return CHROMATIC_SOLFEGE[self.value]
+
+    # @property
+    # def scale_degree(self) -> int:
+    #     """Scale degree within the root's Ionian scale."""
+    #     from .key import CHROMATIC_VALUES_IN_MAJOR
+
+    #     if self.value not in CHROMATIC_VALUES_IN_MAJOR:
+    #         raise Exception(f"{self} is not in {self.root}'s major scale")
+
+    #     return int(CHROMATIC_SCALE_DEGREE[self.value])
+
+    # def scale_degree_chromatic(
+    #     self, *, number_format: str = "arabic", acc_format: str = "ascii"
+    # ) -> str:
+    #     """String representation of scale degree, allowing for raised/lowered wrt. major scale.
+
+    #     Parameters
+    #     ----------
+    #     number_format : {"arabic", "roman", "roman_lower"}
+    #     acc_format : {"ascii", "unicode", "pm"}
+    #     """
+    #     s = CHROMATIC_SCALE_DEGREE[self.value]  # ascii arabic
+    #     if len(s) == 2:
+    #         acc, n = s[0], int(s[1])
+    #     else:
+    #         acc, n = "", int(s)
+
+    #     # Adjust accidental repr
+    #     if acc_format == "unicode":
+    #         acc = ACCIDENTAL_ASCII_TO_UNICODE[acc]
+    #     elif acc_format == "ascii":
+    #         pass
+    #     elif acc_format == "pm":
+    #         acc = ACCIDENTAL_ASCII_TO_PM[acc]
+    #     else:
+    #         raise ValueError("invalid `acc_format`")
+
+    #     # Number repr
+    #     if number_format == "arabic":
+    #         s_n = str(n)
+    #     elif number_format == "roman":
+    #         s_n = str(_to_roman(n))
+    #     elif number_format == "roman_lower":
+    #         s_n = str(_to_roman(n)).lower()
+    #     else:
+    #         raise ValueError("invalid `number_format`")
+
+    #     if acc_format == "pm":
+    #         return s_n + acc
+    #     else:
+    #         return acc + s_n
