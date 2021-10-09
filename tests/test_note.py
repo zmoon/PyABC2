@@ -5,7 +5,16 @@ import pytest
 
 from pyabc2.key import Key
 from pyabc2.note import Note
-from pyabc2.pitch import Pitch, PitchClass, SignedInterval, SimpleInterval, pitch_class_value
+from pyabc2.pitch import (
+    Pitch,
+    PitchClass,
+    SignedInterval,
+    SimpleInterval,
+    _to_roman,
+    pitch_class_value,
+)
+
+C = Key("Cmaj")
 
 
 @pytest.mark.parametrize(
@@ -212,3 +221,117 @@ def test_simple_interval_inverse():
     m3 = SimpleInterval.from_name("m3")
     assert m3.value == 3
     assert m3.inverse.name == "M6"
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("C", 1),
+        ("D", 2),
+        ("B", 7),
+        ("C#", -999),
+    ],
+)
+def test_scale_degree_int_in_C(name, expected):
+    pc = PitchClass.from_name(name)
+    if expected == -999:
+        with pytest.raises(ValueError):
+            assert pc.scale_degree_int_in(C) == expected
+    else:
+        assert pc.scale_degree_int_in(C) == expected
+
+
+@pytest.mark.parametrize(
+    ("i", "expected"),
+    [
+        (1, "I"),
+        (3, "III"),
+        (4, "IV"),
+        (9, "IX"),
+        (15, "XV"),
+        (20, "XX"),
+    ],
+)
+def test_to_roman(i, expected):
+    assert _to_roman(i) == expected
+
+
+def test_scale_degree_in_C_formats():
+    pc = PitchClass.from_name("C#")
+    assert pc.scale_degree_in(C) == "#1"
+    assert pc.scale_degree_in(C, acc_fmt="unicode") == "♯1"
+    assert pc.scale_degree_in(C, num_fmt="roman", acc_fmt="unicode") == "♯I"
+
+    with pytest.raises(ValueError):
+        pc.scale_degree_in(C, num_fmt="asdf")
+
+    with pytest.raises(ValueError):
+        pc.scale_degree_in(C, acc_fmt="asdf")
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("C#", "#1"),
+        ("Db", "b2"),
+        ("C##", "##1"),
+    ],
+)
+def test_scale_degree_in_C(name, expected):
+    pc = PitchClass.from_name(name)
+    assert pc.scale_degree_in(C) == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (0, "1"),
+        (1, "#1/b2"),
+        (2, "2"),
+        (10, "#6/b7"),
+        (11, "7"),
+    ],
+)
+def test_scale_degree_in_C_enh(value, expected):
+    pc = PitchClass(value)
+    assert pc.scale_degree_in(C) == expected
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("C", "Do"),
+        ("C#", "Di"),
+        ("Cb", -999),
+        ("Fb", -999),  # no b4
+        ("G#", "Si"),
+        ("G##", -999),
+        ("D", "Re"),
+        ("B", "Ti"),
+        ("Bb", "Te"),
+        ("B#", -999),
+    ],
+)
+def test_solfege_in_C(name, expected):
+    pc = PitchClass.from_name(name)
+
+    if expected == -999:
+        with pytest.raises(ValueError):
+            assert pc.solfege_in(C) == expected
+    else:
+        assert pc.solfege_in(C) == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (0, "Do"),
+        (1, "Di/Ra"),
+        (2, "Re"),
+        (10, "Li/Te"),
+        (11, "Ti"),
+    ],
+)
+def test_solfege_in_C_enh(value, expected):
+    pc = PitchClass(value)
+    assert pc.solfege_in(C) == expected

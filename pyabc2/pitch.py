@@ -6,7 +6,10 @@ import functools
 import re
 import warnings
 from fractions import Fraction
-from typing import Dict, Optional
+from typing import TYPE_CHECKING, Dict, Optional
+
+if TYPE_CHECKING:
+    from .key import Key
 
 
 def _gen_pitch_values() -> Dict[str, int]:
@@ -113,6 +116,27 @@ def _validate_pitch_class_name(name: str) -> None:
             raise ValueError(f"{msg0}. 1 = at most allowed.")
 
 
+def _to_roman(n: int) -> str:
+    # based on https://stackoverflow.com/a/47713392
+    if n >= 40:  # XL
+        raise NotImplementedError
+    roman_vals = (
+        # ...
+        (10, "X"),
+        (9, "IX"),
+        (5, "V"),
+        (4, "IV"),
+        (1, "I"),
+    )
+    chars = []
+    for i, r in roman_vals:
+        f, n = divmod(n, i)
+        chars.append(r * f)
+        if n == 0:
+            break
+    return "".join(chars)
+
+
 class PitchClass:
     """Pitch without octave.
     Value as integer chromatic distance from C.
@@ -150,7 +174,15 @@ class PitchClass:
 
     @property
     def isnat(self) -> bool:
-        return not self.acc
+        return self.acc in {"", "="}
+
+    @property
+    def isflat(self) -> bool:
+        return "b" in self.acc
+
+    @property
+    def issharp(self) -> bool:
+        return "#" in self.acc
 
     def __str__(self):
         return self.name
@@ -198,10 +230,146 @@ class PitchClass:
     @property
     def equivalent_natural(self) -> Optional["PitchClass"]:
         pcnew = type(self)(self.value)
-        if not pcnew.acc:
+        if pcnew.isnat:
             return pcnew
         else:
             return None
+
+    def value_in(self, key: "Key", *, mod: bool = True) -> int:
+        """Chromatic value in key.
+        Use `mod=False` to obtain negatives.
+        """
+        v0 = PITCH_VALUES_WRT_C[key.root.name]
+        if mod:
+            return (self.value - v0) % 12
+        else:
+            import warnings
+
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore")
+
+                return pitch_class_value(self.name) - v0
+
+    def scale_degree_int_in(self, key: "Key") -> int:
+        """Integer scale degree in key.
+        Raises ValueError if the note is not in the scale.
+        """
+        v = self.value_in(key, mod=True)
+
+        scvs = [pc.value_in(key) for pc in key.scale]
+
+        inat = key._letters.index(self.nat) + 1
+
+        try:
+            i = scvs.index(v) + 1
+
+        except ValueError as e:
+            raise ValueError(f"{self.name} is not in the {key.root} {key.mode} scale.") from e
+
+        if inat != i:
+            raise ValueError(f"{self.name} is not in the {key.root} {key.mode} scale.")
+
+        return i
+
+    def scale_degree_in(
+        self, key: "Key", *, num_fmt: str = "arabic", acc_fmt: str = "ascii"
+    ) -> str:
+        """String representation of scale degree allowing #/b."""
+
+        # If name has not been explicitly set, we can't differentiate between #/b.
+        use_enh = self._name is None
+
+        i = key._letters.index(self.nat) + 1
+
+        dv = self.acc.count("#") - self.acc.count("b")
+
+        assert 0 <= abs(dv) <= 2
+
+        # 0. First form the arabic/ascii version
+        if use_enh:
+            # NOTE: Max of one acc if `use_enh`
+            assert 0 <= abs(dv) <= 1
+            if dv == 1:
+                s = f"#{i}/b{i+1}"
+            elif dv == -1:
+                s = f"#{i-1}/b{i}"
+            else:
+                s = f"{i}"
+        else:
+            if dv < 0:
+                acc = "b" * abs(dv)
+            elif dv > 0:
+                acc = "#" * dv
+            else:
+                acc = self.acc  # "" or "="
+            s = f"{acc}{i}"
+
+        # 1. Adjust numbers if desired
+        num_fmt_ = num_fmt.lower()
+        if num_fmt_ == "arabic":
+            pass
+        elif num_fmt_ == "roman":
+            s = re.sub(r"[0-9]", lambda m: _to_roman(int(m.group(0))), s)
+        else:
+            raise ValueError("invalid `num_fmt`")
+
+        # 2. Adjust accidentals if desired
+        acc_fmt_ = acc_fmt.lower()
+        if acc_fmt_ == "ascii":
+            pass
+        elif acc_fmt_ == "unicode":
+            s = re.sub(r"(##|bb|b|#|=)", lambda m: _ACCIDENTAL_ASCII_TO_UNICODE[m.group(0)], s)
+        else:
+            raise ValueError("invalid `acc_fmt`")
+
+        # TODO: could make a helper fn for the above things to use elsewhere
+
+        return s
+
+    def solfege_in(self, key: "Key") -> str:
+        """Solfège symbol in the context of a given key.
+
+        https://en.wikipedia.org/wiki/Solf%C3%A8ge#Movable_do_solf%C3%A8ge
+        """
+        from .key import CHROMATIC_SOLFEGE_ALL
+
+        if key._mode not in {"maj", "ion"}:
+            raise NotImplementedError("solfège only implemented for major")
+
+        if len(self.acc) == 2:
+            raise ValueError("solfège not defined for ##/bb notes")
+
+        use_enh = self._name is None  # see `.scale_degree_in`
+
+        v = self.value_in(key, mod=True)
+        if use_enh:
+            solfs = CHROMATIC_SOLFEGE_ALL[v]
+            s = "/".join(solfs)
+
+        else:
+            inat0 = key._letters.index(self.nat)
+            scvs = [pc.value_in(key) for pc in key.scale]
+            vnat = scvs[inat0]
+
+            dv = self.acc.count("#") - self.acc.count("b")
+
+            absdv = abs(dv)
+            if absdv > 1:
+                raise ValueError(f"solfège not defined for {self.scale_degree_in(key)}")
+            elif absdv == 1:
+                try:
+                    if dv < 0:
+                        s = CHROMATIC_SOLFEGE_ALL[vnat - 1][1]
+                    elif dv > 0:
+                        s = CHROMATIC_SOLFEGE_ALL[vnat + 1][0]
+                except IndexError:
+                    raise ValueError(f"solfège not defined for {self.scale_degree_in(key)}")
+            else:
+                t = CHROMATIC_SOLFEGE_ALL[v]
+                assert len(t) == 1
+                s = t[0]
+
+        return s
 
     def to_pitch(self, octave: int) -> "Pitch":
         return Pitch.from_class_value(self.value, octave)
