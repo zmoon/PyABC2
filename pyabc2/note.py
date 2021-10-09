@@ -234,5 +234,22 @@ class Note(Pitch):
     def to_pitch(self) -> Pitch:
         return Pitch(self.value)
 
-    # Hack for now to block these inherited constructors that don't support unit duration input
-    from_class_value = from_etf = from_name = from_pitch_class = from_class_name = _raise_not_implemented_error  # type: ignore[assignment]
+    @classmethod
+    def from_name(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def from_etf(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def from_pitch_class(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def from_class_name(cls):
+        raise NotImplementedError
+
+    @classmethod
+    def from_class_value(cls):
+        raise NotImplementedError
