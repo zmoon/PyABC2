@@ -32,7 +32,7 @@ jobs:
 
     - name: Test with pytest
       run: |
-        poetry run pytest -v
+        poetry run pytest -v --cov=pyabc2 --cov-report xml
 
     - name: Check type annotations
       run: |
@@ -44,3 +44,8 @@ jobs:
         for f in *.ipynb; do
           poetry run jupyter nbconvert --to notebook --execute $f
         done
+
+    - name: Upload test coverage data to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        files: ./coverage.xml
