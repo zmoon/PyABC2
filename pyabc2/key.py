@@ -414,10 +414,21 @@ class Key:
         print(" ".join(f"{sd:2}" for sd in self.scale_degrees_wrt_major))
 
     @property
+    def scale_chromatic_values(self) -> List[int]:
+        """Integer chromatic values that make up the scale,
+        relative to root.
+        Only depends on mode.
+        """
+        return _scale_chromatic_values(self._mode)
+
+    def print_scale_chromatic_values(self) -> None:
+        print(" ".join(f"{i:2}" for i in self.scale_chromatic_values))
+
+    @property
     def intervals(self) -> List[str]:
         """List of the intervals that compose the scale.
         Only depends on mode."""
-        return _scale_intervals(_scale_chromatic_values(self._mode))
+        return _scale_intervals(self.scale_chromatic_values)
 
     def print_intervals(self, *, fmt="WH") -> None:
         if fmt == "WH":

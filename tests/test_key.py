@@ -96,6 +96,13 @@ def test_major_key_intervals(nat):
 
 def test_key_printers_succeed():
     k = Key("C")
-    k.print_scale()
-    k.print_scale_degrees_wrt_major()
-    k.print_intervals()
+    for n in dir(k):
+        if n.startswith("print_"):
+            getattr(k, n)()
+
+
+def test_scvs_consistency():
+    key = Key("C")
+    scvs0 = key.scale_chromatic_values
+    scvs = [pc.value_in(key) for pc in key.scale]
+    assert scvs0 == scvs

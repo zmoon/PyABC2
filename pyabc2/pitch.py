@@ -256,7 +256,7 @@ class PitchClass:
         """
         v = self.value_in(key, mod=True)
 
-        scvs = [pc.value_in(key) for pc in key.scale]
+        scvs = key.scale_chromatic_values
 
         inat = key._letters.index(self.nat) + 1
 
@@ -348,7 +348,7 @@ class PitchClass:
 
         else:
             inat0 = key._letters.index(self.nat)
-            scvs = [pc.value_in(key) for pc in key.scale]
+            scvs = key.scale_chromatic_values
             vnat = scvs[inat0]
 
             dv = self.acc.count("#") - self.acc.count("b")
