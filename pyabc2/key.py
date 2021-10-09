@@ -402,6 +402,13 @@ class Key:
         Only depends on mode."""
         return _scale_intervals(_scale_chromatic_values(self._mode))
 
+    def print_intervals(self, *, fmt="WH") -> None:
+        if fmt == "WH":
+            print(" ".join(i for i in self.intervals))
+        elif fmt == "-":
+            m = {"W": "--", "H": "-"}
+            print("|" + "|".join(m.get(i, "?") for i in self.intervals))
+
     def __str__(self):
         return f"{self.root.name}{self._mode}"
 

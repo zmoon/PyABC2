@@ -92,3 +92,10 @@ def test_key_letters(nat):
 @pytest.mark.parametrize("nat", CMAJ_LETTERS)
 def test_major_key_intervals(nat):
     assert "".join(Key(nat).intervals) == "WWHWWWH"
+
+
+def test_key_printers_succeed():
+    k = Key("C")
+    k.print_scale()
+    k.print_scale_degrees_wrt_major()
+    k.print_intervals()
