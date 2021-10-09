@@ -5,7 +5,7 @@ from itertools import product
 
 import pytest
 
-from pyabc2.key import MODE_VALUES, Key, _mode_chromatic_scale_degrees
+from pyabc2.key import CMAJ_LETTERS, MODE_VALUES, Key, _mode_chromatic_scale_degrees
 
 
 def many_possible_key_name_inputs():
@@ -78,3 +78,12 @@ def test_mode_scale_degrees_wrt_major(mode):
     sdss = [Key(f"{r}{mode}").scale_degrees_wrt_major for r in roots]
 
     assert all(sds == sdss[0] for sds in sdss)
+
+
+@pytest.mark.parametrize("nat", CMAJ_LETTERS)
+def test_key_letters(nat):
+    natmaj = Key(nat)
+    assert all(
+        Key(root=r, mode=m)._letters == natmaj._letters
+        for (r, m) in product([f"{nat}b", nat, f"{nat}#"], MODE_VALUES)
+    )

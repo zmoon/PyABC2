@@ -364,10 +364,17 @@ class Key:
         return self.relative("minor")
 
     @property
+    def _letters(self) -> List[str]:
+        """Letters (natural note names) of the scale.
+        Only depends on root.
+        """
+        ir = CMAJ_LETTERS.index(self.root.nat)
+        return CMAJ_LETTERS[ir:] + CMAJ_LETTERS[:ir]
+
+    @property
     def scale(self) -> List[PitchClass]:
         """Notes (pitch classes) of the scale."""
-        ir = CMAJ_LETTERS.index(self.root.nat)
-        nats = CMAJ_LETTERS[ir:] + CMAJ_LETTERS[:ir]
+        nats = self._letters
         notes = [n + self.accidentals.get(n, "") for n in nats]
         return [PitchClass.from_name(n) for n in notes]
 
@@ -376,6 +383,9 @@ class Key:
 
     @property
     def scale_degrees_wrt_major(self) -> List[str]:
+        """Scale degrees of the mode's scale, with #/b
+        as compared to the major scale with the same root.
+        """
         return _mode_scale_degrees_wrt_major(self._mode)
 
     def print_scale_degrees_wrt_major(self, **kwargs) -> None:
