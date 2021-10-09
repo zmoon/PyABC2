@@ -55,10 +55,6 @@ _DEFAULT_KEY = Key("Cmaj")
 _DEFAULT_UNIT_DURATION = Fraction("1/8")
 
 
-def _raise_not_implemented_error():
-    raise NotImplementedError
-
-
 class Note(Pitch):
     """A note has a pitch and a duration."""
 

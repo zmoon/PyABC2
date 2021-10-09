@@ -20,15 +20,16 @@ MODE_NAMES = [
     "aeolian",
     "locrian",
 ]
+"""Mode names in lowercase."""
 
-MODE_ABBR_TO_FULL = {m[:3]: m for m in MODE_NAMES}
+_MODE_ABBR_TO_FULL = {m[:3]: m for m in MODE_NAMES}
 """Dict. mapping mode abbreviation to full-length mode name."""
 
 
 def _validate_and_normalize_mode_name(mode: str) -> str:
     """Return mode abbreviation if mode recognized."""
     mode_ = mode.lower()
-    if mode_ not in MODE_NAMES + list(MODE_ABBR_TO_FULL):
+    if mode_ not in MODE_NAMES + list(_MODE_ABBR_TO_FULL):
         raise ValueError(f"invalid mode name {mode!r}")
 
     return mode_[:3]
@@ -48,25 +49,6 @@ MODE_VALUES = {
 }
 """Dict. mapping mode names to chromatic step deltas (relative to Ionian)."""
 
-# # TODO: probably could generate these instead
-# MODE_CHROMATIC_SCALE_DEGREES = {
-#     # major
-#     "lyd": ["1", "#1", "2", "b3", "3", "b4", "4", "5", "b6", "6", "b7", "7"],
-#     "maj": ["1", "#1", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"],
-#     "mix": ["1", "#1", "2", "b3", "3", "4", "#4", "5", "b6", "6", "7", "#7"],
-#     # minor
-#     "dor": ["1", "#1", "2", "3", "#3", "4", "#4", "5", "b6", "6", "7", "#7"],
-#     "min": ["1", "#1", "2", "3", "#3", "4", "#4", "5", "6", "#6", "7", "#7"],
-#     "phr": ["1", "2", "#2", "3", "#3", "4", "#4", "5", "6", "#6", "7", "#7"],
-#     # diminished
-#     "loc": ["1", "2", "#2", "3", "#3", "4", "5", "5#", "6", "#6", "7", "#7"],
-# }
-
-MAJOR_CHROMATIC_SCALE_DEGREES = ["1", "b2", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
-# _MAJOR_CHROMATIC_SCALE_DEGREE_STEPS = [2, 1, 2, 2, 1, 2, 2]
-
-# https://en.wikipedia.org/wiki/Solf%C3%A8ge#Movable_do_solf%C3%A8ge
-CHROMATIC_SOLFEGE = ["Do", "Di", "Re", "Me", "Mi", "Fa", "Fi", "Sol", "Le", "La", "Te", "Ti"]
 CHROMATIC_SOLFEGE_ALL = [
     ("Do",),
     ("Di", "Ra"),
@@ -81,14 +63,18 @@ CHROMATIC_SOLFEGE_ALL = [
     ("Li", "Te"),
     ("Ti",),
 ]
-"""Where there are two options, a 2-tuple with the raised one first and then the lowered one."""
+"""Solfège symbols.
+Where there are two options, a 2-tuple with the raised one first and then the lowered one.
+
+https://en.wikipedia.org/wiki/Solf%C3%A8ge#Movable_do_solf%C3%A8ge
+"""
 
 SOLFEGE_NAT = [t[0] for t in CHROMATIC_SOLFEGE_ALL if len(t) == 1]
+"""Solfège symbols for notes in the major scale."""
 
-# CHROMATIC_SCALE_DEGREE = ["1", "#1", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
-CHROMATIC_SCALE_DEGREE = ["1", "b2", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
 
 CMAJ_LETTERS = ["C", "D", "E", "F", "G", "A", "B"]
+"""Letters (natural note names) in C order."""
 
 
 def _mode_is_equiv(m1: str, m2: str) -> bool:
@@ -98,7 +84,8 @@ def _mode_is_equiv(m1: str, m2: str) -> bool:
     return MODE_VALUES[m1] == MODE_VALUES[m2]
 
 
-CHROMATIC_VALUES_IN_MAJOR = [0, 2, 4, 5, 7, 9, 11]
+_CHROMATIC_VALUES_IN_MAJOR = [0, 2, 4, 5, 7, 9, 11]
+"""Integer chromatic values of notes in a major scale."""
 
 MODE_SCALE_DEGREE = {
     "maj": 1,
@@ -124,7 +111,7 @@ def _scale_chromatic_values(mode: str) -> List[int]:
     i = MODE_SCALE_DEGREE[mode]
     i0 = i - 1
 
-    vs_wrt_major = CHROMATIC_VALUES_IN_MAJOR[i0:] + CHROMATIC_VALUES_IN_MAJOR[:i0]
+    vs_wrt_major = _CHROMATIC_VALUES_IN_MAJOR[i0:] + _CHROMATIC_VALUES_IN_MAJOR[:i0]
     dv = MODE_VALUES[mode]
 
     return [(v + dv) % 12 for v in vs_wrt_major]
@@ -174,7 +161,9 @@ def _mode_scale_degrees_wrt_major(mode: str) -> List[str]:
     """ASCII scale degrees for a certain mode,
     referenced to major using #/b.
     """
-    sds = [MAJOR_CHROMATIC_SCALE_DEGREES[i] for i in _scale_chromatic_values(mode)]
+    base = ["1", "b2", "2", "b3", "3", "4", "#4", "5", "b6", "6", "b7", "7"]
+
+    sds = [base[i] for i in _scale_chromatic_values(mode)]
     if mode == "loc":
         # Express Locrian in flats: #4 -> b5
         sds[4] = "b5"
@@ -274,7 +263,7 @@ class Key:
 
     @property
     def mode(self) -> str:
-        return MODE_ABBR_TO_FULL[self._mode].capitalize()
+        return _MODE_ABBR_TO_FULL[self._mode].capitalize()
 
     @staticmethod
     def parse_key(key: str) -> Tuple[PitchClass, str]:
