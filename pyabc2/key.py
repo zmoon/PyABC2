@@ -130,12 +130,12 @@ def _scale_chromatic_values(mode: str) -> List[int]:
     return [(v + dv) % 12 for v in vs_wrt_major]
 
 
-def _mode_chromatic_scale_degrees(mode: str, *, acc_format: str = "#") -> List[str]:
+def _mode_chromatic_scale_degrees(mode: str, *, acc_fmt: str = "#") -> List[str]:
     """For a given mode, scale degree representations for all 12 chromatic values."""
     valid_acc_formats = ["#", "b", "#/b", "b/#"]
-    if acc_format not in valid_acc_formats:
+    if acc_fmt not in valid_acc_formats:
         raise ValueError(
-            f"invalid `acc_format` {acc_format!r}. "
+            f"invalid `acc_format` {acc_fmt!r}. "
             f"Valid options are: {', '.join(repr(s) for s in valid_acc_formats)}"
         )
 
@@ -156,13 +156,13 @@ def _mode_chromatic_scale_degrees(mode: str, *, acc_format: str = "#") -> List[s
         s_s = f"#{csds[i-1]}"
         s_f = f"b{csds[(i+1)%12]}"
 
-        if acc_format == "#":
+        if acc_fmt == "#":
             s_ = s_s
-        elif acc_format == "b":
+        elif acc_fmt == "b":
             s_ = s_f
-        elif acc_format == "#/b":
+        elif acc_fmt == "#/b":
             s_ = f"{s_s}/{s_f}"
-        elif acc_format == "b/#":
+        elif acc_fmt == "b/#":
             s_ = f"{s_f}/{s_s}"
 
         csds[i] = s_
@@ -413,6 +413,11 @@ class Key:
     def print_scale_degrees_wrt_major(self, **kwargs) -> None:
         print(" ".join(f"{sd:2}" for sd in self.scale_degrees_wrt_major))
 
+    def print_chromatic_scale_degrees(self, **kwargs) -> None:
+        csds = _mode_chromatic_scale_degrees(self._mode, **kwargs)
+        wmax = max(len(s) for s in csds)
+        print(" ".join(f"{s:{wmax}}" for s in csds))
+
     @property
     def scale_chromatic_values(self) -> List[int]:
         """Integer chromatic values that make up the scale,
@@ -422,7 +427,7 @@ class Key:
         return _scale_chromatic_values(self._mode)
 
     def print_scale_chromatic_values(self) -> None:
-        print(" ".join(f"{i:2}" for i in self.scale_chromatic_values))
+        print(" ".join(f"{str(i):2}" for i in self.scale_chromatic_values))
 
     @property
     def intervals(self) -> List[str]:

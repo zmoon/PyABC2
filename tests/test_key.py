@@ -53,17 +53,11 @@ def test_relatives():
     assert Key("Ador").relative_major == Key("G")
 
 
-# def test_scale_degree_deriv_consistency():
-#     from pyabc2.key import MAJOR_CHROMATIC_SCALE_DEGREES, _MAJOR_CHROMATIC_SCALE_DEGREE_STEPS
-
-#     assert sum(_MAJOR_CHROMATIC_SCALE_DEGREE_STEPS) == len(MAJOR_CHROMATIC_SCALE_DEGREES) == 12
-
-
 @pytest.mark.parametrize(
     ("mode", "acc_format"), [(m, a) for m, a in product(MODE_VALUES, ["#", "b", "#/b", "b/#"])]
 )
 def test_mode_chromatic_scale_degrees(mode, acc_format):
-    csds = _mode_chromatic_scale_degrees(mode, acc_format=acc_format)
+    csds = _mode_chromatic_scale_degrees(mode, acc_fmt=acc_format)
     assert len(csds) == 12
     assert all(len(s) in [1, 2, 5] and s[-1:-2:-1] in "1234567" for s in csds)
 
