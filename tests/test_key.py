@@ -87,3 +87,8 @@ def test_key_letters(nat):
         Key(root=r, mode=m)._letters == natmaj._letters
         for (r, m) in product([f"{nat}b", nat, f"{nat}#"], MODE_VALUES)
     )
+
+
+@pytest.mark.parametrize("nat", CMAJ_LETTERS)
+def test_major_key_intervals(nat):
+    assert "".join(Key(nat).intervals) == "WWHWWWH"

@@ -102,6 +102,7 @@ we get A minor.
 
 
 def _scale_chromatic_values(mode: str) -> List[int]:
+    """The 7 integer chromatic values that make of the scale."""
     mode = _validate_and_normalize_mode_name(mode)
     i = MODE_SCALE_DEGREE[mode]
     i0 = i - 1
@@ -113,6 +114,7 @@ def _scale_chromatic_values(mode: str) -> List[int]:
 
 
 def _mode_chromatic_scale_degrees(mode: str, *, acc_format: str = "#") -> List[str]:
+    """For a given mode, scale degree representations for all 12 chromatic values."""
     valid_acc_formats = ["#", "b", "#/b", "b/#"]
     if acc_format not in valid_acc_formats:
         raise ValueError(
@@ -152,6 +154,9 @@ def _mode_chromatic_scale_degrees(mode: str, *, acc_format: str = "#") -> List[s
 
 
 def _mode_scale_degrees_wrt_major(mode: str) -> List[str]:
+    """ASCII scale degrees for a certain mode,
+    referenced to major using #/b.
+    """
     sds = [MAJOR_CHROMATIC_SCALE_DEGREES[i] for i in _scale_chromatic_values(mode)]
     if mode == "loc":
         # Express Locrian in flats: #4 -> b5
@@ -390,6 +395,12 @@ class Key:
 
     def print_scale_degrees_wrt_major(self, **kwargs) -> None:
         print(" ".join(f"{sd:2}" for sd in self.scale_degrees_wrt_major))
+
+    @property
+    def intervals(self) -> List[str]:
+        """List of the intervals that compose the scale.
+        Only depends on mode."""
+        return _scale_intervals(_scale_chromatic_values(self._mode))
 
     def __str__(self):
         return f"{self.root.name}{self._mode}"
