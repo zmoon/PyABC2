@@ -349,3 +349,41 @@ def test_solfege_in_nonC():
 def test_solfege_in_C_enh(value, expected):
     pc = PitchClass(value)
     assert pc.solfege_in(C) == expected
+
+
+def test_note_name_preservation():
+    """When converting to/from note classes."""
+
+    pc = PitchClass.from_name("Db")
+    cv1 = PitchClass(1)
+    assert pc == cv1
+    assert cv1.name == "C#"
+
+    # PC -> P -> N
+    p = pc.to_pitch(4)
+    assert pc.name == p.class_name == p.to_note().class_name == "Db"
+
+    # P -> PC
+    p = Pitch.from_name("Db4")
+    assert p.name == "Db4"
+    assert p.class_name == p.to_pitch_class().name == "Db"
+
+    # PC <- P
+    assert PitchClass.from_pitch(p).name == "Db"
+
+    # P <- PC
+    assert Pitch.from_pitch_class(pc, 4).class_name == "Db"
+
+    # N -> P
+    n = Note.from_abc("_D")
+    assert n.name == "Db4"
+    assert str(n) == "Db4_1/8"
+    assert n.to_pitch().class_name == "Db"
+    assert n.to_pitch().name == "Db4"
+
+    # N -> PC
+    assert n.to_pitch_class().name == "Db"
+
+    # N <- P
+    p = Pitch.from_name("Db4")
+    assert Note.from_pitch(p).class_name == "Db"

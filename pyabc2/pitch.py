@@ -206,7 +206,7 @@ class PitchClass:
 
     @classmethod
     def from_pitch(cls, p: "Pitch") -> "PitchClass":
-        return cls.from_name(p.name)
+        return cls.from_name(p.class_name)
 
     @classmethod
     def from_name(cls, name: str) -> "PitchClass":
@@ -384,7 +384,10 @@ class PitchClass:
         return s
 
     def to_pitch(self, octave: int) -> "Pitch":
-        return Pitch.from_class_value(self.value, octave)
+        p = Pitch.from_class_value(self.value, octave)
+        p._class_name = self._name
+
+        return p
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -563,7 +566,10 @@ class Pitch:
 
     @classmethod
     def from_pitch_class(cls, pc: PitchClass, octave: int) -> "Pitch":
-        return cls(pc.value + octave)
+        p = cls(pc.value + octave * 12)
+        p._class_name = pc._name
+
+        return p
 
     def to_pitch_class(self) -> PitchClass:
         # Preserve explicit name if set

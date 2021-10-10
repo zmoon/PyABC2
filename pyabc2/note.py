@@ -242,7 +242,10 @@ class Note(Pitch):
         return note
 
     def to_pitch(self) -> Pitch:
-        return Pitch(self.value)
+        p = Pitch(self.value)
+        p._class_name = self._class_name
+
+        return p
 
     @classmethod
     def from_name(cls):
