@@ -173,6 +173,16 @@ class PitchClass:
         return self.name[1:]
 
     @property
+    def dvalue_acc(self) -> int:
+        """Relative chromatic value of the accidentals."""
+        return self.acc.count("#") - self.acc.count("b")
+
+    @property
+    def value_nat(self) -> int:
+        """Chromatic value ignoring accidentals."""
+        return self.value - self.dvalue_acc
+
+    @property
     def isnat(self) -> bool:
         return self.acc in {"", "="}
 
@@ -278,10 +288,11 @@ class PitchClass:
 
         # If name has not been explicitly set, we can't differentiate between #/b.
         use_enh = self._name is None
+        # TODO: .isenh property?
 
         i = key._letters.index(self.nat) + 1
 
-        dv = self.acc.count("#") - self.acc.count("b")
+        dv = self.dvalue_acc - key.scale[i - 1].dvalue_acc
 
         assert 0 <= abs(dv) <= 2
 
@@ -301,7 +312,8 @@ class PitchClass:
             elif dv > 0:
                 acc = "#" * dv
             else:
-                acc = self.acc  # "" or "="
+                # acc = self.acc  # "" or "="
+                acc = ""
             s = f"{acc}{i}"
 
         # 1. Adjust numbers if desired
@@ -351,7 +363,7 @@ class PitchClass:
             scvs = key.scale_chromatic_values
             vnat = scvs[inat0]
 
-            dv = self.acc.count("#") - self.acc.count("b")
+            dv = self.dvalue_acc - key.scale[inat0].dvalue_acc
 
             absdv = abs(dv)
             if absdv > 1:

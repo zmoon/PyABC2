@@ -282,6 +282,13 @@ def test_scale_degree_in_C(name, expected):
     assert pc.scale_degree_in(C) == expected
 
 
+def test_scale_degree_in_nonC():
+    G = Key("G")
+    sd7 = PitchClass.from_name("F#")
+    sd7_enh = PitchClass(6)
+    assert sd7.scale_degree_in(G) == sd7_enh.scale_degree_in(G) == "7"
+
+
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
@@ -320,6 +327,13 @@ def test_solfege_in_C(name, expected):
             assert pc.solfege_in(C) == expected
     else:
         assert pc.solfege_in(C) == expected
+
+
+def test_solfege_in_nonC():
+    G = Key("G")
+    sd7 = PitchClass.from_name("F#")
+    sd7_enh = PitchClass(6)
+    assert sd7.solfege_in(G) == sd7_enh.solfege_in(G) == "Ti"
 
 
 @pytest.mark.parametrize(
