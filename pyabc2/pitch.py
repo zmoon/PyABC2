@@ -566,7 +566,11 @@ class Pitch:
         return cls(pc.value + octave)
 
     def to_pitch_class(self) -> PitchClass:
-        return PitchClass.from_name(self.class_name)
+        # Preserve explicit name if set
+        if self._class_name is not None:
+            return PitchClass.from_name(self.class_name)
+        else:
+            return PitchClass(self.class_value)
 
     def to_note(self, *, duration: Optional[Fraction] = None):
         from .note import _DEFAULT_UNIT_DURATION, Note
