@@ -4,7 +4,7 @@ Key (e.g., G, Em, Ador)
 # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L94
 import re
 import warnings
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 from .pitch import PitchClass
 
@@ -444,24 +444,28 @@ class Key:
             return NotImplemented
 
 
-class ContextualizedPitchClass(PitchClass):
-    """A pitch class that knows how it fits in a scale (key/mode),
-    giving context for expression of scale degrees and note names.
-    """
+# class ContextualizedPitchClass(PitchClass):
+#     """A pitch class that knows how it fits in a scale (key/mode),
+#     giving context for expression of scale degrees and note names.
+#     """
 
-    def __init__(self, value, key: Union[Key, str] = "C"):
-        """
-        value
-            Integer chromatic value.
-        key
-            Desired key context.
-        """
-        if isinstance(key, str):
-            key = Key(key)
+#     def __init__(self, value, key: Union[Key, str] = "C"):
+#         """
+#         value
+#             Integer chromatic value.
+#         key
+#             Desired key context.
+#         """
+#         if isinstance(key, str):
+#             key = Key(key)
 
-        super().__init__(value)
+#         super().__init__(value)
 
-        self.key = key
+#         self.key = key
 
-    def __repr__(self):
-        return f"{type(self).__name__}(value={self.value}, key={str(self.key)})"
+#     def __repr__(self):
+#         return f"{type(self).__name__}(value={self.value}, key={str(self.key)})"
+
+#     @classmethod
+#     def from_scale_degree(cls, sd: Union[int, str], key: Union[Key, str] = "C"):
+#         raise NotImplementedError
