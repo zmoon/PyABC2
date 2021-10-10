@@ -387,3 +387,12 @@ def test_note_name_preservation():
     # N <- P
     p = Pitch.from_name("Db4")
     assert Note.from_pitch(p).class_name == "Db"
+
+
+@pytest.mark.parametrize(
+    "meth", ["from_name", "from_etf", "from_pitch_class", "from_class_name", "from_class_value"]
+)
+def test_note_to_from_nonimpl(meth):
+    assert hasattr(Note, meth)
+    with pytest.raises(NotImplementedError):
+        getattr(Note, meth)()
