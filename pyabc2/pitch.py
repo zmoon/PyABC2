@@ -150,7 +150,7 @@ class PitchClass:
             Chromatic note value relative to C.
         """
         self.value: int = value % 12
-        """Pitch class value, as integer chromatic distance from the root (0--11)."""
+        """Pitch class value, as integer chromatic distance from the C (0--11)."""
 
         self._name: Optional[str] = None
 
@@ -249,7 +249,7 @@ class PitchClass:
         """Chromatic value in key.
         Use `mod=False` to obtain negatives.
         """
-        v0 = PITCH_VALUES_WRT_C[key.root.name]
+        v0 = PITCH_VALUES_WRT_C[key.tonic.name]
         if mod:
             return (self.value - v0) % 12
         else:
@@ -274,10 +274,10 @@ class PitchClass:
             i = scvs.index(v) + 1
 
         except ValueError as e:
-            raise ValueError(f"{self.name} is not in the {key.root} {key.mode} scale.") from e
+            raise ValueError(f"{self.name} is not in the {key.tonic} {key.mode} scale.") from e
 
         if inat != i:
-            raise ValueError(f"{self.name} is not in the {key.root} {key.mode} scale.")
+            raise ValueError(f"{self.name} is not in the {key.tonic} {key.mode} scale.")
 
         return i
 

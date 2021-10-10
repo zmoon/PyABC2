@@ -64,12 +64,12 @@ def test_mode_chromatic_scale_degrees(mode, acc_format):
 
 @pytest.mark.parametrize("mode", MODE_VALUES)
 def test_mode_scale_degrees_wrt_major(mode):
-    # They should be the same no matter the root.
+    # They should be the same no matter the tonic is.
     from pyabc2.key import IONIAN_SHARPFLAT_COUNT
 
-    roots = list(IONIAN_SHARPFLAT_COUNT)
+    tonics = list(IONIAN_SHARPFLAT_COUNT)
 
-    sdss = [Key(f"{r}{mode}").scale_degrees_wrt_major for r in roots]
+    sdss = [Key(f"{t}{mode}").scale_degrees_wrt_major for t in tonics]
 
     assert all(sds == sdss[0] for sds in sdss)
 
@@ -78,7 +78,7 @@ def test_mode_scale_degrees_wrt_major(mode):
 def test_key_letters(nat):
     natmaj = Key(nat)
     assert all(
-        Key(root=r, mode=m)._letters == natmaj._letters
+        Key(tonic=r, mode=m)._letters == natmaj._letters
         for (r, m) in product([f"{nat}b", nat, f"{nat}#"], MODE_VALUES)
     )
 

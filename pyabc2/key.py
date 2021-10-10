@@ -236,7 +236,7 @@ class Key:
         self,
         name: Optional[str] = None,
         *,
-        root: Optional[str] = None,
+        tonic: Optional[str] = None,
         mode: Optional[str] = None,
     ):
         """
@@ -244,21 +244,21 @@ class Key:
         ---------
         name
             Key name, e.g., `D`, `Ador`, `Bbmin`, ...
-        root
-            Root of the key, e.g., `C`, `D`, ...
+        tonic
+            Tonic of the key, e.g., `C`, `D`, ...
         mode
             Mode specification, e.g., `m`, `min`, `dor`.
             (Major assumed if mode not specified.)
         """
         if name is not None:
-            assert root is None and mode is None, "pass either `name` or `root`+`mode`"
+            assert tonic is None and mode is None, "pass either `name` or `tonic`+`mode`"
             # Handle occasional `K:` line used to indicate default key (C) and tune start
             if name == "":
                 name = "C"
-            self.root, self._mode = Key.parse_key(name)
+            self.tonic, self._mode = Key.parse_key(name)
         else:
-            assert root is not None and mode is not None, "pass either `name` or `root`+`mode`"
-            self.root = PitchClass.from_name(root)
+            assert tonic is not None and mode is not None, "pass either `name` or `tonic`+`mode`"
+            self.tonic = PitchClass.from_name(tonic)
             self._mode = _validate_and_normalize_mode_name(mode)
 
     @property
@@ -302,7 +302,7 @@ class Key:
         # Determine number of sharps/flats for this key by first converting
         # to Ionian, then doing the key lookup.
         key = self.relative_major
-        num_acc = IONIAN_SHARPFLAT_COUNT[key.root.name]
+        num_acc = IONIAN_SHARPFLAT_COUNT[key.tonic.name]
 
         sig = []
         # Sharps or flats?
@@ -324,47 +324,47 @@ class Key:
 
     def relative(self, mode: str, *, match_acc: bool = False) -> "Key":
         mode = _validate_and_normalize_mode_name(mode)
-        key, mode0 = self.root, self._mode
+        key, mode0 = self.tonic, self._mode
 
         rel = MODE_VALUES[mode0] - MODE_VALUES[mode]
-        root = PitchClass((key.value + rel) % 12)
+        tonic = PitchClass((key.value + rel) % 12)
 
-        root_es = root.equivalent_sharp
-        root_ef = root.equivalent_flat
+        tonic_es = tonic.equivalent_sharp
+        tonic_ef = tonic.equivalent_flat
 
         if match_acc:
             # Select flat or sharp to match the current key name
 
             # TODO: PitchClass from value with acc option?
             if "#" in key.name:
-                if root_es.acc == "#":  # single sharp used
-                    root_name = root_es.name
+                if tonic_es.acc == "#":  # single sharp used
+                    tonic_name = tonic_es.name
             elif "b" in key.name:
-                if root_ef.acc == "b":  # single flat used
-                    root_name = root_ef.name
+                if tonic_ef.acc == "b":  # single flat used
+                    tonic_name = tonic_ef.name
             else:
-                root_name = root.name
+                tonic_name = tonic.name
 
         else:
             # Use the letter that it should be in the scale
             sd0 = MODE_SCALE_DEGREE[mode0]
             sd = MODE_SCALE_DEGREE[mode]
-            inn = (CMAJ_LETTERS.index(self.root.nat) + (sd - sd0)) % 7
+            inn = (CMAJ_LETTERS.index(self.tonic.nat) + (sd - sd0)) % 7
             new_nat = CMAJ_LETTERS[inn]
 
             # We can't use `.accidentals` since it uses `.relative_major`
             # (causes stack overflow)
-            if root.nat != new_nat:
-                if root_es.nat == new_nat:
-                    root_name = root_es.name
-                elif root_ef.nat == new_nat:
-                    root_name = root_ef.name
+            if tonic.nat != new_nat:
+                if tonic_es.nat == new_nat:
+                    tonic_name = tonic_es.name
+                elif tonic_ef.nat == new_nat:
+                    tonic_name = tonic_ef.name
                 else:
                     raise Exception
             else:
-                root_name = root.name
+                tonic_name = tonic.name
 
-        return Key(root=root_name, mode=mode)
+        return Key(tonic=tonic_name, mode=mode)
 
     @property
     def relative_major(self) -> "Key":
@@ -377,9 +377,9 @@ class Key:
     @property
     def _letters(self) -> List[str]:
         """Letters (natural note names) of the scale.
-        Only depends on root.
+        Only depends on tonic.
         """
-        ir = CMAJ_LETTERS.index(self.root.nat)
+        ir = CMAJ_LETTERS.index(self.tonic.nat)
         return CMAJ_LETTERS[ir:] + CMAJ_LETTERS[:ir]
 
     @property
@@ -395,7 +395,7 @@ class Key:
     @property
     def scale_degrees_wrt_major(self) -> List[str]:
         """Scale degrees of the mode's scale, with #/b
-        as compared to the major scale with the same root.
+        as compared to the major scale with the same tonic.
         """
         return _mode_scale_degrees_wrt_major(self._mode)
 
@@ -410,7 +410,7 @@ class Key:
     @property
     def scale_chromatic_values(self) -> List[int]:
         """Integer chromatic values that make up the scale,
-        relative to root.
+        relative to the tonic.
         Only depends on mode.
         """
         return _scale_chromatic_values(self._mode)
@@ -432,14 +432,14 @@ class Key:
             print("|" + "|".join(m.get(i, "?") for i in self.intervals))
 
     def __str__(self):
-        return f"{self.root.name}{self._mode}"
+        return f"{self.tonic.name}{self._mode}"
 
     def __repr__(self):
-        return f"Key(root={self.root.name}, mode={self.mode!r})"
+        return f"Key(tonic={self.tonic.name}, mode={self.mode!r})"
 
     def __eq__(self, other):
         if isinstance(other, Key):
-            return self.root == other.root and _mode_is_equiv(self._mode, other._mode)
+            return self.tonic == other.tonic and _mode_is_equiv(self._mode, other._mode)
         else:
             return NotImplemented
 
