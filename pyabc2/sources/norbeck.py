@@ -3,10 +3,17 @@ Henrik Norbeck's ABC Tunes
 
 https://www.norbeck.nu/abc/
 """
-from pathlib import Path
-from typing import List, Union
+from pathlib import (
+    Path,
+)
+from typing import (
+    List,
+    Union,
+)
 
-from ..parse import Tune
+from ..parse import (
+    Tune,
+)
 
 HERE = Path(__file__).parent
 
@@ -51,6 +58,7 @@ def _maybe_download() -> None:
 
 
 _COMBINING_ACCENT_FROM_ASCII_SYM = {
+    "`": "\u0300",  # grave
     "'": "\u0301",  # acute
     "^": "\u0302",  # circumflex
     '"': "\u0308",  # umlaut

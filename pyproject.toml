@@ -36,4 +36,7 @@ ignore = [
 
 [tool.isort]
 profile = "black"
-line_length = 100
+line_length = 10
+
+[tool.pytest.ini_options]
+markers = ["slow"]
