@@ -578,7 +578,10 @@ class Pitch:
         if duration is None:
             duration = _DEFAULT_UNIT_DURATION
 
-        return Note(self.value, duration=duration)
+        note = Note(self.value, duration=duration)
+        note._class_name = self._class_name
+
+        return note
 
     def __eq__(self, other):
         # Only for other Pitch instances

@@ -19,7 +19,8 @@ _S_RE_NOTE = (
 _RE_NOTE = re.compile(_S_RE_NOTE)
 
 
-_ACCIDENTAL_TO_ABC = {"#": "^", "b": "_"}
+_ACCIDENTAL_ASCII_TO_ABC = {"#": "^", "b": "_", "=": "="}
+_ACCIDENTAL_ABC_TO_ASCII = {v: k for k, v in _ACCIDENTAL_ASCII_TO_ABC.items()}
 
 _DURATION_FRAC_TO_HTML = {
     Fraction("1"): "&#119133;",
@@ -129,7 +130,14 @@ class Note(Pitch):
         acc_marks = g["acc"]
 
         octave = _octave_from_abc_parts(note, octave_marks, base=octave_base)
-        class_name = note.upper()
+        nat_class_name = note.upper()
+
+        if acc_marks is not None:
+            acc_ascii = acc_marks
+            for a, b in _ACCIDENTAL_ABC_TO_ASCII.items():
+                acc_ascii = acc_ascii.replace(a, b)
+        else:
+            acc_ascii = ""
 
         # Compute value
         dvalue_acc = 0 if acc_marks is None else acc_marks.count("^") - acc_marks.count("_")
@@ -137,12 +145,12 @@ class Note(Pitch):
             # Only bring in key signature if no accidental marks
             dvalue_key = (
                 0
-                if class_name not in key.accidentals
-                else ACCIDENTAL_DVALUES[key.accidentals[class_name]]
+                if nat_class_name not in key.accidentals
+                else ACCIDENTAL_DVALUES[key.accidentals[nat_class_name]]
             )
         else:
             dvalue_key = 0
-        value = pitch_class_value(class_name) + 12 * octave + dvalue_acc + dvalue_key
+        value = pitch_class_value(nat_class_name) + 12 * octave + dvalue_acc + dvalue_key
 
         # Determine duration
         sla = g["slash"]
@@ -174,7 +182,10 @@ class Note(Pitch):
         else:
             relative_duration = Fraction(num) if num is not None else Fraction(1)
 
-        return cls(value, relative_duration * unit_duration)
+        note = cls(value, relative_duration * unit_duration)
+        note._class_name = nat_class_name + acc_ascii
+
+        return note
 
     def to_abc(
         self,
@@ -192,7 +203,7 @@ class Note(Pitch):
             acc = ""
         elif len(note_name) == 2:
             note_nat = note_name[0]
-            acc = _ACCIDENTAL_TO_ABC[note_name[1]]
+            acc = _ACCIDENTAL_ASCII_TO_ABC[note_name[1]]
         else:
             raise NotImplementedError(f"note name longer than 2 chars {note_name!r}")
 
@@ -225,7 +236,10 @@ class Note(Pitch):
 
     @classmethod
     def from_pitch(cls, p: Pitch, *, duration: Fraction = _DEFAULT_UNIT_DURATION) -> "Note":
-        return cls(p.value, duration)
+        note = cls(p.value, duration)
+        note._class_name = p._class_name
+
+        return note
 
     def to_pitch(self) -> Pitch:
         return Pitch(self.value)

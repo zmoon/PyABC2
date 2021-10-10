@@ -146,7 +146,7 @@ def test_pitch_to_pitch_class():
         # Accidentals
         ("_B,2,", "Bb3_1/4"),
         ("^f", "F#5_1/8"),
-        ("^^f',,3", "G4_3/8"),
+        ("^^f',,3", "F##4_3/8"),
         #
         # Relative duration
         ("C/", "C4_1/16"),
