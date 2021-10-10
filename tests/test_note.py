@@ -5,7 +5,16 @@ import pytest
 
 from pyabc2.key import Key
 from pyabc2.note import Note
-from pyabc2.pitch import Pitch, PitchClass, SignedInterval, SimpleInterval, pitch_class_value
+from pyabc2.pitch import (
+    Pitch,
+    PitchClass,
+    SignedInterval,
+    SimpleInterval,
+    _to_roman,
+    pitch_class_value,
+)
+
+C = Key("Cmaj")
 
 
 @pytest.mark.parametrize(
@@ -69,7 +78,7 @@ def test_add_int_to_C(d, expected_new_name):
 
     pc0 = PitchClass.from_name("C")
     pc = pc0 + d
-    assert pc.value == d
+    assert pc.name == expected_new_name
 
 
 @pytest.mark.parametrize(
@@ -88,7 +97,7 @@ def test_sub_int_from_C(d, expected_new_name):
 
     pc0 = PitchClass.from_name("C")
     pc = pc0 - d
-    assert pc.value == -d
+    assert pc.name == expected_new_name
 
 
 def test_eq():
@@ -111,18 +120,10 @@ def test_pitch_from_etf():
     Pitch.from_etf(440) == Pitch.from_name("A4")
 
 
-def test_root_changing():
-    p0 = PitchClass.from_name("C")
-    p = p0.with_root("Bb")
-    assert p0.name == p.name, "only value should be changing"
-    assert p.value == 2
-
-
 def test_pitch_class_to_pitch():
     C4 = Pitch.from_class_value(0, 4)
 
     assert PitchClass.from_name("C").to_pitch(4) == C4
-    assert PitchClass.from_name("C", root="D").to_pitch(4) == C4
 
 
 def test_pitch_to_pitch_class():
@@ -145,7 +146,7 @@ def test_pitch_to_pitch_class():
         # Accidentals
         ("_B,2,", "Bb3_1/4"),
         ("^f", "F#5_1/8"),
-        ("^^f',,3", "G4_3/8"),
+        ("^^f',,3", "F##4_3/8"),
         #
         # Relative duration
         ("C/", "C4_1/16"),
@@ -220,3 +221,178 @@ def test_simple_interval_inverse():
     m3 = SimpleInterval.from_name("m3")
     assert m3.value == 3
     assert m3.inverse.name == "M6"
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("C", 1),
+        ("D", 2),
+        ("B", 7),
+        ("C#", -999),
+    ],
+)
+def test_scale_degree_int_in_C(name, expected):
+    pc = PitchClass.from_name(name)
+    if expected == -999:
+        with pytest.raises(ValueError):
+            assert pc.scale_degree_int_in(C) == expected
+    else:
+        assert pc.scale_degree_int_in(C) == expected
+
+
+@pytest.mark.parametrize(
+    ("i", "expected"),
+    [
+        (1, "I"),
+        (3, "III"),
+        (4, "IV"),
+        (9, "IX"),
+        (15, "XV"),
+        (20, "XX"),
+    ],
+)
+def test_to_roman(i, expected):
+    assert _to_roman(i) == expected
+
+
+def test_scale_degree_in_C_formats():
+    pc = PitchClass.from_name("C#")
+    assert pc.scale_degree_in(C) == "#1"
+    assert pc.scale_degree_in(C, acc_fmt="unicode") == "♯1"
+    assert pc.scale_degree_in(C, num_fmt="roman", acc_fmt="unicode") == "♯I"
+
+    with pytest.raises(ValueError):
+        pc.scale_degree_in(C, num_fmt="asdf")
+
+    with pytest.raises(ValueError):
+        pc.scale_degree_in(C, acc_fmt="asdf")
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("C#", "#1"),
+        ("Db", "b2"),
+        ("C##", "##1"),
+    ],
+)
+def test_scale_degree_in_C(name, expected):
+    pc = PitchClass.from_name(name)
+    assert pc.scale_degree_in(C) == expected
+
+
+def test_scale_degree_in_nonC():
+    G = Key("G")
+    sd7 = PitchClass.from_name("F#")
+    sd7_enh = PitchClass(6)
+    assert sd7.scale_degree_in(G) == sd7_enh.scale_degree_in(G) == "7"
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (0, "1"),
+        (1, "#1/b2"),
+        (2, "2"),
+        (10, "#6/b7"),
+        (11, "7"),
+    ],
+)
+def test_scale_degree_in_C_enh(value, expected):
+    pc = PitchClass(value)
+    assert pc.scale_degree_in(C) == expected
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("C", "Do"),
+        ("C#", "Di"),
+        ("Cb", -999),
+        ("Fb", -999),  # no b4
+        ("G#", "Si"),
+        ("G##", -999),
+        ("D", "Re"),
+        ("B", "Ti"),
+        ("Bb", "Te"),
+        ("B#", -999),
+    ],
+)
+def test_solfege_in_C(name, expected):
+    pc = PitchClass.from_name(name)
+
+    if expected == -999:
+        with pytest.raises(ValueError):
+            assert pc.solfege_in(C) == expected
+    else:
+        assert pc.solfege_in(C) == expected
+
+
+def test_solfege_in_nonC():
+    G = Key("G")
+    sd7 = PitchClass.from_name("F#")
+    sd7_enh = PitchClass(6)
+    assert sd7.solfege_in(G) == sd7_enh.solfege_in(G) == "Ti"
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (0, "Do"),
+        (1, "Di/Ra"),
+        (2, "Re"),
+        (10, "Li/Te"),
+        (11, "Ti"),
+    ],
+)
+def test_solfege_in_C_enh(value, expected):
+    pc = PitchClass(value)
+    assert pc.solfege_in(C) == expected
+
+
+def test_note_name_preservation():
+    """When converting to/from note classes."""
+
+    pc = PitchClass.from_name("Db")
+    cv1 = PitchClass(1)
+    assert pc == cv1
+    assert cv1.name == "C#"
+
+    # PC -> P -> N
+    p = pc.to_pitch(4)
+    assert pc.name == p.class_name == p.to_note().class_name == "Db"
+
+    # P -> PC
+    p = Pitch.from_name("Db4")
+    assert p.name == "Db4"
+    assert p.class_name == p.to_pitch_class().name == "Db"
+
+    # PC <- P
+    assert PitchClass.from_pitch(p).name == "Db"
+
+    # P <- PC
+    assert Pitch.from_pitch_class(pc, 4).class_name == "Db"
+
+    # N -> P
+    n = Note.from_abc("_D")
+    assert n.name == "Db4"
+    assert str(n) == "Db4_1/8"
+    assert n.to_pitch().class_name == "Db"
+    assert n.to_pitch().name == "Db4"
+
+    # N -> PC
+    assert n.to_pitch_class().name == "Db"
+
+    # N <- P
+    p = Pitch.from_name("Db4")
+    assert Note.from_pitch(p).class_name == "Db"
+
+
+@pytest.mark.parametrize(
+    "meth", ["from_name", "from_etf", "from_pitch_class", "from_class_name", "from_class_value"]
+)
+def test_note_to_from_nonimpl(meth):
+    assert hasattr(Note, meth)
+    with pytest.raises(NotImplementedError):
+        getattr(Note, meth)()
