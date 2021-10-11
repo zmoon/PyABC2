@@ -1,14 +1,7 @@
 import pytest
 
-from pyabc2.parse import (
-    Tune,
-)
-from pyabc2.sources import (
-    examples,
-    load_example,
-    load_example_abc,
-    norbeck,
-)
+from pyabc2.parse import Tune
+from pyabc2.sources import examples, load_example, load_example_abc, norbeck
 
 
 @pytest.mark.parametrize("tune_name", examples)
@@ -32,6 +25,11 @@ def test_norbeck_load():
     assert 0 < len(jigs) < len(tunes)
 
     assert type(jigs[0]) is Tune
+
+    # Some diacritic tests
+    assert jigs[512].title == "Buachaillín Buí, An"
+    assert jigs[539].title == "30-årsjiggen"
+    assert jigs[486].header["composer"] == "Annlaug Børsheim, Norway"
 
     with pytest.raises(ValueError):
         norbeck.load("asdf")

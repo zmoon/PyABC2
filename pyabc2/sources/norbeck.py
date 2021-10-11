@@ -3,17 +3,10 @@ Henrik Norbeck's ABC Tunes
 
 https://www.norbeck.nu/abc/
 """
-from pathlib import (
-    Path,
-)
-from typing import (
-    List,
-    Union,
-)
+from pathlib import Path
+from typing import List, Union
 
-from ..parse import (
-    Tune,
-)
+from ..parse import Tune
 
 HERE = Path(__file__).parent
 
@@ -27,9 +20,14 @@ def download() -> None:
     import requests
 
     # All Norbeck, including non-Irish
-    url = "https://www.norbeck.nu/abc/hn201912.zip"
+    url = "https://www.norbeck.nu/abc/hn202110.zip"
 
     r = requests.get(url)
+
+    try:
+        r.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        raise Exception("Norbeck file unable to be downloaded (check URL).") from e
 
     SAVE_TO.mkdir(exist_ok=True)
 
@@ -57,11 +55,13 @@ def _maybe_download() -> None:
         download()
 
 
+# https://en.wikibooks.org/wiki/LaTeX/Special_Characters#Escaped_codes
 _COMBINING_ACCENT_FROM_ASCII_SYM = {
     "`": "\u0300",  # grave
     "'": "\u0301",  # acute
     "^": "\u0302",  # circumflex
     '"': "\u0308",  # umlaut
+    "r": "\u030A",  # ring above
 }
 
 
@@ -98,11 +98,21 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
                 blocks.append(block.strip())
 
     tunes: List[Tune] = []
-    for abc in blocks:
+    for abc0 in blocks:
 
         # Deal with LaTeX-style diacritic escape codes
-        abc_ = abc
-        for m in re.finditer(r"\\\{?(?P<dcsym>.)(?P<letter>[a-zA-Z])\}?", abc):
+        # TODO: factor out so can test this separately
+
+        # Special case: `\aa` command for ring over a
+        abc1 = abc0
+        abc1 = re.sub(r"\{?\\aa\}?", "å", abc1)
+
+        # Special case: `\o` command for slashed o
+        abc1 = re.sub(r"\{?\\o\}?", "ø", abc1)
+
+        # Accents added to letters
+        abc2 = abc1
+        for m in re.finditer(r"\\(?P<dcsym>.)\{?(?P<letter>[a-zA-Z])\}?", abc1):
             s = m.group(0)
 
             gd = m.groupdict()
@@ -113,7 +123,7 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
             if ca is None:
                 raise ValueError(
                     f"diacritic escape code `\\{dcsym}` not recognized "
-                    f"in this ABC:\n---\n{abc}\n---"
+                    f"in this ABC:\n---\n{abc0}\n---"
                 )
 
             if ascii_only:
@@ -123,13 +133,13 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
                 # Note: could use unicodedata to apply a normalization
                 # to give single accented characters instead of two code points
 
-            abc_ = abc_.replace(s, snew)
+            abc2 = abc2.replace(s, snew)
 
         try:
-            tunes.append(Tune(abc_))
+            tunes.append(Tune(abc2))
 
         except Exception as e:
-            raise Exception(f"loading this ABC:\n---\n{abc}\n---\nfailed") from e
+            raise Exception(f"loading this ABC:\n---\n{abc0}\n---\nfailed") from e
 
     # Add norbeck.nu/abc/ URLs
     for tune in tunes:
@@ -153,6 +163,7 @@ def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> L
         Whether to drop the implied diacritic symbols, e.g., `\'o` (`True`)
         or add the corresponding unicode characters (`False`).
     """
+    # TODO: allow Norbeck ID as arg as well to load an individual tune? or URL?
     if isinstance(which, str):
         which = [which]
 
@@ -173,7 +184,7 @@ def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> L
             fps = SAVE_TO.glob(f"{_TYPE_PREFIX[tune_type]}*.abc")
 
     tunes = []
-    for fp in fps:
+    for fp in sorted(fps):
         tunes.extend(_load_one_file(fp, ascii_only=ascii_only))
 
     return tunes
