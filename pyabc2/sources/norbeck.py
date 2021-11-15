@@ -169,8 +169,9 @@ def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> L
 
     _maybe_download()
 
+    fps: List[Path]
     if which == ["all"]:
-        fps = SAVE_TO.glob("*.abc")
+        fps = list(SAVE_TO.glob("*.abc"))
 
     else:
         fps = []
