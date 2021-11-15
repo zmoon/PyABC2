@@ -173,6 +173,7 @@ def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> L
         fps = SAVE_TO.glob("*.abc")
 
     else:
+        fps = []
         for tune_type in which:
 
             if tune_type not in _TYPE_PREFIX:
@@ -181,7 +182,7 @@ def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> L
                     f"Try one of: {', '.join(repr(s) for s in _TYPE_PREFIX)}."
                 )
 
-            fps = SAVE_TO.glob(f"{_TYPE_PREFIX[tune_type]}*.abc")
+            fps.extend(SAVE_TO.glob(f"{_TYPE_PREFIX[tune_type]}*.abc"))
 
     tunes = []
     for fp in sorted(fps):
