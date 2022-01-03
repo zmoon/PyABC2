@@ -2,7 +2,7 @@
 Test top-level
 """
 try:
-    from importlib.metadata import metadata
+    from importlib.metadata import metadata  # type: ignore[import]
 except ModuleNotFoundError:
     im_avail = False
 else:
