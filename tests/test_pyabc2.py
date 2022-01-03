@@ -1,26 +1,26 @@
 """
 Test top-level
 """
+try:
+    from importlib.metadata import metadata  # type: ignore[import]
+except ModuleNotFoundError:
+    im_avail = False
+else:
+    im_avail = True
+    pyabc2_metadata = metadata("pyabc2")
+
+import pytest
+
 import pyabc2
 
 
+@pytest.mark.skipif(not im_avail, reason="no importlib.metadata")
 def test_version():
-    # pyproject.toml as the source of truth
-    # (controlled by `poetry version ...`)
-    with open("pyproject.toml", "r") as f:
-        line = f.readlines()[2]
-
-    pyproject_version = line.partition("=")[-1].strip(' \n"')
-
-    assert pyabc2.__version__ == pyproject_version
+    assert pyabc2.__version__ == pyabc2_metadata["version"]
 
 
+@pytest.mark.skipif(not im_avail, reason="no importlib.metadata")
 def test_short_description_consistency():
-    # pyproject.toml as the source of truth
-    with open("pyproject.toml", "r") as f:
-        line = f.readlines()[3]
-
-    pyproject_descrip = line.partition("=")[-1].strip(' \n"')
     module_descrip = pyabc2.__doc__.strip().split("\n")[0]
 
-    assert module_descrip == pyproject_descrip
+    assert module_descrip == pyabc2_metadata["summary"]
