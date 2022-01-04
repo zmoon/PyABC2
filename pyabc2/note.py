@@ -19,11 +19,32 @@ _S_RE_NOTE = (
 )
 _RE_NOTE = re.compile(_S_RE_NOTE)
 
-_S_RE_REST = r"(?P<type>[zx])" r"(?P<num>[0-9]+)?" r"(?P<slash>/+)?" r"(?P<den>[0-9]+)?"
+# fmt: off
+_S_RE_REST = (
+    r"(?P<type>[zx])"
+    r"(?P<num>[0-9]+)?"
+    r"(?P<slash>/+)?"
+    r"(?P<den>[0-9]+)?"
+)
+# fmt: on
 _RE_REST = re.compile(_S_RE_REST)
 
 _S_RE_MULTIMEASURE_REST = r"(?P<type>[ZX])" r"(?P<num>[0-9]+)?"
 _RE_MULTIMEASURE_REST = re.compile(_S_RE_MULTIMEASURE_REST)
+
+_S_RE_NOTE_REST = (
+    r"("
+    r"(?P<acc>\^|\^\^|=|_|__)?"
+    r"(?P<note>[a-gA-G])"
+    r"(?P<oct>[,']*)"
+    r")|("
+    r"(?P<type>[xz])"
+    r")"
+    r"(?P<num>[0-9]+)?"
+    r"(?P<slash>/+)?"
+    r"(?P<den>[0-9]+)?"
+)
+_RE_NOTE_REST = re.compile(_S_RE_NOTE_REST)
 
 
 _ACCIDENTAL_ASCII_TO_ABC = {"#": "^", "b": "_", "=": "="}
@@ -380,3 +401,14 @@ class Rest:
         relative_duration = _relative_duration_from_abc_match(m)
 
         return cls(relative_duration * unit_duration)
+
+    def to_abc(self, *, unit_duration: Fraction = _DEFAULT_UNIT_DURATION, **kwargs) -> str:
+        relative_duration = self.duration / unit_duration
+        if relative_duration == 1:
+            s_duration = ""  # relative duration 1 is implied so not needed
+        elif relative_duration.numerator == 1:
+            s_duration = f"/{relative_duration.denominator}"  # numerator 1 implied so not needed
+        else:
+            s_duration = str(relative_duration)
+
+        return f"z{s_duration}"

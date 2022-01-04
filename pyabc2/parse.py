@@ -2,10 +2,10 @@
 ABC parsing/info
 """
 import re
-from typing import Dict, Iterator, List, NamedTuple, Optional
+from typing import Dict, Iterator, List, NamedTuple, Optional, Union
 
 from .key import Key
-from .note import _RE_NOTE, Note
+from .note import _RE_NOTE_REST, Note, Rest
 
 
 class InfoField(NamedTuple):
@@ -196,7 +196,7 @@ class Tune:
         self.url: Optional[str] = None
         """Revelant URL for this particular tune/setting."""
 
-        self.measures: List[List[Note]]
+        self.measures: List[List[Union[Note, Rest]]]
 
         self._parse_abc()
 
@@ -269,22 +269,31 @@ class Tune:
 
                 measure = []
 
-                # 2. In measure, find note groups
+                # 2. In measure, find note groups ("beam")
                 # Currently not doing anything with note group, but may want to in the future
-                for note_group in within_measure.split(" "):
+                for note_group in within_measure.strip().split(" "):
 
                     # TODO: deal with `>` and `<` dotted rhythm modifiers between notes
                     # https://abcnotation.com/wiki/abc:standard:v2.1#broken_rhythm
 
                     # 3. In note group, find notes
-                    for m_note in _RE_NOTE.finditer(note_group):
+                    this_group = []
+                    for m_note in _RE_NOTE_REST.finditer(note_group):
 
-                        # TODO: parse/store rests, maybe have an additional iterator for "rhythmic elements" or something
+                        if m_note.groupdict()["type"] is None:
+                            this_group.append(Note._from_abc_match(m_note))
+                        else:
+                            r = Rest._from_abc_match(m_note)
+                            if r is not None:  # not invisible rest
+                                this_group.append(r)
 
-                        if m_note is None:
-                            raise ValueError(f"no notes in this note group? {note_group!r}")
-
-                        measure.append(Note._from_abc_match(m_note))
+                    # if not this_group:
+                    #     raise ValueError(
+                    #         f"no notes/rests in this note group? {note_group!r}, "
+                    #         f"from measure {within_measure!r}"
+                    #     )
+                    # TODO: need to deal with ending spec properly first
+                    measure.extend(this_group)
 
                 measures.append(measure)
 
@@ -337,6 +346,6 @@ class Tune:
             else:
                 raise ValueError(f"invalid note format {note_format!r}")
 
-    def iter_notes(self) -> Iterator[Note]:
+    def iter_notes(self) -> Iterator[Union[Note, Rest]]:
         """Iterator (generator) for `Note`s of the tune."""
         return (n for m in self.measures for n in m)
