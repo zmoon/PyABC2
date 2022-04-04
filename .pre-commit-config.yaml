@@ -16,13 +16,13 @@ repos:
       - id: isort
 
   - repo: https://github.com/psf/black
-    rev: '22.1.0'
+    rev: '22.3.0'
     hooks:
       - id: black
         exclude: ^examples/
 
   - repo: https://github.com/csachs/pyproject-flake8
-    rev: 'v0.0.1a2.post1'
+    rev: 'v0.0.1a3'
     hooks:
       - id: pyproject-flake8  # pflake8
 
