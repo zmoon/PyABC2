@@ -204,6 +204,15 @@ class PitchClass:
         name = self.name
         return name[0] + "".join(_ACCIDENTAL_ASCII_TO_HTML[c] for c in name[1:])
 
+    def unicode(self):
+        """String repr using unicode accidental symbols.
+
+        .. note::
+           ``str(pitch_class)`` returns an string representation using ASCII accidental symbols
+           (``#``, ``b``, ``=``).
+        """
+        return f"{self.nat}{_ACCIDENTAL_ASCII_TO_UNICODE[self.acc]}"
+
     @classmethod
     def from_pitch(cls, p: "Pitch") -> "PitchClass":
         return cls.from_name(p.class_name)
