@@ -152,6 +152,22 @@ def test_pitch_class_unicode(s, expected):
 
 
 @pytest.mark.parametrize(
+    "s, expected",
+    [
+        ("A4", "A₄"),
+        ("A14", "A₁₄"),
+        ("Ab4", "A♭₄"),
+        ("Abb4", "A𝄫₄"),
+        ("A#4", "A♯₄"),
+        ("A##4", "A𝄪₄"),
+        ("A=4", "A♮₄"),
+    ],
+)
+def test_pitch_unicode(s, expected):
+    assert Pitch.from_name(s).unicode() == expected
+
+
+@pytest.mark.parametrize(
     ("abc", "expected_str_rep"),
     [
         # Octave
