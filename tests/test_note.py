@@ -132,7 +132,39 @@ def test_pitch_to_pitch_class():
     assert Pitch(50).to_pitch_class() == D
 
 
+# TODO: test PitchClass name validation
 # TODO: test add/mul Pitch(Class)
+
+
+@pytest.mark.parametrize(
+    "s, expected",
+    [
+        ("A", "A"),
+        ("Ab", "A♭"),
+        ("Abb", "A𝄫"),
+        ("A#", "A♯"),
+        ("A##", "A𝄪"),
+        ("A=", "A♮"),
+    ],
+)
+def test_pitch_class_unicode(s, expected):
+    assert PitchClass.from_name(s).unicode() == expected
+
+
+@pytest.mark.parametrize(
+    "s, expected",
+    [
+        ("A4", "A₄"),
+        ("A14", "A₁₄"),
+        ("Ab4", "A♭₄"),
+        ("Abb4", "A𝄫₄"),
+        ("A#4", "A♯₄"),
+        ("A##4", "A𝄪₄"),
+        ("A=4", "A♮₄"),
+    ],
+)
+def test_pitch_unicode(s, expected):
+    assert Pitch.from_name(s).unicode() == expected
 
 
 @pytest.mark.parametrize(
