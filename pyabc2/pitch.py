@@ -51,6 +51,7 @@ _ACCIDENTAL_ASCII_TO_HTML = {
     "bb": "&#119083;",
     "##": "&#119082;",
 }
+_TRAN_NUM_TO_UNICODE = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 
 NICE_C_CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
 """ASCII chromatic notes, starting with C at index 0.
@@ -203,6 +204,15 @@ class PitchClass:
     def _repr_html_(self):
         name = self.name
         return name[0] + "".join(_ACCIDENTAL_ASCII_TO_HTML[c] for c in name[1:])
+
+    def unicode(self):
+        """String repr using unicode accidental symbols.
+
+        .. note::
+           ``str(pitch_class)`` returns an string representation using ASCII accidental symbols
+           (``#``, ``b``, ``=``).
+        """
+        return f"{self.nat}{_ACCIDENTAL_ASCII_TO_UNICODE[self.acc]}"
 
     @classmethod
     def from_pitch(cls, p: "Pitch") -> "PitchClass":
@@ -483,6 +493,17 @@ class Pitch:
     def _repr_html_(self):
         cn = self.to_pitch_class()._repr_html_()
         return f"{cn}<sub>{self.octave}</sub>"
+
+    def unicode(self):
+        """String repr using unicode accidental symbols and unicode subscripts for octave.
+
+        .. note::
+           ``str(pitch)`` returns an string representation using ASCII accidental symbols
+           (``#``, ``b``, ``=``).
+        """
+        cn = self.to_pitch_class().unicode()
+        o = str(self.octave).translate(_TRAN_NUM_TO_UNICODE)
+        return f"{cn}{o}"
 
     @property
     def piano_key_number(self) -> int:
