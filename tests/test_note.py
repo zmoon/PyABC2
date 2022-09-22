@@ -67,12 +67,36 @@ def test_pitch_value_acc_outside_octave(name, expected_value):
         ("C##4", 4),
     ],
 )
-def test_octave_value(name, expected_value):
+def test_pitch_octave_value(name, expected_value):
     # Issue 17
     # https://en.wikipedia.org/wiki/Scientific_pitch_notation#Nomenclature
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", message="computed pitch class value outside 0--11")
         assert Pitch.from_name(name).octave == expected_value
+
+
+@pytest.mark.parametrize(
+    ("name", "expected_value"),
+    [
+        ("Bbb3", 3),
+        ("Bb3", 3),
+        ("B3", 3),
+        ("B#3", 3),
+        ("B##3", 3),
+        #
+        ("Cbb4", 4),
+        ("Cb4", 4),
+        ("C4", 4),
+        ("C#4", 4),
+        ("C##4", 4),
+    ],
+)
+def test_pitch_from_octave_value(name, expected_value):
+    p = Pitch.from_name(name)
+    assert p.to_note().octave == Note.from_pitch(p).octave == expected_value
+
+
+# test_pitch_octave_value
 
 
 @pytest.mark.parametrize("p", ["C", "Dbb"])

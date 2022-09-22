@@ -612,6 +612,7 @@ class Pitch:
 
         note = Note(self.value, duration=duration)
         note._class_name = self._class_name
+        note._octave = self._octave
 
         return note
 

@@ -238,6 +238,7 @@ class Note(Pitch):
     def from_pitch(cls, p: Pitch, *, duration: Fraction = _DEFAULT_UNIT_DURATION) -> "Note":
         note = cls(p.value, duration)
         note._class_name = p._class_name
+        note._octave = p._octave
 
         return note
 
