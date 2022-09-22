@@ -1,6 +1,8 @@
 """
 Test the pitch and note modules
 """
+import warnings
+
 import pytest
 
 from pyabc2.key import Key
@@ -68,7 +70,9 @@ def test_pitch_value_acc_outside_octave(name, expected_value):
 def test_octave_value(name, expected_value):
     # Issue 17
     # https://en.wikipedia.org/wiki/Scientific_pitch_notation#Nomenclature
-    assert Pitch.from_name(name).octave == expected_value
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message="computed pitch class value outside 0--11")
+        assert Pitch.from_name(name).octave == expected_value
 
 
 @pytest.mark.parametrize("p", ["C", "Dbb"])
