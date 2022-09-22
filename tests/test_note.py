@@ -91,12 +91,25 @@ def test_pitch_octave_value(name, expected_value):
         ("C##4", 4),
     ],
 )
-def test_pitch_from_octave_value(name, expected_value):
-    p = Pitch.from_name(name)
-    assert p.to_note().octave == Note.from_pitch(p).octave == expected_value
+def test_note_from_pitch_octave_value(name, expected_value):
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message="computed pitch class value outside 0--11")
+        p = Pitch.from_name(name)
+        assert p.to_note().octave == Note.from_pitch(p).octave == expected_value
 
 
-# test_pitch_octave_value
+@pytest.mark.parametrize(
+    ("abc", "expected_value"),
+    [
+        ("^^B", 4),
+        ("^B", 4),
+        #
+        ("__C", 4),
+        ("_C", 4),
+    ],
+)
+def test_note_octave_value(abc, expected_value):
+    assert Note.from_abc(abc).octave == expected_value
 
 
 @pytest.mark.parametrize("p", ["C", "Dbb"])

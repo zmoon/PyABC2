@@ -184,6 +184,7 @@ class Note(Pitch):
 
         note = cls(value, relative_duration * unit_duration)
         note._class_name = nat_class_name + acc_ascii
+        note._octave = octave
 
         return note
 
