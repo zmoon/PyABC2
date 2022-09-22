@@ -42,11 +42,33 @@ def test_pitch_value(name, expected_value):
     ],
 )
 def test_pitch_value_acc_outside_octave(name, expected_value):
-    with pytest.warns(UserWarning):
+    with pytest.warns(UserWarning, match="computed pitch class value outside 0--11"):
         value = pitch_class_value(name)
     assert value == expected_value
 
     pitch_class_value(name, mod=True)  # no warning
+
+
+@pytest.mark.parametrize(
+    ("name", "expected_value"),
+    [
+        ("Bbb3", 3),
+        ("Bb3", 3),
+        ("B3", 3),
+        ("B#3", 3),
+        ("B##3", 3),
+        #
+        ("Cbb4", 4),
+        ("Cb4", 4),
+        ("C4", 4),
+        ("C#4", 4),
+        ("C##4", 4),
+    ],
+)
+def test_octave_value(name, expected_value):
+    # Issue 17
+    # https://en.wikipedia.org/wiki/Scientific_pitch_notation#Nomenclature
+    assert Pitch.from_name(name).octave == expected_value
 
 
 @pytest.mark.parametrize("p", ["C", "Dbb"])
