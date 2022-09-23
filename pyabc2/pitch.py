@@ -458,6 +458,7 @@ class Pitch:
         """Chromatic note value relative to C0."""
 
         self._class_name: Optional[str] = None
+        self._octave: Optional[int] = None
 
     @property
     def class_value(self) -> int:
@@ -467,7 +468,10 @@ class Pitch:
     @property
     def octave(self) -> int:
         """Octave number (e.g., A4/A440 is in octave 4)."""
-        return self.value // 12
+        if self._octave is None:
+            return self.value // 12
+        else:
+            return self._octave
 
     @property
     def class_name(self) -> str:
@@ -574,6 +578,7 @@ class Pitch:
 
         p = cls.from_class_value(class_value, octave)
         p._class_name = class_name
+        p._octave = octave
 
         return p
 
@@ -607,6 +612,7 @@ class Pitch:
 
         note = Note(self.value, duration=duration)
         note._class_name = self._class_name
+        note._octave = self._octave
 
         return note
 

@@ -1,6 +1,8 @@
 """
 Test the pitch and note modules
 """
+import warnings
+
 import pytest
 
 from pyabc2.key import Key
@@ -42,11 +44,72 @@ def test_pitch_value(name, expected_value):
     ],
 )
 def test_pitch_value_acc_outside_octave(name, expected_value):
-    with pytest.warns(UserWarning):
+    with pytest.warns(UserWarning, match="computed pitch class value outside 0--11"):
         value = pitch_class_value(name)
     assert value == expected_value
 
     pitch_class_value(name, mod=True)  # no warning
+
+
+@pytest.mark.parametrize(
+    ("name", "expected_value"),
+    [
+        ("Bbb3", 3),
+        ("Bb3", 3),
+        ("B3", 3),
+        ("B#3", 3),
+        ("B##3", 3),
+        #
+        ("Cbb4", 4),
+        ("Cb4", 4),
+        ("C4", 4),
+        ("C#4", 4),
+        ("C##4", 4),
+    ],
+)
+def test_pitch_octave_value(name, expected_value):
+    # Issue 17
+    # https://en.wikipedia.org/wiki/Scientific_pitch_notation#Nomenclature
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message="computed pitch class value outside 0--11")
+        assert Pitch.from_name(name).octave == expected_value
+
+
+@pytest.mark.parametrize(
+    ("name", "expected_value"),
+    [
+        ("Bbb3", 3),
+        ("Bb3", 3),
+        ("B3", 3),
+        ("B#3", 3),
+        ("B##3", 3),
+        #
+        ("Cbb4", 4),
+        ("Cb4", 4),
+        ("C4", 4),
+        ("C#4", 4),
+        ("C##4", 4),
+    ],
+)
+def test_note_from_pitch_octave_value(name, expected_value):
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message="computed pitch class value outside 0--11")
+        p = Pitch.from_name(name)
+        assert p.to_note().octave == Note.from_pitch(p).octave == expected_value
+
+
+@pytest.mark.parametrize(
+    ("abc", "expected_value"),
+    [
+        ("^^B", 4),
+        ("^B", 4),
+        #
+        ("__C", 4),
+        ("_C", 4),
+    ],
+)
+def test_note_octave_value(abc, expected_value):
+    assert Note.from_abc(abc).octave == expected_value
 
 
 @pytest.mark.parametrize("p", ["C", "Dbb"])

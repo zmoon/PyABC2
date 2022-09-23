@@ -184,6 +184,7 @@ class Note(Pitch):
 
         note = cls(value, relative_duration * unit_duration)
         note._class_name = nat_class_name + acc_ascii
+        note._octave = octave
 
         return note
 
@@ -238,6 +239,7 @@ class Note(Pitch):
     def from_pitch(cls, p: Pitch, *, duration: Fraction = _DEFAULT_UNIT_DURATION) -> "Note":
         note = cls(p.value, duration)
         note._class_name = p._class_name
+        note._octave = p._octave
 
         return note
 
