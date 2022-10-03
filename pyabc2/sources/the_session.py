@@ -35,7 +35,7 @@ def load_url(url: str) -> Tune:
         if d["id"] == setting:
             break
     else:
-        raise Exception(f"setting {setting} not found in {to_query}")
+        raise ValueError(f"detected setting {setting} not found in {to_query}")
 
     name = data["name"]
     type_ = data["type"]  # e.g. 'reel'
