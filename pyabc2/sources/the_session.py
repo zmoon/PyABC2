@@ -5,6 +5,21 @@ from pathlib import Path
 
 from ..parse import Tune
 
+_TYPES = {
+    "jig": (),
+    "reel": (),
+    "slip jig": (),
+    "hornpipe": (),
+    "polka": (),
+    "slide": (),
+    "waltz": (),
+    "barndance": (),
+    "strathspey": (),
+    "three-two": (),
+    "mazurka": (),
+    "march": (),
+}
+
 
 def load_url(url: str) -> Tune:
     """Load tune from a specified ``thesession.org`` URL.
