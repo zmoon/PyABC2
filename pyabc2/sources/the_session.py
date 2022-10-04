@@ -1,8 +1,6 @@
 """
 Load data from The Session (https://thesession.org)
 """
-from pathlib import Path
-
 from ..parse import Tune
 
 _TYPE_TO_METER = {
@@ -37,24 +35,31 @@ def load_url(url: str) -> Tune:
     res = urlsplit(url)
     if res.fragment:
         setting = res.fragment
+        if setting.startswith("setting"):
+            setting = setting[len("setting") :]
+        setting = int(setting)
     else:
-        setting = Path(res.path).name
-    setting = int(setting)
+        setting = None
     to_query = urlunsplit(res._replace(scheme="https", fragment="", query="format=json"))
 
     r = requests.get(to_query)
     r.raise_for_status()
     data = r.json()
 
-    for d in data["settings"]:
-        if d["id"] == setting:
-            break
+    if setting is None:
+        # Use first
+        d = data["settings"][0]
     else:
-        raise ValueError(f"detected setting {setting} not found in {to_query}")
+        for d in data["settings"]:
+            if d["id"] == setting:
+                break
+        else:
+            raise ValueError(f"detected setting {setting} not found in {to_query}")
 
     name = data["name"]
     type_ = data["type"]  # e.g. 'reel'
-    melody_abc = d["abc"]
+    melody_abc = d["abc"].replace("! ", "\n")
+    assert "!" not in melody_abc
     key = d["key"]
     meter = _TYPE_TO_METER[type_]
     unit_length = "1/8"
