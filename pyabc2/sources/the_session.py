@@ -5,19 +5,19 @@ from pathlib import Path
 
 from ..parse import Tune
 
-_TYPES = {
-    "jig": (),
-    "reel": (),
-    "slip jig": (),
-    "hornpipe": (),
-    "polka": (),
-    "slide": (),
-    "waltz": (),
-    "barndance": (),
-    "strathspey": (),
-    "three-two": (),
-    "mazurka": (),
-    "march": (),
+_TYPE_TO_METER = {
+    "jig": "6/8",
+    "reel": "4/4",
+    "slip jig": "9/8",
+    "hornpipe": "4/4",
+    "polka": "2/4",
+    "slide": "12/8",
+    "waltz": "3/4",
+    "barndance": "4/4",
+    "strathspey": "4/4",
+    "three-two": "3/2",
+    "mazurka": "3/4",
+    "march": "4/4",
 }
 
 
@@ -56,11 +56,14 @@ def load_url(url: str) -> Tune:
     type_ = data["type"]  # e.g. 'reel'
     melody_abc = d["abc"]
     key = d["key"]
-    # TODO: provide guess for M? (based on type)
+    meter = _TYPE_TO_METER[type_]
+    unit_length = "1/8"
 
     abc = f"""\
 T:{name}
 R:{type_}
+M:{meter}
+L:{unit_length}
 K:{key}
 {melody_abc}
 """
