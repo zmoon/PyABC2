@@ -275,7 +275,7 @@ def test_note_issue27():
     assert n.class_name == "F#"
     assert str(n) == "F#4_1/8"
     assert n.to_abc() == "^F", "default key is C, F# is not in the scale"
-    assert n.to_abc(key=Gmaj) == "F"
+    assert n.to_abc(key=Gmaj) == "F", "F# is in the Gmaj scale"
 
     # When accidental is set, store
     n = Note.from_abc("=F", key=Gmaj)
@@ -284,6 +284,27 @@ def test_note_issue27():
     assert str(n) == "F=4_1/8"
     assert n.to_abc() == "F", "default key is C, F= is in the scale"
     assert n.to_abc(key=Gmaj) == "=F", "F= is not in Gmaj scale"
+
+    # Note.to_* methods
+    n = Note.from_abc("c", key=Key("Dmaj"))
+    n2 = Note.from_abc("^c", key=Key("Dmaj"))
+    p = Pitch.from_name("C#5")
+    pc = PitchClass.from_name("C#")
+    assert n.value == n2.value == p.value
+    p_n = n.to_pitch()
+    p_n2 = n2.to_pitch()
+    assert p_n == p_n2 == p
+    assert str(p_n) == str(p_n2) == str(p) == "C#5"
+    pc_n = n.to_pitch_class()
+    pc_n2 = n.to_pitch_class()
+    assert (
+        str(pc_n)
+        == str(pc_n2)
+        == str(p_n.to_pitch_class())
+        == str(p_n2.to_pitch_class())
+        == str(pc)
+        == "C#"
+    )
 
 
 @pytest.mark.parametrize(
