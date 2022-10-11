@@ -183,7 +183,8 @@ class Note(Pitch):
             relative_duration = Fraction(num) if num is not None else Fraction(1)
 
         note = cls(value, relative_duration * unit_duration)
-        note._class_name = nat_class_name + acc_ascii
+        if acc_marks is not None:
+            note._class_name = nat_class_name + acc_ascii
         note._octave = octave
 
         return note
@@ -209,7 +210,10 @@ class Note(Pitch):
             raise NotImplementedError(f"note name longer than 2 chars {note_name!r}")
 
         # Adjust for key sig
-        if acc and note_nat in key.accidentals:
+        assert acc in {"", "^", "_", "="}
+        if acc in {"^", "_"} and note_nat in key.accidentals:
+            acc = ""
+        if acc == "=" and note_nat in [str(pc) for pc in key.scale]:
             acc = ""
 
         # Lowercase letter if in 2nd octave or more

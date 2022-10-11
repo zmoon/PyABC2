@@ -2,11 +2,12 @@
 Test the pitch and note modules
 """
 import warnings
+from functools import partial
 
 import pytest
 
 from pyabc2.key import Key
-from pyabc2.note import Note
+from pyabc2.note import Note, _octave_from_abc_parts
 from pyabc2.pitch import (
     Pitch,
     PitchClass,
@@ -266,6 +267,47 @@ def test_note_to_from_abc_consistency():
     assert Note.from_abc(n.to_abc(key=Key("C#")), key=Key("C#")) == n
 
 
+def test_note_issue27():
+    Gmaj = Key("G")
+
+    # If no accidental set, still display as F# (from default acc)
+    n = Note.from_abc("F", key=Gmaj)
+    assert n.value == Pitch.from_name("F#4").value, "value depends on key"
+    assert n.class_name == "F#"
+    assert str(n) == "F#4_1/8"
+    assert n.to_abc() == "^F", "default key is C, F# is not in the scale"
+    assert n.to_abc(key=Gmaj) == "F", "F# is in the Gmaj scale"
+
+    # When accidental is set, store
+    n = Note.from_abc("=F", key=Gmaj)
+    assert n.value == Pitch.from_name("F4").value
+    assert n.class_name == "F="
+    assert str(n) == "F=4_1/8"
+    assert n.to_abc() == "F", "default key is C, F= is in the scale"
+    assert n.to_abc(key=Gmaj) == "=F", "F= is not in Gmaj scale"
+
+    # Note.to_* methods
+    n = Note.from_abc("c", key=Key("Dmaj"))
+    n2 = Note.from_abc("^c", key=Key("Dmaj"))
+    p = Pitch.from_name("C#5")
+    pc = PitchClass.from_name("C#")
+    assert n.value == n2.value == p.value
+    p_n = n.to_pitch()
+    p_n2 = n2.to_pitch()
+    assert p_n == p_n2 == p
+    assert str(p_n) == str(p_n2) == str(p) == "C#5"
+    pc_n = n.to_pitch_class()
+    pc_n2 = n.to_pitch_class()
+    assert (
+        str(pc_n)
+        == str(pc_n2)
+        == str(p_n.to_pitch_class())
+        == str(p_n2.to_pitch_class())
+        == str(pc)
+        == "C#"
+    )
+
+
 @pytest.mark.parametrize(
     ("v", "expected_name"),
     [
@@ -491,3 +533,26 @@ def test_note_to_from_nonimpl(meth):
     assert hasattr(Note, meth)
     with pytest.raises(NotImplementedError):
         getattr(Note, meth)()
+
+
+@pytest.mark.parametrize(
+    "note,oct,expected",
+    [
+        ("C", None, 0),
+        ("c", None, 1),
+        ("C", "", 0),
+        ("c", "", 1),
+        ("C", "'", 1),
+        ("c", "'", 2),
+        ("c", "''", 3),
+        ("C", ",", -1),
+        ("C", ",,", -2),
+        # Would be unusual:
+        ("C", ",'", 0),
+        ("C", ",','", 0),
+        ("C", ",,''", 0),
+    ],
+)
+def test_abc_doctave_calc(note, oct, expected):
+    fn = partial(_octave_from_abc_parts, base=0)
+    assert fn(note, oct) == expected
