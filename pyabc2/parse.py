@@ -307,6 +307,16 @@ class Tune:
             f"{self.__class__.__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
         )
 
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+
+        # TODO: really would want to check _equivalent_ abc; need some normalization
+        return other.abc == self.abc
+
+    def __hash__(self):
+        return hash(self.abc)
+
     def _repr_html_(self):
         import uuid
 

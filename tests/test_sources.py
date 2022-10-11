@@ -23,8 +23,12 @@ def test_norbeck_load():
     jigs = norbeck.load("jigs")  # jigs only
 
     assert 0 < len(jigs) < len(tunes)
+    assert all(t in tunes for t in jigs)
+    assert set(jigs) < set(tunes)
 
     assert type(jigs[0]) is Tune
+
+    assert len(set(jigs)) == len(jigs)
 
     # Some diacritic tests
     assert jigs[512].title == "Buachaillín Buí, An"
