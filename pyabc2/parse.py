@@ -284,7 +284,7 @@ class Tune:
                         if m_note is None:
                             raise ValueError(f"no notes in this note group? {note_group!r}")
 
-                        measure.append(Note._from_abc_match(m_note))
+                        measure.append(Note._from_abc_match(m_note, key=self.key))
 
                 measures.append(measure)
 
