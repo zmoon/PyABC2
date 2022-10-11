@@ -1,7 +1,14 @@
 """
 Load data from The Session (https://thesession.org)
 """
+from pathlib import Path
+from typing import List, Union
+
 from ..parse import Tune
+
+HERE = Path(__file__).parent
+
+SAVE_TO = HERE / "_the-session"
 
 _TYPE_TO_METER = {
     "jig": "6/8",
@@ -17,6 +24,27 @@ _TYPE_TO_METER = {
     "mazurka": "3/4",
     "march": "4/4",
 }
+
+
+def _data_to_tune(data):
+    name = data["name"]
+    type_ = data["type"]  # e.g. 'reel'
+    melody_abc = data["abc"].replace("! ", "\n")
+    assert "!" not in melody_abc
+    key = data["mode"]
+    meter = data["meter"]
+    unit_length = "1/8"
+
+    abc = f"""\
+T:{name}
+R:{type_}
+M:{meter}
+L:{unit_length}
+K:{key}
+{melody_abc}
+"""
+
+    return Tune(abc)
 
 
 def load_url(url: str) -> Tune:
@@ -56,24 +84,60 @@ def load_url(url: str) -> Tune:
         else:
             raise ValueError(f"detected setting {setting} not found in {to_query}")
 
-    name = data["name"]
-    type_ = data["type"]  # e.g. 'reel'
-    melody_abc = d["abc"].replace("! ", "\n")
-    assert "!" not in melody_abc
-    key = d["key"]
-    meter = _TYPE_TO_METER[type_]
-    unit_length = "1/8"
+    # Add non-setting-specific data
+    assert "name" not in d
+    assert "type" not in d
+    assert "meter" not in d
+    d.update(name=data["name"], type=data["type"], meter=_TYPE_TO_METER[data["type"]])
 
-    abc = f"""\
-T:{name}
-R:{type_}
-M:{meter}
-L:{unit_length}
-K:{key}
-{melody_abc}
-"""
+    # 'key' is 'mode' in the JSON data
+    d["mode"] = d.pop("key")
 
-    return Tune(abc)
+    return _data_to_tune(d)
+
+
+def download(which: Union[str, List[str]] = "tunes") -> None:
+    import requests
+
+    if isinstance(which, str):
+        which = [which]
+
+    SAVE_TO.mkdir(exist_ok=True)
+
+    base_url = "https://github.com/adactio/TheSession-data/raw/main/json/"
+    supported = ["tunes"]
+
+    if not set(which) <= set(supported):
+        raise ValueError(f"invalid `which`. Only these are supported: {supported}")
+
+    for fstem in which:  # TODO: threaded
+        fn = f"{fstem}.json"
+        url = base_url + fn
+        r = requests.get(url)
+        r.raise_for_status()
+        with open(SAVE_TO / fn, "wb") as f:
+            f.write(r.content)
+
+
+def load() -> List[Tune]:
+    import json
+
+    fp = SAVE_TO / "tunes.json"
+    if not fp.is_file():
+        download("tunes")
+
+    with open(fp, encoding="utf-8") as f:
+        data = json.load(f)
+
+    print(len(data), "tune dicts in this data dump")
+    data = data[:5]
+    for d in data:
+        print(d)
+
+    # TODO: multi-proc
+    tunes = [_data_to_tune(d) for d in data]
+
+    return tunes
 
 
 if __name__ == "__main__":
@@ -84,3 +148,8 @@ if __name__ == "__main__":
     tune = load_url("https://thesession.org/tunes/10000#31601")
     print(tune)
     tune.print_measures()
+
+    tunes = load()
+    for tune in tunes[:2]:
+        print(tune)
+        tune.print_measures()
