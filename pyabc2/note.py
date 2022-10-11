@@ -183,7 +183,8 @@ class Note(Pitch):
             relative_duration = Fraction(num) if num is not None else Fraction(1)
 
         note = cls(value, relative_duration * unit_duration)
-        note._class_name = nat_class_name + acc_ascii
+        if acc_marks is not None:
+            note._class_name = nat_class_name + acc_ascii
         note._octave = octave
 
         return note

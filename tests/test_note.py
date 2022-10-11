@@ -266,6 +266,25 @@ def test_note_to_from_abc_consistency():
     assert Note.from_abc(n.to_abc(key=Key("C#")), key=Key("C#")) == n
 
 
+def test_note_issue27():
+    Gmaj = Key("G")
+
+    # If no accidental set, still display as F# (from default acc)
+    n = Note.from_abc("F", key=Gmaj)
+    assert n.value == Pitch.from_name("F#4").value, "value depends on key"
+    assert n.class_name == "F#"
+    assert str(n) == "F#4_1/8"
+    assert n.to_abc() == "^F", "default key is C, F# is not in the scale"
+    assert n.to_abc(key=Gmaj) == "F"
+
+    # When accidental is set, store
+    n = Note.from_abc("=F", key=Gmaj)
+    assert n.value == Pitch.from_name("F4").value
+    assert n.class_name == "F="
+    assert str(n) == "F=4_1/8"
+    # assert n.to_abc() == "F", "default key is C, F= is in the scale"
+
+
 @pytest.mark.parametrize(
     ("v", "expected_name"),
     [
