@@ -2,11 +2,12 @@
 Test the pitch and note modules
 """
 import warnings
+from functools import partial
 
 import pytest
 
 from pyabc2.key import Key
-from pyabc2.note import Note
+from pyabc2.note import Note, _octave_from_abc_parts
 from pyabc2.pitch import (
     Pitch,
     PitchClass,
@@ -532,3 +533,26 @@ def test_note_to_from_nonimpl(meth):
     assert hasattr(Note, meth)
     with pytest.raises(NotImplementedError):
         getattr(Note, meth)()
+
+
+@pytest.mark.parametrize(
+    "note,oct,expected",
+    [
+        ("C", None, 0),
+        ("c", None, 1),
+        ("C", "", 0),
+        ("c", "", 1),
+        ("C", "'", 1),
+        ("c", "'", 2),
+        ("c", "''", 3),
+        ("C", ",", -1),
+        ("C", ",,", -2),
+        # Would be unusual:
+        ("C", ",'", 0),
+        ("C", ",','", 0),
+        ("C", ",,''", 0),
+    ],
+)
+def test_abc_doctave_calc(note, oct, expected):
+    fn = partial(_octave_from_abc_parts, base=0)
+    assert fn(note, oct) == expected
