@@ -328,10 +328,10 @@ class Tune:
         js = Javascript(_FMT_ABCJS_RENDER_JS.format(abc=abc, notation_id=notation_id))
         display(js)
 
-    def print_measures(self, *, note_format: str = "ABC"):
+    def print_measures(self, n: Optional[int] = None, *, note_format: str = "ABC"):
         """Print measures to check parsing."""
         nd = len(str(len(self.measures)))
-        for i, measure in enumerate(self.measures, start=1):
+        for i, measure in enumerate(self.measures[:n], start=1):
             if note_format == "ABC":
                 print(f"{i:0{nd}d}: {' '.join(n.to_abc(key=self.key) for n in measure)}")
             else:

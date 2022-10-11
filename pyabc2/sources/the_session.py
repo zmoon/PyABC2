@@ -143,13 +143,13 @@ def load() -> List[Tune]:
 if __name__ == "__main__":
     tune = load_url("https://thesession.org/tunes/10000")
     print(tune)
-    tune.print_measures()
+    tune.print_measures(4)
 
     tune = load_url("https://thesession.org/tunes/10000#31601")
     print(tune)
-    tune.print_measures()
+    tune.print_measures(5)
 
     tunes = load()
     for tune in tunes[:2]:
         print(tune)
-        tune.print_measures()
+        tune.print_measures(4)
