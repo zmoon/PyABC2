@@ -120,6 +120,10 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
 
 
 def load() -> List[Tune]:
+    """Load tunes from https://github.com/adactio/TheSession-data
+
+    @adactio (Jeremy) is the creator of The Session.
+    """
     import json
 
     fp = SAVE_TO / "tunes.json"
