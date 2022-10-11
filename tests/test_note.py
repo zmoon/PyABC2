@@ -282,7 +282,8 @@ def test_note_issue27():
     assert n.value == Pitch.from_name("F4").value
     assert n.class_name == "F="
     assert str(n) == "F=4_1/8"
-    # assert n.to_abc() == "F", "default key is C, F= is in the scale"
+    assert n.to_abc() == "F", "default key is C, F= is in the scale"
+    assert n.to_abc(key=Gmaj) == "=F", "F= is not in Gmaj scale"
 
 
 @pytest.mark.parametrize(

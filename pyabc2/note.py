@@ -210,7 +210,10 @@ class Note(Pitch):
             raise NotImplementedError(f"note name longer than 2 chars {note_name!r}")
 
         # Adjust for key sig
-        if acc and note_nat in key.accidentals:
+        assert acc in {"", "^", "_", "="}
+        if acc in {"^", "_"} and note_nat in key.accidentals:
+            acc = ""
+        if acc == "=" and note_nat in [str(pc) for pc in key.scale]:
             acc = ""
 
         # Lowercase letter if in 2nd octave or more
