@@ -191,3 +191,41 @@ def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> L
         tunes.extend(_load_one_file(fp, ascii_only=ascii_only))
 
     return tunes
+
+
+def load_url(url: str, *, ascii_only: bool = False) -> Tune:
+    """Load tune from a specified ``norbeck.nu/abc/`` URL.
+
+    For example:
+    - https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106
+    - https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=693
+    """
+    import re
+    from html import unescape
+    from urllib.parse import urlsplit, urlunsplit
+
+    import requests
+
+    res = urlsplit(url)
+    assert res.netloc in {"norbeck.nu", "www.norbeck.nu"}
+    assert res.path.startswith("/abc")
+
+    r = requests.get(urlunsplit(res._replace(scheme="https")))
+    r.raise_for_status()
+
+    m = re.search(
+        r'<div id="abc" class="monospace">X:[0-9]+<br/>\s*(.*?)\s*</div>', r.text, flags=re.DOTALL
+    )
+    assert m is not None
+    abc = unescape(m.group(1)).replace("<br/>", "")
+
+    return _abc_to_tune(abc, ascii_only=ascii_only)
+
+
+if __name__ == "__main__":
+    tune = load_url("https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106")
+    tune.print_measures(5)
+
+    tune = load_url("https://www.norbeck.nu/abc/display.asp?rhythm=sl%C3%A4ngpolska&ref=8")
+    tune.print_measures(5)
+    print(tune.abc)

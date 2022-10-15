@@ -61,6 +61,7 @@ def load_url(url: str) -> Tune:
     import requests
 
     res = urlsplit(url)
+    assert res.netloc == "thesession.org"
     if res.fragment:
         setting = res.fragment
         if setting.startswith("setting"):
