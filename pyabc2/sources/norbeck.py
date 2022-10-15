@@ -224,8 +224,11 @@ def load_url(url: str, *, ascii_only: bool = False) -> Tune:
 
 if __name__ == "__main__":
     tune = load_url("https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106")
+    print(tune.title)
     tune.print_measures(5)
 
     tune = load_url("https://www.norbeck.nu/abc/display.asp?rhythm=sl%C3%A4ngpolska&ref=8")
+    print()
+    print(tune.title)
     tune.print_measures(5)
     print(tune.abc)
