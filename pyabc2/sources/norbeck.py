@@ -65,11 +65,49 @@ _COMBINING_ACCENT_FROM_ASCII_SYM = {
 }
 
 
-def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
+def _abc_to_tune(abc: str, *, ascii_only: bool = False) -> Tune:
+    """Load a Norbeck ABC, dealing with LaTeX-style diacritic escape codes."""
     import re
 
-    blocks = []
+    # Special case: `\aa` command for ring over a
+    abc1 = abc
+    abc1 = re.sub(r"\{?\\aa\}?", "å", abc1)
 
+    # Special case: `\o` command for slashed o
+    abc1 = re.sub(r"\{?\\o\}?", "ø", abc1)
+
+    # Accents added to letters
+    abc2 = abc1
+    for m in re.finditer(r"\\(?P<dcsym>.)\{?(?P<letter>[a-zA-Z])\}?", abc1):
+        s = m.group(0)
+
+        gd = m.groupdict()
+        dcsym = gd["dcsym"]
+        letter = gd["letter"]
+
+        ca = _COMBINING_ACCENT_FROM_ASCII_SYM.get(dcsym)
+        if ca is None:
+            raise ValueError(
+                f"diacritic escape code `\\{dcsym}` not recognized "
+                f"in this ABC:\n---\n{abc}\n---"
+            )
+
+        if ascii_only:
+            snew = letter
+        else:
+            snew = letter + ca
+            # Note: could use unicodedata to apply a normalization
+            # to give single accented characters instead of two code points
+
+        abc2 = abc2.replace(s, snew)
+
+    return Tune(abc2)
+
+
+def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
+    """Load one of the Norbeck archive files, which contain multiple tunes."""
+
+    blocks = []
     with open(fp, "r") as f:
 
         block = ""
@@ -99,45 +137,8 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
 
     tunes: List[Tune] = []
     for abc0 in blocks:
-
-        # Deal with LaTeX-style diacritic escape codes
-        # TODO: factor out so can test this separately
-
-        # Special case: `\aa` command for ring over a
-        abc1 = abc0
-        abc1 = re.sub(r"\{?\\aa\}?", "å", abc1)
-
-        # Special case: `\o` command for slashed o
-        abc1 = re.sub(r"\{?\\o\}?", "ø", abc1)
-
-        # Accents added to letters
-        abc2 = abc1
-        for m in re.finditer(r"\\(?P<dcsym>.)\{?(?P<letter>[a-zA-Z])\}?", abc1):
-            s = m.group(0)
-
-            gd = m.groupdict()
-            dcsym = gd["dcsym"]
-            letter = gd["letter"]
-
-            ca = _COMBINING_ACCENT_FROM_ASCII_SYM.get(dcsym)
-            if ca is None:
-                raise ValueError(
-                    f"diacritic escape code `\\{dcsym}` not recognized "
-                    f"in this ABC:\n---\n{abc0}\n---"
-                )
-
-            if ascii_only:
-                snew = letter
-            else:
-                snew = letter + ca
-                # Note: could use unicodedata to apply a normalization
-                # to give single accented characters instead of two code points
-
-            abc2 = abc2.replace(s, snew)
-
         try:
-            tunes.append(Tune(abc2))
-
+            tunes.append(_abc_to_tune(abc0, ascii_only=ascii_only))
         except Exception as e:
             raise Exception(f"loading this ABC:\n---\n{abc0}\n---\nfailed") from e
 
