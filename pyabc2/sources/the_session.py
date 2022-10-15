@@ -30,7 +30,6 @@ def _data_to_tune(data):
     name = data["name"]
     type_ = data["type"]  # e.g. 'reel'
     melody_abc = data["abc"].replace("! ", "\n")
-    assert "!" not in melody_abc
     key = data["mode"]
     meter = data["meter"]
     unit_length = "1/8"
@@ -138,7 +137,18 @@ def load(*, n: Optional[int] = None) -> List[Tune]:
     data = data[:n]
 
     # TODO: multi-proc
-    tunes = [_data_to_tune(d) for d in data]
+    # tunes = [_data_to_tune(d) for d in data]
+    tunes = []
+    failed = 0
+    for d in data:
+        try:
+            tune = _data_to_tune(d)
+        except Exception:
+            failed += 1
+        else:
+            tunes.append(tune)
+
+    print(failed, "failed")
 
     return tunes
 
