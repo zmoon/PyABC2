@@ -2,7 +2,7 @@
 Load data from The Session (https://thesession.org)
 """
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 
 from ..parse import Tune
 
@@ -62,11 +62,12 @@ def load_url(url: str) -> Tune:
 
     res = urlsplit(url)
     assert res.netloc == "thesession.org"
+    setting: Optional[int]
     if res.fragment:
-        setting = res.fragment
-        if setting.startswith("setting"):
-            setting = setting[len("setting") :]
-        setting = int(setting)
+        setting_str = res.fragment
+        if setting_str.startswith("setting"):
+            setting_str = setting_str[len("setting") :]
+        setting = int(setting_str)
     else:
         setting = None
     to_query = urlunsplit(res._replace(scheme="https", fragment="", query="format=json"))
