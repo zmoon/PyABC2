@@ -65,7 +65,7 @@ _COMBINING_ACCENT_FROM_ASCII_SYM = {
 }
 
 
-def _abc_to_tune(abc: str, *, ascii_only: bool = False) -> Tune:
+def _replace_escaped_diacritics(abc: str, *, ascii_only: bool = False) -> str:
     """Load a Norbeck ABC, dealing with LaTeX-style diacritic escape codes."""
     import re
 
@@ -101,7 +101,7 @@ def _abc_to_tune(abc: str, *, ascii_only: bool = False) -> Tune:
 
         abc2 = abc2.replace(s, snew)
 
-    return Tune(abc2)
+    return abc2
 
 
 def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
@@ -138,7 +138,7 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
     tunes: List[Tune] = []
     for abc0 in blocks:
         try:
-            tunes.append(_abc_to_tune(abc0, ascii_only=ascii_only))
+            tunes.append(Tune(_replace_escaped_diacritics(abc0, ascii_only=ascii_only)))
         except Exception as e:
             raise Exception(f"loading this ABC:\n---\n{abc0}\n---\nfailed") from e
 
@@ -193,7 +193,7 @@ def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> L
     return tunes
 
 
-def load_url(url: str, *, ascii_only: bool = False) -> Tune:
+def load_url(url: str) -> Tune:
     """Load tune from a specified ``norbeck.nu/abc/`` URL.
 
     For example:
@@ -219,7 +219,7 @@ def load_url(url: str, *, ascii_only: bool = False) -> Tune:
     assert m is not None
     abc = unescape(m.group(1)).replace("<br/>", "")
 
-    return _abc_to_tune(abc, ascii_only=ascii_only)
+    return Tune(abc)
 
 
 if __name__ == "__main__":
