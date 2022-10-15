@@ -1,7 +1,8 @@
 import pytest
 
+from pyabc2 import Key
 from pyabc2.parse import Tune
-from pyabc2.sources import examples, load_example, load_example_abc, norbeck
+from pyabc2.sources import examples, load_example, load_example_abc, norbeck, the_session
 
 
 @pytest.mark.parametrize("tune_name", examples)
@@ -37,3 +38,28 @@ def test_norbeck_load():
 
     with pytest.raises(ValueError):
         norbeck.load("asdf")
+
+
+@pytest.mark.parametrize(
+    "url,title,key,type",
+    [
+        ("https://thesession.org/tunes/182", "The Silver Spear", "D", "reel"),
+        ("https://thesession.org/tunes/182#setting22284", "The Silver Spear", "C", "reel"),
+    ],
+)
+def test_the_session_load_url(url, title, key, type):
+    tune = the_session.load_url(url)
+    assert tune.title == title
+    assert tune.key == Key(key)
+    assert tune.type == type
+
+
+def test_the_session_url_check():
+    with pytest.raises(AssertionError):
+        the_session.load_url("https://www.google.com")
+
+
+def test_the_session_load_archive():
+    # NOTE: downloads file if not already present
+
+    _ = the_session.load(n=5)  # TODO: all? (depending on time)

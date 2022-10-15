@@ -121,7 +121,7 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
             f.write(r.content)
 
 
-def load() -> List[Tune]:
+def load(*, n: Optional[int] = None) -> List[Tune]:
     """Load tunes from https://github.com/adactio/TheSession-data
 
     @adactio (Jeremy) is the creator of The Session.
@@ -135,10 +135,7 @@ def load() -> List[Tune]:
     with open(fp, encoding="utf-8") as f:
         data = json.load(f)
 
-    print(len(data), "tune dicts in this data dump")
-    data = data[:5]
-    for d in data:
-        print(d)
+    data = data[:n]
 
     # TODO: multi-proc
     tunes = [_data_to_tune(d) for d in data]
@@ -155,7 +152,7 @@ if __name__ == "__main__":
     print(tune)
     tune.print_measures(5)
 
-    tunes = load()
+    tunes = load(n=5)
     for tune in tunes[:2]:
         print(tune)
         tune.print_measures(4)
