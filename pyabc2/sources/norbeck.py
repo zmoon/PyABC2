@@ -199,6 +199,8 @@ def load_url(url: str) -> Tune:
     For example:
     - https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106
     - https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=693
+
+    Grabs the ABC from the HTML source.
     """
     import re
     from html import unescape
