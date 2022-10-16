@@ -124,15 +124,19 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
             f.write(r.content)
 
 
-def load(*, n: Optional[int] = None) -> List[Tune]:
+def load(*, n: Optional[int] = None, redownload: bool = False) -> List[Tune]:
     """Load tunes from https://github.com/adactio/TheSession-data
+
+    Use ``redownload=True`` to force re-download. Otherwise the file will only
+    be downloaded if it hasn't already been.
 
     @adactio (Jeremy) is the creator of The Session.
     """
     import json
 
     fp = SAVE_TO / "tunes.json"
-    if not fp.is_file():
+
+    if not fp.is_file() or redownload:
         download("tunes")
 
     with open(fp, encoding="utf-8") as f:
