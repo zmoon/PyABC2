@@ -209,11 +209,14 @@ def load(
     return tunes
 
 
-def load_meta(which: str):
+def load_meta(which: str, *, convert_dtypes: bool = False):
     """Load metadata file from The Session archive as dataframe (requires pandas).
+
+    Note: in string columns (dtype ``object``), missing value is ``''`` (empty string).
 
     https://github.com/adactio/TheSession-data/tree/main/json
     """
+    import numpy as np
     import pandas as pd
 
     allowed = ["aliases", "events", "recordings", "sessions", "sets", "tune_popularity", "tunes"]
@@ -225,6 +228,56 @@ def load_meta(which: str):
     url = base_url + fn
 
     df = pd.read_json(url)
+
+    cat_cols = []
+    if which == "ali":
+        pass
+
+    elif which == "events":
+        df["dtstart"] = pd.to_datetime(df.dtstart)
+        df["dtend"] = pd.to_datetime(df.dtend)
+        df["latitude"] = df.latitude.replace("", np.nan).astype(float)
+        df["longitude"] = df.longitude.replace("", np.nan).astype(float)
+
+    elif which == "recordings":
+        # Note 'tune_id' can be missing, so is left as str
+        # To get int with missing val support: `.tune_id.replace("", np.nan).astype("UInt16")`
+        pass
+
+    elif which == "sessions":
+        # Workaround for https://github.com/adactio/TheSession-data/issues/15
+        assert df.latitude.dtype == np.float64
+        assert df.longitude.dtype == np.dtype("O")
+        is_bad = df.longitude.str.len() == 19
+        bad = df[is_bad]
+        if not bad.empty:
+            warnings.warn(f"{len(bad)} bad lon rows found in {which}, fixing")
+        df.loc[is_bad, "date"] = pd.to_datetime(bad.longitude)
+        df.loc[is_bad, "longitude"] = np.nan
+        df["longitude"] = df.longitude.astype(float)
+
+    elif which == "sets":
+        # int cols: 'tuneset', 'member_id', 'settingorder', 'tune_id', 'setting_id'
+        cat_cols = ["type", "meter", "mode"]
+
+    elif which == "tune_popularity":
+        # str cols: 'name', 'tunebooks'
+        # int cols: 'tune_id'
+        pass
+
+    elif which == "tunes":
+        # int cols: 'tune_id', 'setting_id'
+        cat_cols = ["type", "meter", "mode"]
+
+    else:
+        raise AssertionError("shouldn't reach here")
+
+    # Convert (downcast) ints?
+    # int_cols = df.dtypes[df.dtypes == np.int64].index.tolist()
+
+    if convert_dtypes:
+        df = df.replace("", np.nan).convert_dtypes()
+        df[cat_cols] = df[cat_cols].astype("category")
 
     return df
 
