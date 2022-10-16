@@ -1,10 +1,23 @@
 """
 Load data from The Session (https://thesession.org)
 """
+import logging
+import sys
+import warnings
 from pathlib import Path
 from typing import List, Optional, Union
 
 from ..parse import Tune
+
+logger = logging.getLogger(__name__)
+sh = logging.StreamHandler(sys.stdout)
+f = logging.Formatter(
+    "[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
+    datefmt=r"%d-%b-%Y %H:%M:%S",
+)
+sh.setFormatter(f)
+logger.addHandler(sh)
+del f, sh
 
 HERE = Path(__file__).parent
 
@@ -124,7 +137,7 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
             f.write(r.content)
 
 
-def load(*, n: Optional[int] = None, redownload: bool = False) -> List[Tune]:
+def load(*, n: Optional[int] = None, redownload: bool = False, debug: bool = False) -> List[Tune]:
     """Load tunes from https://github.com/adactio/TheSession-data
 
     Use ``redownload=True`` to force re-download. Otherwise the file will only
@@ -133,8 +146,14 @@ def load(*, n: Optional[int] = None, redownload: bool = False) -> List[Tune]:
     @adactio (Jeremy) is the creator of The Session.
     """
     import json
+    from textwrap import indent
 
     fp = SAVE_TO / "tunes.json"
+
+    if debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.NOTSET)
 
     if not fp.is_file() or redownload:
         download("tunes")
@@ -151,12 +170,19 @@ def load(*, n: Optional[int] = None, redownload: bool = False) -> List[Tune]:
     for d in data:
         try:
             tune = _data_to_tune(d)
-        except Exception:
+        except Exception as e:
             failed += 1
+            d_ = {k: v for k, v in d.items() if k in {"tune_id", "setting_id", "title"}}
+            abc_ = indent(d["abc"], " ")
+            logger.debug(f"Failed to load ({e}): {d_}\n{abc_}")
         else:
             tunes.append(tune)
 
-    print(failed, "failed")
+    if failed:
+        msg = f"{failed} The Session tune(s) failed to load."
+        if logger.level == logging.NOTSET or logger.level > logging.DEBUG:
+            msg += " Enable logging debug messages to see more info."
+        warnings.warn(msg)
 
     return tunes
 
@@ -170,7 +196,7 @@ if __name__ == "__main__":
     print(tune)
     tune.print_measures(5)
 
-    tunes = load(n=3)
-    for tune in tunes:
+    tunes = load(n=200)
+    for tune in tunes[:3]:
         print(tune)
         tune.print_measures(4)
