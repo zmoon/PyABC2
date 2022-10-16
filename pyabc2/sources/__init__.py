@@ -58,7 +58,7 @@ def load_example(title: Optional[str] = None) -> Tune:
     random if `title` not provided.
     Case ignored in the title.
     """
-    return Tune(load_example_abc())
+    return Tune(load_example_abc(title))
 
 
 def load_url(url: str) -> Tune:
