@@ -209,7 +209,48 @@ def load(
     return tunes
 
 
-def load_meta(which: str, *, convert_dtypes: bool = False):
+def _choose_int_type(s, *, ext: bool = False):
+    import numpy as np
+
+    s_max = s.max()
+    s_hasneg = (s < 0).any()
+
+    # TODO: DRY (generate `to_try` list?)
+    i8_max = np.iinfo(np.int8).max
+    i16_max = np.iinfo(np.int16).max
+    i32_max = np.iinfo(np.int32).max
+    i64_max = np.iinfo(np.int64).max
+
+    ui8_max = np.iinfo(np.uint8).max
+    ui16_max = np.iinfo(np.uint16).max
+    ui32_max = np.iinfo(np.uint32).max
+    ui64_max = np.iinfo(np.uint64).max
+
+    if s_hasneg:
+        to_try = [
+            (i8_max, np.int8, "Int8"),
+            (i16_max, np.int16, "Int16"),
+            (i32_max, np.int32, "Int32"),
+            (i64_max, np.int64, "Int64"),
+        ]
+    else:
+        to_try = [
+            (ui8_max, np.uint8, "UInt8"),
+            (ui16_max, np.uint16, "UInt16"),
+            (ui32_max, np.uint32, "UInt32"),
+            (ui64_max, np.uint64, "UInt64"),
+        ]
+
+    for max_, typ, ext_typ_str in to_try:
+        if s_max <= max_:
+            break
+    else:
+        raise AssertionError("shouldn't reach here")
+
+    return ext_typ_str if ext else typ
+
+
+def load_meta(which: str, *, convert_dtypes: bool = False, downcast_ints: bool = False):
     """Load metadata file from The Session archive as dataframe (requires pandas).
 
     Note: in string columns (dtype ``object``), missing value is ``''`` (empty string).
@@ -272,11 +313,23 @@ def load_meta(which: str, *, convert_dtypes: bool = False):
     else:
         raise AssertionError("shouldn't reach here")
 
-    # Convert (downcast) ints?
-    # int_cols = df.dtypes[df.dtypes == np.int64].index.tolist()
+    if downcast_ints:
+        int_cols = df.dtypes[df.dtypes == np.int64].index.tolist()
+        for col in int_cols:
+            df[col] = df[col].astype(_choose_int_type(df[col], ext=False))
 
     if convert_dtypes:
-        df = df.replace("", np.nan).convert_dtypes()
+        df = df.replace("", np.nan)
+
+        # Special case for recordings 'tune_id'
+        if which == "recordings":
+            df["tune_id"] = df["tune_id"].astype(
+                "Int64"
+                if not downcast_ints
+                else _choose_int_type(df.tune_id.dropna().astype(np.int64), ext=True)
+            )
+
+        df = df.convert_dtypes()
         df[cat_cols] = df[cat_cols].astype("category")
 
     return df
