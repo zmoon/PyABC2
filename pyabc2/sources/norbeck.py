@@ -45,7 +45,7 @@ def download() -> None:
 
     try:
         r.raise_for_status()
-    except requests.exceptions.HTTPError as e:
+    except requests.exceptions.HTTPError as e:  # pragma: no cover
         raise Exception("Norbeck file unable to be downloaded (check URL).") from e
 
     SAVE_TO.mkdir(exist_ok=True)
@@ -139,7 +139,7 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
     for abc0 in blocks:
         try:
             tunes.append(Tune(_replace_escaped_diacritics(abc0, ascii_only=ascii_only)))
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             raise Exception(f"loading this ABC:\n---\n{abc0}\n---\nfailed") from e
 
     # Add norbeck.nu/abc/ URLs
@@ -227,7 +227,7 @@ def load_url(url: str) -> Tune:
     return Tune(abc)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     tune = load_url("https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106")
     print(tune.title)
     tune.print_measures(5)

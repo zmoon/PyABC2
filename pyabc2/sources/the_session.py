@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 from ..parse import Tune
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     import pandas
 
 logger = logging.getLogger(__name__)
@@ -101,7 +101,7 @@ def load_url(url: str) -> Tune:
         for d in data["settings"]:
             if d["id"] == setting:
                 break
-        else:
+        else:  # pragma: no cover
             raise ValueError(f"detected setting {setting} not found in {to_query}")
 
     # Add non-setting-specific data
@@ -146,7 +146,7 @@ def _maybe_load_one(d: dict) -> Optional[Tune]:
 
     try:
         tune = _data_to_tune(d)
-    except Exception as e:
+    except Exception as e:  # pragma: no cover
         d_ = {k: v for k, v in d.items() if k in {"tune_id", "setting_id", "title"}}
         abc_ = indent(d["abc"], " ")
         logger.debug(f"Failed to load ({e}): {d_}\n{abc_}")
@@ -170,7 +170,7 @@ def load(
     fp = SAVE_TO / "tunes.json"
     parallel = num_workers > 1
 
-    if debug:
+    if debug:  # pragma: no cover
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.NOTSET)
@@ -342,7 +342,7 @@ def load_meta(
     return df
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     tune = load_url("https://thesession.org/tunes/10000")
     print(tune)
     tune.print_measures(4)

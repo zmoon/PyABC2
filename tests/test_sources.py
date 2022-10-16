@@ -16,6 +16,11 @@ def test_bad_example_raises():
         load_example_abc("asdf")
 
 
+def test_example_random():
+    tune = load_example()
+    assert type(tune) is Tune
+
+
 @pytest.mark.slow
 def test_norbeck_load():
     # NOTE: downloads files if not already present
@@ -63,6 +68,16 @@ def test_the_session_load_archive():
     # NOTE: downloads file if not already present
 
     _ = the_session.load(n=5)  # TODO: all? (depending on time)
+
+    with pytest.warns(UserWarning, match=r"The Session tune\(s\) failed to load"):
+        tunes1 = the_session.load(n=200)
+        tunes2 = the_session.load(n=200, num_workers=2)
+    assert tunes1 == tunes2
+
+
+def test_the_session_download_invalid():
+    with pytest.raises(ValueError):
+        _ = the_session.download("asdf")
 
 
 def test_load_url():
