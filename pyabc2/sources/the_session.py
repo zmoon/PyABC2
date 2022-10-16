@@ -25,6 +25,10 @@ _TYPE_TO_METER = {
     "march": "4/4",
 }
 
+_URL_NETLOCS = {
+    "thesession.org",
+}
+
 
 def _data_to_tune(data):
     name = data["name"]
@@ -60,7 +64,7 @@ def load_url(url: str) -> Tune:
     import requests
 
     res = urlsplit(url)
-    assert res.netloc == "thesession.org"
+    assert res.netloc in _URL_NETLOCS
     setting: Optional[int]
     if res.fragment:
         setting_str = res.fragment
@@ -162,7 +166,7 @@ if __name__ == "__main__":
     print(tune)
     tune.print_measures(5)
 
-    tunes = load(n=5)
-    for tune in tunes[:2]:
+    tunes = load(n=3)
+    for tune in tunes:
         print(tune)
         tune.print_measures(4)

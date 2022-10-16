@@ -12,6 +12,25 @@ HERE = Path(__file__).parent
 
 SAVE_TO = HERE / "_norbeck"
 
+_TYPE_PREFIX = {
+    "reels": "hnr",
+    "jigs": "hnj",
+    "hornpipes": "hnhp",
+    "polkas": "hnp",
+    "slip jigs": "hnsj",
+}
+
+# https://en.wikibooks.org/wiki/LaTeX/Special_Characters#Escaped_codes
+_COMBINING_ACCENT_FROM_ASCII_SYM = {
+    "`": "\u0300",  # grave
+    "'": "\u0301",  # acute
+    "^": "\u0302",  # circumflex
+    '"': "\u0308",  # umlaut
+    "r": "\u030A",  # ring above
+}
+
+_URL_NETLOCS = {"norbeck.nu", "www.norbeck.nu"}
+
 
 def download() -> None:
     import io
@@ -40,29 +59,10 @@ def download() -> None:
                     f.write(zf.read())
 
 
-_TYPE_PREFIX = {
-    "reels": "hnr",
-    "jigs": "hnj",
-    "hornpipes": "hnhp",
-    "polkas": "hnp",
-    "slip jigs": "hnsj",
-}
-
-
 def _maybe_download() -> None:
     if not list(SAVE_TO.glob("*.abc")):
         print("downloading missing files...")
         download()
-
-
-# https://en.wikibooks.org/wiki/LaTeX/Special_Characters#Escaped_codes
-_COMBINING_ACCENT_FROM_ASCII_SYM = {
-    "`": "\u0300",  # grave
-    "'": "\u0301",  # acute
-    "^": "\u0302",  # circumflex
-    '"': "\u0308",  # umlaut
-    "r": "\u030A",  # ring above
-}
 
 
 def _replace_escaped_diacritics(abc: str, *, ascii_only: bool = False) -> str:
@@ -152,6 +152,9 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
     return tunes
 
 
+# TODO: pre-process to json?
+
+
 def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> List[Tune]:
     """
     Load a list of tunes, by type(s) or all of them.
@@ -209,7 +212,7 @@ def load_url(url: str) -> Tune:
     import requests
 
     res = urlsplit(url)
-    assert res.netloc in {"norbeck.nu", "www.norbeck.nu"}
+    assert res.netloc in _URL_NETLOCS
     assert res.path.startswith("/abc")
 
     r = requests.get(urlunsplit(res._replace(scheme="https")))

@@ -2,7 +2,7 @@ import pytest
 
 from pyabc2 import Key
 from pyabc2.parse import Tune
-from pyabc2.sources import examples, load_example, load_example_abc, norbeck, the_session
+from pyabc2.sources import examples, load_example, load_example_abc, load_url, norbeck, the_session
 
 
 @pytest.mark.parametrize("tune_name", examples)
@@ -63,3 +63,14 @@ def test_the_session_load_archive():
     # NOTE: downloads file if not already present
 
     _ = the_session.load(n=5)  # TODO: all? (depending on time)
+
+
+def test_load_url():
+    tune = load_url("https://thesession.org/tunes/10000")
+    assert tune.title == "Brian Quinn's"
+
+    tune = load_url("https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106")
+    assert tune.title == "For The Love Of Music"
+
+    with pytest.raises(NotImplementedError):
+        _ = load_url("https://www.google.com")
