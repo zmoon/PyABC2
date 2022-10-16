@@ -5,9 +5,12 @@ import logging
 import sys
 import warnings
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from ..parse import Tune
+
+if TYPE_CHECKING:
+    import pandas
 
 logger = logging.getLogger(__name__)
 sh = logging.StreamHandler(sys.stdout)
@@ -136,7 +139,7 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
             f.write(r.content)
 
 
-def _maybe_load_one(d: dict) -> Tune:
+def _maybe_load_one(d: dict) -> Optional[Tune]:
     """Try to load tune from a The Session data entry, otherwise log debug messages
     and return None."""
     from textwrap import indent
@@ -250,7 +253,9 @@ def _choose_int_type(s, *, ext: bool = False):
     return ext_typ_str if ext else typ
 
 
-def load_meta(which: str, *, convert_dtypes: bool = False, downcast_ints: bool = False):
+def load_meta(
+    which: str, *, convert_dtypes: bool = False, downcast_ints: bool = False
+) -> "pandas.DataFrame":
     """Load metadata file from The Session archive as dataframe (requires pandas).
 
     Note: in string columns (dtype ``object``), missing value is ``''`` (empty string).
@@ -304,6 +309,8 @@ def load_meta(which: str, *, convert_dtypes: bool = False, downcast_ints: bool =
     elif which == "tune_popularity":
         # str cols: 'name', 'tunebooks'
         # int cols: 'tune_id'
+        # Currently min tunebook count ('tunebooks') is 10
+        # (https://github.com/adactio/TheSession-data/issues/14)
         pass
 
     elif which == "tunes":
