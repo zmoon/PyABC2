@@ -43,7 +43,8 @@ _URL_NETLOCS = {
 }
 
 
-def _data_to_tune(data):
+def _data_to_tune(data: dict) -> Tune:
+    """Load one tune from a The Session JSON archive entry."""
     name = data["name"]
     type_ = data["type"]  # e.g. 'reel'
     melody_abc = data["abc"].replace("! ", "\n")
@@ -137,7 +138,25 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
             f.write(r.content)
 
 
-def load(*, n: Optional[int] = None, redownload: bool = False, debug: bool = False) -> List[Tune]:
+def _maybe_load_one(d: dict) -> Tune:
+    """Try to load tune from a The Session data entry, otherwise log debug messages
+    and return None."""
+    from textwrap import indent
+
+    try:
+        tune = _data_to_tune(d)
+    except Exception as e:
+        d_ = {k: v for k, v in d.items() if k in {"tune_id", "setting_id", "title"}}
+        abc_ = indent(d["abc"], " ")
+        logger.debug(f"Failed to load ({e}): {d_}\n{abc_}")
+        tune = None
+
+    return tune
+
+
+def load(
+    *, n: Optional[int] = None, redownload: bool = False, debug: bool = False, num_workers: int = 1
+) -> List[Tune]:
     """Load tunes from https://github.com/adactio/TheSession-data
 
     Use ``redownload=True`` to force re-download. Otherwise the file will only
@@ -146,9 +165,9 @@ def load(*, n: Optional[int] = None, redownload: bool = False, debug: bool = Fal
     @adactio (Jeremy) is the creator of The Session.
     """
     import json
-    from textwrap import indent
 
     fp = SAVE_TO / "tunes.json"
+    parallel = num_workers > 1
 
     if debug:
         logger.setLevel(logging.DEBUG)
@@ -161,22 +180,27 @@ def load(*, n: Optional[int] = None, redownload: bool = False, debug: bool = Fal
     with open(fp, encoding="utf-8") as f:
         data = json.load(f)
 
-    data = data[:n]
+    if n is not None:
+        data = data[:n]
 
-    # TODO: multi-proc
-    # tunes = [_data_to_tune(d) for d in data]
+    if parallel:
+        import multiprocessing
+
+        if debug:
+            warnings.warn("Multi-processing, detailed debug messages won't be shown.")
+
+        with multiprocessing.Pool(num_workers) as pool:
+            maybe_tunes = pool.map(_maybe_load_one, data)
+    else:
+        maybe_tunes = [_maybe_load_one(d) for d in data]
+
     tunes = []
     failed = 0
-    for d in data:
-        try:
-            tune = _data_to_tune(d)
-        except Exception as e:
+    for maybe_tune in maybe_tunes:
+        if maybe_tune is None:
             failed += 1
-            d_ = {k: v for k, v in d.items() if k in {"tune_id", "setting_id", "title"}}
-            abc_ = indent(d["abc"], " ")
-            logger.debug(f"Failed to load ({e}): {d_}\n{abc_}")
         else:
-            tunes.append(tune)
+            tunes.append(maybe_tune)
 
     if failed:
         msg = f"{failed} The Session tune(s) failed to load."
