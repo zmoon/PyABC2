@@ -10,9 +10,7 @@ license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
 requires-python = "~=3.7"
-dependencies = [
-    "requests ~=2.0",
-]
+dependencies = []
 
 [project.urls]
 Home = "https://github.com/zmoon/PyABC2"
@@ -20,6 +18,10 @@ Source = "https://github.com/zmoon/PyABC2"
 # Documentation = ""
 
 [project.optional-dependencies]
+sources = [
+    "pandas",
+    "requests ~=2.0",
+]
 test = [
     "mypy",
     "pytest",

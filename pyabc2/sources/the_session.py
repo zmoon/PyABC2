@@ -38,9 +38,7 @@ _TYPE_TO_METER = {
     "march": "4/4",
 }
 
-_URL_NETLOCS = {
-    "thesession.org",
-}
+_URL_NETLOCS = {"thesession.org"}
 
 
 def _data_to_tune(data: dict) -> Tune:
@@ -127,7 +125,7 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
     supported = ["tunes"]
 
     if not set(which) <= set(supported):
-        raise ValueError(f"invalid `which`. Only these are supported: {supported}")
+        raise ValueError(f"invalid `which`. Only these are supported: {supported}.")
 
     for fstem in which:  # TODO: threaded
         fn = f"{fstem}.json"
@@ -209,6 +207,26 @@ def load(
         warnings.warn(msg)
 
     return tunes
+
+
+def load_meta(which: str):
+    """Load metadata file from The Session archive as dataframe (requires pandas).
+
+    https://github.com/adactio/TheSession-data/tree/main/json
+    """
+    import pandas as pd
+
+    allowed = ["aliases", "events", "recordings", "sessions", "sets", "tune_popularity", "tunes"]
+    if which not in allowed:
+        raise ValueError(f"invalid `which`. Valid choices: {allowed}.")
+
+    base_url = "https://raw.githubusercontent.com/adactio/TheSession-data/main/json/"
+    fn = f"{which}.json"
+    url = base_url + fn
+
+    df = pd.read_json(url)
+
+    return df
 
 
 if __name__ == "__main__":
