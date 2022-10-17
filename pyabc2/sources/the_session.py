@@ -291,16 +291,7 @@ def load_meta(
         pass
 
     elif which == "sessions":
-        # Workaround for https://github.com/adactio/TheSession-data/issues/15
-        assert df.latitude.dtype == np.float64
-        assert df.longitude.dtype == np.dtype("O")
-        is_bad = df.longitude.str.len() == 19
-        bad = df[is_bad]
-        if not bad.empty:
-            warnings.warn(f"{len(bad)} bad lon rows found in {which}, fixing")
-        df.loc[is_bad, "date"] = pd.to_datetime(bad.longitude)
-        df.loc[is_bad, "longitude"] = np.nan
-        df["longitude"] = df.longitude.astype(float)
+        pass
 
     elif which == "sets":
         # int cols: 'tuneset', 'member_id', 'settingorder', 'tune_id', 'setting_id'

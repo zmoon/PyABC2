@@ -1,5 +1,3 @@
-import warnings
-
 import pytest
 
 from pyabc2 import Key
@@ -87,18 +85,18 @@ def test_the_session_download_invalid():
     "which", ["aliases", "events", "recordings", "sessions", "sets", "tune_popularity", "tunes"]
 )
 def test_the_session_load_meta(which):
-    if which == "sessions":
-        ctx = pytest.warns(UserWarning, match="3 bad lon rows found")
-    else:
-        ctx = warnings.catch_warnings()
+    import numpy as np
 
-    with ctx:
-        df1 = the_session.load_meta(which)
-        df2 = the_session.load_meta(which, downcast_ints=True)
-        df3 = the_session.load_meta(which, convert_dtypes=True)
-        # assert df1.equals(df2)  # TODO
-        assert not (df2.dtypes == df1.dtypes).all()
-        assert not (df3.dtypes == df1.dtypes).all()
+    df1 = the_session.load_meta(which)
+    df2 = the_session.load_meta(which, downcast_ints=True)
+    df3 = the_session.load_meta(which, convert_dtypes=True)
+
+    # assert df1.equals(df2)  # TODO
+    assert not (df2.dtypes == df1.dtypes).all()
+    assert not (df3.dtypes == df1.dtypes).all()
+    if "latitude" in df1:
+        assert df1.latitude.dtype == np.float64
+        assert df1.longitude.dtype == np.float64
 
 
 def test_the_session_load_meta_invalid():
