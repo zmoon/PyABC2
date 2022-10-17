@@ -262,9 +262,16 @@ def load_meta(
 ) -> "pandas.DataFrame":
     """Load metadata file from The Session archive as dataframe (requires pandas).
 
-    Note: in string columns (dtype ``object``), missing value is ``''`` (empty string).
+    In string columns (dtype ``object``), missing value is ``''`` (empty string)
+    and is currently left that way by default.
+    However, if ``convert_dtypes=True`` is used, this will be set to null,
+    and dtypes converted to nullable pandas extension types
+    (:meth:`pandas.DataFrame.convert_dtypes` applied).
 
     https://github.com/adactio/TheSession-data/tree/main/json
+    https://github.com/adactio/TheSession-data/tree/main/csv
+
+    @adactio (Jeremy) is the creator of The Session.
     """
     import numpy as np
     import pandas as pd
