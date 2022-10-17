@@ -283,6 +283,7 @@ def load_meta(
     if format == "json":
         df = pd.read_json(url)
     else:
+        parse_dates: Union[bool, List[str]]
         if which in {"sets", "sessions", "tunes"}:
             parse_dates = ["date"]
         elif which in {"events"}:
