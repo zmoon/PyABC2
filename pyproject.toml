@@ -27,6 +27,7 @@ test = [
     "pandas-stubs",
     "pytest",
     "pytest-cov",
+    "pytest-xdist",
 ]
 dev = [
     "ipython",

@@ -187,7 +187,7 @@ def load(
     if parallel:
         import multiprocessing
 
-        if debug:
+        if debug:  # pragma: no cover
             warnings.warn("Multi-processing, detailed debug messages won't be shown.")
 
         with multiprocessing.Pool(num_workers) as pool:
@@ -247,7 +247,7 @@ def _choose_int_type(s, *, ext: bool = False):
     for max_, typ, ext_typ_str in to_try:
         if s_max <= max_:
             break
-    else:
+    else:  # pragma: no cover
         raise AssertionError("shouldn't reach here")
 
     return ext_typ_str if ext else typ
@@ -276,7 +276,7 @@ def load_meta(
     df = pd.read_json(url)
 
     cat_cols = []
-    if which == "ali":
+    if which == "aliases":
         pass
 
     elif which == "events":
@@ -317,7 +317,7 @@ def load_meta(
         # int cols: 'tune_id', 'setting_id'
         cat_cols = ["type", "meter", "mode"]
 
-    else:
+    else:  # pragma: no cover
         raise AssertionError("shouldn't reach here")
 
     if downcast_ints:
