@@ -1,3 +1,5 @@
+import warnings
+
 import pytest
 
 from pyabc2 import Key
@@ -86,17 +88,33 @@ def test_the_session_download_invalid():
 )
 def test_the_session_load_meta(which):
     import numpy as np
+    import pandas as pd
+    from pandas.testing import assert_frame_equal
 
     df1 = the_session.load_meta(which)
+    df1_csv = the_session.load_meta(which, format="csv")
     df2 = the_session.load_meta(which, downcast_ints=True)
     df3 = the_session.load_meta(which, convert_dtypes=True)
 
-    # assert df1.equals(df2)  # TODO
+    try:
+        assert df1.equals(df1_csv)
+    except AssertionError:
+        unequal = ~(df1 == df1_csv)
+        df1_ = df1[unequal].dropna(axis="index", how="all").dropna(axis="columns", how="all")
+        df1_csv_ = (
+            df1_csv[unequal].dropna(axis="index", how="all").dropna(axis="columns", how="all")
+        )
+        cmp = pd.concat([df1_, df1_csv_.rename(columns=lambda c: f"{c}_csv")], axis="columns")
+        warnings.warn(f"CSV and JSON for {which} have differences:\n{cmp}")
+
+    assert_frame_equal(df1, df2, check_dtype=False)
     assert not (df2.dtypes == df1.dtypes).all()
     assert not (df3.dtypes == df1.dtypes).all()
     if "latitude" in df1:
-        assert df1.latitude.dtype == np.float64
-        assert df1.longitude.dtype == np.float64
+        for df in [df1, df1_csv, df2]:
+            assert df.latitude.dtype == np.float64
+            assert df.longitude.dtype == np.float64
+        # in df3, `pd.Float64Dtype()`
 
 
 def test_the_session_load_meta_invalid():

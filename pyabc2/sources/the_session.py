@@ -5,7 +5,7 @@ import logging
 import sys
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Literal, Optional, Union
 
 from ..parse import Tune
 
@@ -254,7 +254,11 @@ def _choose_int_type(s, *, ext: bool = False):
 
 
 def load_meta(
-    which: str, *, convert_dtypes: bool = False, downcast_ints: bool = False
+    which: str,
+    *,
+    convert_dtypes: bool = False,
+    downcast_ints: bool = False,
+    format: Literal["json", "csv"] = "json",
 ) -> "pandas.DataFrame":
     """Load metadata file from The Session archive as dataframe (requires pandas).
 
@@ -269,11 +273,23 @@ def load_meta(
     if which not in allowed:
         raise ValueError(f"invalid `which`. Valid choices: {allowed}.")
 
-    base_url = "https://raw.githubusercontent.com/adactio/TheSession-data/main/json/"
-    fn = f"{which}.json"
+    if format not in {"csv", "json"}:
+        raise ValueError("`format` must be 'csv' or 'json'.")
+
+    base_url = f"https://raw.githubusercontent.com/adactio/TheSession-data/main/{format}/"
+    fn = f"{which}.{format}"
     url = base_url + fn
 
-    df = pd.read_json(url)
+    if format == "json":
+        df = pd.read_json(url)
+    else:
+        if which in {"sets", "sessions", "tunes"}:
+            parse_dates = ["date"]
+        elif which in {"events"}:
+            parse_dates = ["dtstart", "dtend"]
+        else:
+            parse_dates = False
+        df = pd.read_csv(url, parse_dates=parse_dates, keep_default_na=False)
 
     cat_cols = []
     if which == "aliases":
