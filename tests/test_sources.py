@@ -121,6 +121,9 @@ def test_the_session_load_meta_invalid():
     with pytest.raises(ValueError):
         _ = the_session.load_meta("asdf")
 
+    with pytest.raises(ValueError):
+        _ = the_session.load_meta("sessions", format="asdf")
+
 
 def test_int_downcast():
     import numpy as np
