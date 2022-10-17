@@ -122,6 +122,34 @@ def test_the_session_load_meta_invalid():
         _ = the_session.load_meta("asdf")
 
 
+def test_int_downcast():
+    import numpy as np
+    import pandas as pd
+
+    for x, expected_dtype, expected_dtype_ext in [
+        # short short (8)
+        ([int(1e2)], np.uint8, pd.UInt8Dtype()),
+        ([int(1e2), -1], np.int8, pd.Int8Dtype()),
+        # short (16)
+        ([int(1e4)], np.uint16, pd.UInt16Dtype()),
+        ([int(1e4), -1], np.int16, pd.Int16Dtype()),
+        # long (32)
+        ([int(1e9)], np.uint32, pd.UInt32Dtype()),
+        ([int(1e9), -1], np.int32, pd.Int32Dtype()),
+        # long long (64)
+        ([int(1e18)], np.uint64, pd.UInt64Dtype()),
+        ([int(1e18), -1], np.int64, pd.Int64Dtype()),
+    ]:
+        s = pd.Series(x)
+        assert s.dtype == np.int64
+
+        s2 = s.astype(the_session._choose_int_type(s))
+        assert s2.dtype == expected_dtype
+
+        s3 = s.astype(the_session._choose_int_type(s, ext=True))
+        assert s3.dtype == expected_dtype_ext
+
+
 def test_load_url():
     tune = load_url("https://thesession.org/tunes/10000")
     assert tune.title == "Brian Quinn's"
