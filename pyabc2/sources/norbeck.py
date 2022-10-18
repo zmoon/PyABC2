@@ -175,7 +175,9 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
         warnings.warn(msg)
 
     if expected_failures:
-        logger.debug(f"{len(expected_failures)} expected failure(s): {expected_failures}")
+        logger.debug(
+            f"{len(expected_failures)} expected failure(s) in file {fp.name}: {expected_failures}"
+        )
 
     # Add norbeck.nu/abc/ URLs
     for tune in tunes:
