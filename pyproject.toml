@@ -19,6 +19,7 @@ Source = "https://github.com/zmoon/PyABC2"
 
 [project.optional-dependencies]
 sources = [
+    "numpy",
     "pandas ~=1.4",
     "requests ~=2.0",
 ]
