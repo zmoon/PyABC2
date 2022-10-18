@@ -44,25 +44,50 @@ _TYPE_TO_METER = {
 _URL_NETLOCS = {"thesession.org"}
 
 
-def _data_to_tune(data: dict) -> Tune:
-    """Load one tune from a The Session JSON archive entry."""
-    name = data["name"]
-    type_ = data["type"]  # e.g. 'reel'
-    melody_abc = data["abc"].replace("! ", "\n")  # for web API data
-    key = data["mode"]
-    meter = data["meter"]
-    unit_length = "1/8"
+def _api_data_to_tune(data: dict) -> Tune:
+    """The Session Web API tune/setting data -> Tune"""
+    melody_abc = data["abc"].replace("! ", "\n")
 
+    # 'x' - setting number (for a specific tune; not same as setting ID)
     abc = f"""\
-T:{name}
-R:{type_}
-M:{meter}
-L:{unit_length}
-K:{key}
+X:{data['x']}
+T:{data['name']}
+R:{data['type']}
+M:{data['meter']}
+L:1/8
+K:{data['key']}
 {melody_abc}
 """
 
-    return Tune(abc)
+    tune = Tune(abc)
+    tune.url = f"https://thesession.org/tunes/{data['tune_id']}#setting{data['setting_id']}"
+
+    return tune
+
+
+def _archive_data_to_tune(data: dict) -> Tune:
+    """The Session JSON archive entry -> Tune"""
+    # Differences cf. to the web API data:
+    # - don't know X
+    # - don't need to convert `! ` to newline
+    # - 'key' is 'mode'
+    # - the archive data entries have 'tune_id' and 'setting_id' already
+
+    melody_abc = data["abc"]
+
+    abc = f"""\
+T:{data['name']}
+R:{data['type']}
+M:{data['meter']}
+L:1/8
+K:{data['mode']}
+{melody_abc}
+"""
+
+    tune = Tune(abc)
+    tune.url = f"https://thesession.org/tunes/{data['tune_id']}#setting{data['setting_id']}"
+
+    return tune
 
 
 def load_url(url: str) -> Tune:
@@ -92,28 +117,35 @@ def load_url(url: str) -> Tune:
 
     r = requests.get(to_query)
     r.raise_for_status()
-    data = r.json()
+    tune_data = r.json()
 
     if setting is None:
         # Use first
-        d = data["settings"][0]
+        i = 0
+        setting_data = tune_data["settings"][i]
     else:
-        for d in data["settings"]:
-            if d["id"] == setting:
+        for i, setting_data in enumerate(tune_data["settings"]):
+            if setting_data["id"] == setting:
                 break
         else:  # pragma: no cover
             raise ValueError(f"detected setting {setting} not found in {to_query}")
 
     # Add non-setting-specific data
-    assert "name" not in d
-    assert "type" not in d
-    assert "meter" not in d
-    d.update(name=data["name"], type=data["type"], meter=_TYPE_TO_METER[data["type"]])
+    assert "name" not in setting_data
+    assert "type" not in setting_data
+    assert "meter" not in setting_data
+    setting_data.update(
+        name=tune_data["name"],
+        type=tune_data["type"],
+        meter=_TYPE_TO_METER[tune_data["type"]],
+        x=i + 1,
+    )
 
-    # 'key' is 'mode' in the JSON data
-    d["mode"] = d.pop("key")
+    # Add IDs
+    setting_data["setting_id"] = setting_data.pop("id")
+    setting_data["tune_id"] = tune_data["id"]
 
-    return _data_to_tune(d)
+    return _api_data_to_tune(setting_data)
 
 
 def download(which: Union[str, List[str]] = "tunes") -> None:
@@ -146,7 +178,7 @@ def _maybe_load_one(d: dict) -> Optional[Tune]:
 
     d["abc"] = d["abc"].replace("\r\n", "\n")
     try:
-        tune = _data_to_tune(d)
+        tune = _archive_data_to_tune(d)
     except Exception as e:  # pragma: no cover
         d_ = {k: v for k, v in d.items() if k in {"tune_id", "setting_id", "title"}}
         abc_ = indent(d["abc"], " ")

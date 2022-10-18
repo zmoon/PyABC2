@@ -59,6 +59,10 @@ def test_the_session_load_url(url, title, key, type):
     assert tune.title == title
     assert tune.key == Key(key)
     assert tune.type == type
+    if "#" in url:  # Currently always gets set to a specific setting
+        assert tune.url == url
+    if "#" not in url:  # First setting
+        assert tune.header["reference number"] == "1"
 
 
 def test_the_session_url_check():
