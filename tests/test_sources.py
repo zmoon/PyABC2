@@ -27,6 +27,8 @@ def test_example_random():
 def test_norbeck_load():
     # NOTE: downloads files if not already present
 
+    # TODO: test Norbeck all matches number of `X:`s in those files
+    # TODO: test Norbeck `X` values in files are all unique
     tunes = norbeck.load()  # all
     jigs = norbeck.load("jigs")  # jigs only
 
