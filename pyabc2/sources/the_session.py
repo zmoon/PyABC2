@@ -48,7 +48,7 @@ def _data_to_tune(data: dict) -> Tune:
     """Load one tune from a The Session JSON archive entry."""
     name = data["name"]
     type_ = data["type"]  # e.g. 'reel'
-    melody_abc = data["abc"].replace("! ", "\n")
+    melody_abc = data["abc"].replace("! ", "\n")  # for web API data
     key = data["mode"]
     meter = data["meter"]
     unit_length = "1/8"
@@ -144,6 +144,7 @@ def _maybe_load_one(d: dict) -> Optional[Tune]:
     and return None."""
     from textwrap import indent
 
+    d["abc"] = d["abc"].replace("\r\n", "\n")
     try:
         tune = _data_to_tune(d)
     except Exception as e:  # pragma: no cover
