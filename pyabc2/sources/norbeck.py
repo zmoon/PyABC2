@@ -40,6 +40,10 @@ _COMBINING_ACCENT_FROM_ASCII_SYM = {
 
 _URL_NETLOCS = {"norbeck.nu", "www.norbeck.nu"}
 
+_EXPECTED_FAILURES = {
+    "chords": [18, 685],
+}
+
 
 def download() -> None:
     import io
@@ -146,10 +150,15 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
 
     tunes: List[Tune] = []
     failed: int = 0
+    expected_failures: List[int] = []
     for abc0 in blocks:
         try:
             tune = Tune(_replace_escaped_diacritics(abc0, ascii_only=ascii_only))
         except Exception as e:  # pragma: no cover
+            x = int(abc0.splitlines()[0].split(":")[1])
+            if "chords" in str(e) and x in _EXPECTED_FAILURES["chords"]:
+                expected_failures.append(x)
+                continue
             msg = f"Failed to load ABC ({e})"
             if _DEBUG_SHOW_FULL_ABC:
                 abc_ = indent(abc0, "  ")
@@ -164,6 +173,9 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
         if logger.level == logging.NOTSET or logger.level > logging.DEBUG:
             msg += " Enable logging debug messages to see more info."
         warnings.warn(msg)
+
+    if expected_failures:
+        logger.debug(f"{len(expected_failures)} expected failure(s): {expected_failures}")
 
     # Add norbeck.nu/abc/ URLs
     for tune in tunes:
