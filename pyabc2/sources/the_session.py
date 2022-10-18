@@ -49,6 +49,7 @@ def _api_data_to_tune(data: dict) -> Tune:
     melody_abc = data["abc"].replace("! ", "\n")
 
     # 'x' - setting number (for a specific tune; not same as setting ID)
+    # note: tune data has 'aliases', could use to provide additional T's (or set `titles` after init)
     abc = f"""\
 X:{data['x']}
 T:{data['name']}
