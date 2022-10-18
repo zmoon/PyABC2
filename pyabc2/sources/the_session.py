@@ -3,11 +3,11 @@ Load data from The Session (https://thesession.org)
 """
 import logging
 import os
-import sys
 import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Literal, Optional, Union
 
+from .._util import get_logger as _get_logger
 from ..parse import Tune
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -15,15 +15,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 _DEBUG_SHOW_FULL_ABC = os.getenv("PYABC_DEBUG_SHOW_FULL_ABC", False)
 
-logger = logging.getLogger(__name__)
-sh = logging.StreamHandler(sys.stdout)
-f = logging.Formatter(
-    "[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
-    datefmt=r"%d-%b-%Y %H:%M:%S",
-)
-sh.setFormatter(f)
-logger.addHandler(sh)
-del f, sh
+logger = _get_logger(__name__)
 
 HERE = Path(__file__).parent
 
@@ -185,7 +177,7 @@ def _maybe_load_one(d: dict) -> Optional[Tune]:
         tune = _archive_data_to_tune(d)
     except Exception as e:  # pragma: no cover
         d_ = {k: v for k, v in d.items() if k in {"tune_id", "setting_id", "title"}}
-        msg = f"Failed to load ({e}): {d_}"
+        msg = f"Failed to load ABC ({e}): {d_}"
         if _DEBUG_SHOW_FULL_ABC:
             abc_ = indent(d["abc"], "  ")
             msg += f"\n{abc_}"

@@ -3,10 +3,19 @@ Henrik Norbeck's ABC Tunes
 
 https://www.norbeck.nu/abc/
 """
+import logging
+import os
+import warnings
 from pathlib import Path
+from textwrap import indent
 from typing import List, Union
 
+from .._util import get_logger as _get_logger
 from ..parse import Tune
+
+logger = _get_logger(__name__)
+
+_DEBUG_SHOW_FULL_ABC = os.getenv("PYABC_DEBUG_SHOW_FULL_ABC", False)
 
 HERE = Path(__file__).parent
 
@@ -18,7 +27,7 @@ _TYPE_PREFIX = {
     "hornpipes": "hnhp",
     "polkas": "hnp",
     "slip jigs": "hnsj",
-}
+}  # TODO: add the others
 
 # https://en.wikibooks.org/wiki/LaTeX/Special_Characters#Escaped_codes
 _COMBINING_ACCENT_FROM_ASCII_SYM = {
@@ -136,11 +145,25 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
                 blocks.append(block.strip())
 
     tunes: List[Tune] = []
+    failed: int = 0
     for abc0 in blocks:
         try:
-            tunes.append(Tune(_replace_escaped_diacritics(abc0, ascii_only=ascii_only)))
+            tune = Tune(_replace_escaped_diacritics(abc0, ascii_only=ascii_only))
         except Exception as e:  # pragma: no cover
-            raise Exception(f"loading this ABC:\n---\n{abc0}\n---\nfailed") from e
+            msg = f"Failed to load ABC ({e})"
+            if _DEBUG_SHOW_FULL_ABC:
+                abc_ = indent(abc0, "  ")
+                msg += f"\n{abc_}"
+            logger.debug(msg)
+            failed += 1
+        else:
+            tunes.append(tune)
+
+    if failed:
+        msg = f"{failed} out of {len(blocks)} Norbeck tune(s) in file {fp.name} failed to load."
+        if logger.level == logging.NOTSET or logger.level > logging.DEBUG:
+            msg += " Enable logging debug messages to see more info."
+        warnings.warn(msg)
 
     # Add norbeck.nu/abc/ URLs
     for tune in tunes:
@@ -155,7 +178,9 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
 # TODO: pre-process to json?
 
 
-def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> List[Tune]:
+def load(
+    which: Union[str, List[str]] = "all", *, ascii_only: bool = False, debug: bool = False
+) -> List[Tune]:
     """
     Load a list of tunes, by type(s) or all of them.
 
@@ -170,6 +195,11 @@ def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> L
     # TODO: allow Norbeck ID as arg as well to load an individual tune? or URL?
     if isinstance(which, str):
         which = [which]
+
+    if debug:  # pragma: no cover
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.NOTSET)
 
     _maybe_download()
 
