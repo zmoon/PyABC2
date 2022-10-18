@@ -2,6 +2,7 @@
 Load data from The Session (https://thesession.org)
 """
 import logging
+import os
 import sys
 import warnings
 from pathlib import Path
@@ -11,6 +12,8 @@ from ..parse import Tune
 
 if TYPE_CHECKING:  # pragma: no cover
     import pandas
+
+_DEBUG_SHOW_FULL_ABC = os.getenv("PYABC_DEBUG_SHOW_FULL_ABC", False)
 
 logger = logging.getLogger(__name__)
 sh = logging.StreamHandler(sys.stdout)
@@ -182,8 +185,11 @@ def _maybe_load_one(d: dict) -> Optional[Tune]:
         tune = _archive_data_to_tune(d)
     except Exception as e:  # pragma: no cover
         d_ = {k: v for k, v in d.items() if k in {"tune_id", "setting_id", "title"}}
-        abc_ = indent(d["abc"], " ")
-        logger.debug(f"Failed to load ({e}): {d_}\n{abc_}")
+        msg = f"Failed to load ({e}): {d_}"
+        if _DEBUG_SHOW_FULL_ABC:
+            abc_ = indent(d["abc"], "  ")
+            msg += f"\n{abc_}"
+        logger.debug(msg)
         tune = None
 
     return tune
@@ -238,7 +244,7 @@ def load(
             tunes.append(maybe_tune)
 
     if failed:
-        msg = f"{failed} The Session tune(s) failed to load."
+        msg = f"{failed} out of {len(data)} The Session tune(s) failed to load."
         if logger.level == logging.NOTSET or logger.level > logging.DEBUG:
             msg += " Enable logging debug messages to see more info."
         warnings.warn(msg)
