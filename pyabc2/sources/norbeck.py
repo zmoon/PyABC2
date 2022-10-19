@@ -149,18 +149,18 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
     blocks = []
     with open(fp, "r") as f:
 
-        block = ""
-        iblock = -1
+        block = None
         add = False
-        in_header = True
 
         for line in f:
             if line.startswith("X:"):
+                # Add (if not first X)
+                if block is not None:
+                    blocks.append(block.strip())
+
                 # New tune, reset
                 block = line
-                iblock += 1
                 add = True
-                in_header = False
                 continue
 
             if line.startswith("P:"):
@@ -170,11 +170,9 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
             if add:
                 block += line
 
-            if line.strip() == "" and not in_header:
-                # Between tune blocks, save
-                block = block.strip()
-                if not blocks or blocks[-1] != block:
-                    blocks.append(block)
+        # Add last block
+        if block is not None:
+            blocks.append(block.strip())
 
     tunes: List[Tune] = []
     failed: int = 0

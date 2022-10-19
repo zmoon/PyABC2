@@ -85,7 +85,6 @@ def test_norbeck_x_vals():
 def test_norbeck_load():
     # NOTE: downloads files if not already present
 
-    # TODO: test Norbeck all matches number of `X:`s in those files
     tunes = norbeck.load()  # all
     jigs = norbeck.load("jigs")  # jigs only
     hps = norbeck.load("hornpipes")
@@ -94,8 +93,8 @@ def test_norbeck_load():
     assert "Pride of Petravore, The" not in set([t.title for t in tunes])
     assert "Pride of Petravore, The" not in set([t.title for t in hps])
 
-    # TODO: fix to base on expected duplicates and find the missing 1!
-    assert len(tunes) == NORBECK_IRISH_COUNT - 3
+    n_exp_fail = sum(len(lst) for d in norbeck._EXPECTED_FAILURES.values() for lst in d.values())
+    assert len(tunes) == NORBECK_IRISH_COUNT - n_exp_fail
 
     assert 0 < len(jigs) < len(tunes)
     assert all(t in tunes for t in jigs)
