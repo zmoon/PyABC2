@@ -168,6 +168,7 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
                 add = False
 
             if add:
+                assert block is not None
                 block += line
 
         # Add last block
