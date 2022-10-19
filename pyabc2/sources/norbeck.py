@@ -5,6 +5,7 @@ https://www.norbeck.nu/abc/
 """
 import logging
 import os
+import string
 import warnings
 from pathlib import Path
 from textwrap import indent
@@ -22,12 +23,27 @@ HERE = Path(__file__).parent
 SAVE_TO = HERE / "_norbeck"
 
 _TYPE_PREFIX = {
-    "reels": "hnr",
-    "jigs": "hnj",
+    "airs": "hnair",
+    "barndances": "hnbarn",
+    "O'Carolan tunes": "hncar",
+    "country dance": "hncountryd",
+    "highlands and flings": "hnhf",
     "hornpipes": "hnhp",
+    "jigs": "hnj",
+    "marches": "hnmarch",
+    "mazurkas": "hnmaz",
     "polkas": "hnp",
+    "reels": "hnr",
+    "set dances": "hnset",
     "slip jigs": "hnsj",
+    "slides": "hnsl",
+    "slow airs": "hnslow",
+    "songs": "hnsong",
+    "strathspeys": "hnstr",
+    "waltzes": "hnwaltz",
 }  # TODO: add the others
+
+_TYPE_TO_FN_PREFIX = {v: k for k, v in _TYPE_PREFIX.items()}
 
 # https://en.wikibooks.org/wiki/LaTeX/Special_Characters#Escaped_codes
 _COMBINING_ACCENT_FROM_ASCII_SYM = {
@@ -41,8 +57,18 @@ _COMBINING_ACCENT_FROM_ASCII_SYM = {
 _URL_NETLOCS = {"norbeck.nu", "www.norbeck.nu"}
 
 _EXPECTED_FAILURES = {
-    "chords": [18, 685],
+    "chords": {"hornpipes": [18], "reels": [685]},
 }
+
+
+def _get_paths_type(typ: str) -> List[Path]:
+    # Can't just glob since `sl*` also matches `slow`
+    import re
+
+    all_fps = SAVE_TO.glob("*.abc")  # TODO: could cache or be global?
+    pref = _TYPE_PREFIX[typ]
+
+    return list(filter(lambda p: re.fullmatch(rf"{pref}[0-9]+\.abc", p.name), all_fps))
 
 
 def download() -> None:
@@ -146,17 +172,22 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
 
             if line.strip() == "" and not in_header:
                 # Between tune blocks, save
-                blocks.append(block.strip())
+                block = block.strip()
+                if not blocks or blocks[-1] != block:
+                    blocks.append(block)
 
     tunes: List[Tune] = []
     failed: int = 0
     expected_failures: List[int] = []
     for abc0 in blocks:
+        assert abc0.startswith("X:")
         try:
             tune = Tune(_replace_escaped_diacritics(abc0, ascii_only=ascii_only))
         except Exception as e:  # pragma: no cover
             x = int(abc0.splitlines()[0].split(":")[1])
-            if "chords" in str(e) and x in _EXPECTED_FAILURES["chords"]:
+            if "chords" in str(e) and x in _EXPECTED_FAILURES["chords"].get(
+                _TYPE_TO_FN_PREFIX[fp.stem.rstrip(string.digits)], []
+            ):
                 expected_failures.append(x)
                 continue
             msg = f"Failed to load ABC ({e})"
@@ -228,10 +259,10 @@ def load(
             if tune_type not in _TYPE_PREFIX:
                 raise ValueError(
                     f"tune type {tune_type!r} invalid or not supported. "
-                    f"Try one of: {', '.join(repr(s) for s in _TYPE_PREFIX)}."
+                    f"Try one of {set(_TYPE_PREFIX)}."
                 )
 
-            fps.extend(SAVE_TO.glob(f"{_TYPE_PREFIX[tune_type]}*.abc"))
+            fps.extend(_get_paths_type(tune_type))
 
     tunes = []
     for fp in sorted(fps):

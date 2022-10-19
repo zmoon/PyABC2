@@ -1,3 +1,4 @@
+import re
 import warnings
 
 import pytest
@@ -5,6 +6,8 @@ import pytest
 from pyabc2 import Key
 from pyabc2.parse import Tune
 from pyabc2.sources import examples, load_example, load_example_abc, load_url, norbeck, the_session
+
+NORBECK_IRISH_COUNT = 2733
 
 
 @pytest.mark.parametrize("tune_name", examples)
@@ -23,14 +26,76 @@ def test_example_random():
     assert type(tune) is Tune
 
 
+def test_norbeck_tune_type_file_prefix():
+    norbeck._maybe_download()
+    all_fps = list(norbeck.SAVE_TO.glob("*.abc"))
+    fps_type = {}
+    for typ in norbeck._TYPE_PREFIX:
+        fps_type[typ] = norbeck._get_paths_type(typ)
+        assert len(fps_type[typ]) > 0
+
+    all_fps_type = [p for lst in fps_type.values() for p in lst]
+    all_fps_type_set = set(all_fps_type)
+    assert len(all_fps_type) == len(all_fps_type_set)
+    assert set(all_fps) == all_fps_type_set
+
+
+def test_norbeck_x_unique():
+    # X value should be unique within tune type
+    norbeck._maybe_download()
+    xs = []
+    for typ in norbeck._TYPE_PREFIX:
+        for p in norbeck._get_paths_type(typ):
+            with open(p, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("X:"):
+                        x = int(line[2:])
+                        xs.append((typ, x))
+
+    assert len(set(xs)) == len(xs), "X unique"
+
+
+def test_norbeck_x_vals():
+    # Make sure they match with what file says
+    norbeck._maybe_download()
+    ntot = 0
+    for p in norbeck.SAVE_TO.glob("*.abc"):
+        with open(p, "r") as f:
+            s = f.read()
+            lines = s.splitlines()
+            m = re.fullmatch(
+                r"This file contains ([0-9]{1,3}) .* \(#([0-9]+)\s*-\s*#([0-9]+)\).", lines[0]
+            )
+            assert m is not None
+            n, a, b = [int(x) for x in m.groups()]
+            assert n >= 1
+            assert b - a + 1 == n
+            assert s.count("X:") == n
+            xs = re.findall(r"^X:([0-9]+)\s*$", s, flags=re.MULTILINE)
+            nums = [int(m) for m in xs]
+            assert len(nums) == n
+            assert set(range(a, b + 1)) == set(nums)
+            ntot += n
+
+    assert ntot == NORBECK_IRISH_COUNT
+
+
 @pytest.mark.slow
 def test_norbeck_load():
     # NOTE: downloads files if not already present
 
     # TODO: test Norbeck all matches number of `X:`s in those files
-    # TODO: test Norbeck `X` values in files are all unique
     tunes = norbeck.load()  # all
     jigs = norbeck.load("jigs")  # jigs only
+    hps = norbeck.load("hornpipes")
+
+    # One of the expected failures (has chords)
+    assert "Pride of Petravore, The" not in set([t.title for t in tunes])
+    assert "Pride of Petravore, The" not in set([t.title for t in hps])
+
+    # TODO: fix to base on expected duplicates and find the missing 1!
+    assert len(tunes) == NORBECK_IRISH_COUNT - 3
 
     assert 0 < len(jigs) < len(tunes)
     assert all(t in tunes for t in jigs)
