@@ -47,8 +47,11 @@ def load_example_abc(title: Optional[str] = None) -> str:
     abc = examples.get(k)
 
     if abc is None:
-        example_list = "\n".join(f"  {t!r}" for t in examples)
-        raise ValueError("invalid tune title. Valid options are:\n" f"{example_list}")
+        example_list = "\n".join(f"  - {t!r}" for t in examples)
+        raise ValueError(
+            f"invalid tune title {title!r}. "
+            f"Valid options are (case-insensitive):\n{example_list}"
+        )
 
     return abc
 
