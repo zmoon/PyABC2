@@ -3,14 +3,72 @@ Henrik Norbeck's ABC Tunes
 
 https://www.norbeck.nu/abc/
 """
+import logging
+import os
+import string
+import warnings
 from pathlib import Path
+from textwrap import indent
 from typing import List, Union
 
+from .._util import get_logger as _get_logger
 from ..parse import Tune
+
+logger = _get_logger(__name__)
+
+_DEBUG_SHOW_FULL_ABC = os.getenv("PYABC_DEBUG_SHOW_FULL_ABC", False)
 
 HERE = Path(__file__).parent
 
 SAVE_TO = HERE / "_norbeck"
+
+_TYPE_PREFIX = {
+    "airs": "hnair",
+    "barndances": "hnbarn",
+    "O'Carolan tunes": "hncar",
+    "country dance": "hncountryd",
+    "highlands and flings": "hnhf",
+    "hornpipes": "hnhp",
+    "jigs": "hnj",
+    "marches": "hnmarch",
+    "mazurkas": "hnmaz",
+    "polkas": "hnp",
+    "reels": "hnr",
+    "set dances": "hnset",
+    "slip jigs": "hnsj",
+    "slides": "hnsl",
+    "slow airs": "hnslow",
+    "songs": "hnsong",
+    "strathspeys": "hnstr",
+    "waltzes": "hnwaltz",
+}  # TODO: add the others
+
+_TYPE_TO_FN_PREFIX = {v: k for k, v in _TYPE_PREFIX.items()}
+
+# https://en.wikibooks.org/wiki/LaTeX/Special_Characters#Escaped_codes
+_COMBINING_ACCENT_FROM_ASCII_SYM = {
+    "`": "\u0300",  # grave
+    "'": "\u0301",  # acute
+    "^": "\u0302",  # circumflex
+    '"': "\u0308",  # umlaut
+    "r": "\u030A",  # ring above
+}
+
+_URL_NETLOCS = {"norbeck.nu", "www.norbeck.nu"}
+
+_EXPECTED_FAILURES = {
+    "chords": {"hornpipes": [18], "reels": [685]},
+}
+
+
+def _get_paths_type(typ: str) -> List[Path]:
+    # Can't just glob since `sl*` also matches `slow`
+    import re
+
+    all_fps = SAVE_TO.glob("*.abc")  # TODO: could cache or be global?
+    pref = _TYPE_PREFIX[typ]
+
+    return list(filter(lambda p: re.fullmatch(rf"{pref}[0-9]+\.abc", p.name), all_fps))
 
 
 def download() -> None:
@@ -26,7 +84,7 @@ def download() -> None:
 
     try:
         r.raise_for_status()
-    except requests.exceptions.HTTPError as e:
+    except requests.exceptions.HTTPError as e:  # pragma: no cover
         raise Exception("Norbeck file unable to be downloaded (check URL).") from e
 
     SAVE_TO.mkdir(exist_ok=True)
@@ -40,50 +98,69 @@ def download() -> None:
                     f.write(zf.read())
 
 
-_TYPE_PREFIX = {
-    "reels": "hnr",
-    "jigs": "hnj",
-    "hornpipes": "hnhp",
-    "polkas": "hnp",
-    "slip jigs": "hnsj",
-}
-
-
 def _maybe_download() -> None:
     if not list(SAVE_TO.glob("*.abc")):
         print("downloading missing files...")
         download()
 
 
-# https://en.wikibooks.org/wiki/LaTeX/Special_Characters#Escaped_codes
-_COMBINING_ACCENT_FROM_ASCII_SYM = {
-    "`": "\u0300",  # grave
-    "'": "\u0301",  # acute
-    "^": "\u0302",  # circumflex
-    '"': "\u0308",  # umlaut
-    "r": "\u030A",  # ring above
-}
+def _replace_escaped_diacritics(abc: str, *, ascii_only: bool = False) -> str:
+    """Load a Norbeck ABC, dealing with LaTeX-style diacritic escape codes."""
+    import re
+
+    # Special case: `\aa` command for ring over a
+    abc1 = abc
+    abc1 = re.sub(r"\{?\\aa\}?", "å", abc1)
+
+    # Special case: `\o` command for slashed o
+    abc1 = re.sub(r"\{?\\o\}?", "ø", abc1)
+
+    # Accents added to letters
+    abc2 = abc1
+    for m in re.finditer(r"\\(?P<dcsym>.)\{?(?P<letter>[a-zA-Z])\}?", abc1):
+        s = m.group(0)
+
+        gd = m.groupdict()
+        dcsym = gd["dcsym"]
+        letter = gd["letter"]
+
+        ca = _COMBINING_ACCENT_FROM_ASCII_SYM.get(dcsym)
+        if ca is None:
+            raise ValueError(
+                f"diacritic escape code `\\{dcsym}` not recognized "
+                f"in this ABC:\n---\n{abc}\n---"
+            )
+
+        if ascii_only:
+            snew = letter
+        else:
+            snew = letter + ca
+            # Note: could use unicodedata to apply a normalization
+            # to give single accented characters instead of two code points
+
+        abc2 = abc2.replace(s, snew)
+
+    return abc2
 
 
 def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
-    import re
+    """Load one of the Norbeck archive files, which contain multiple tunes."""
 
     blocks = []
-
     with open(fp, "r") as f:
 
-        block = ""
-        iblock = -1
+        block = None
         add = False
-        in_header = True
 
         for line in f:
             if line.startswith("X:"):
+                # Add (if not first X)
+                if block is not None:
+                    blocks.append(block.strip())
+
                 # New tune, reset
                 block = line
-                iblock += 1
                 add = True
-                in_header = False
                 continue
 
             if line.startswith("P:"):
@@ -91,55 +168,46 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
                 add = False
 
             if add:
+                assert block is not None
                 block += line
 
-            if line.strip() == "" and not in_header:
-                # Between tune blocks, save
-                blocks.append(block.strip())
+        # Add last block
+        if block is not None:
+            blocks.append(block.strip())
 
     tunes: List[Tune] = []
+    failed: int = 0
+    expected_failures: List[int] = []
     for abc0 in blocks:
-
-        # Deal with LaTeX-style diacritic escape codes
-        # TODO: factor out so can test this separately
-
-        # Special case: `\aa` command for ring over a
-        abc1 = abc0
-        abc1 = re.sub(r"\{?\\aa\}?", "å", abc1)
-
-        # Special case: `\o` command for slashed o
-        abc1 = re.sub(r"\{?\\o\}?", "ø", abc1)
-
-        # Accents added to letters
-        abc2 = abc1
-        for m in re.finditer(r"\\(?P<dcsym>.)\{?(?P<letter>[a-zA-Z])\}?", abc1):
-            s = m.group(0)
-
-            gd = m.groupdict()
-            dcsym = gd["dcsym"]
-            letter = gd["letter"]
-
-            ca = _COMBINING_ACCENT_FROM_ASCII_SYM.get(dcsym)
-            if ca is None:
-                raise ValueError(
-                    f"diacritic escape code `\\{dcsym}` not recognized "
-                    f"in this ABC:\n---\n{abc0}\n---"
-                )
-
-            if ascii_only:
-                snew = letter
-            else:
-                snew = letter + ca
-                # Note: could use unicodedata to apply a normalization
-                # to give single accented characters instead of two code points
-
-            abc2 = abc2.replace(s, snew)
-
+        assert abc0.startswith("X:")
         try:
-            tunes.append(Tune(abc2))
+            tune = Tune(_replace_escaped_diacritics(abc0, ascii_only=ascii_only))
+        except Exception as e:  # pragma: no cover
+            x = int(abc0.splitlines()[0].split(":")[1])
+            if "chords" in str(e) and x in _EXPECTED_FAILURES["chords"].get(
+                _TYPE_TO_FN_PREFIX[fp.stem.rstrip(string.digits)], []
+            ):
+                expected_failures.append(x)
+                continue
+            msg = f"Failed to load ABC ({e})"
+            if _DEBUG_SHOW_FULL_ABC:
+                abc_ = indent(abc0, "  ")
+                msg += f"\n{abc_}"
+            logger.debug(msg)
+            failed += 1
+        else:
+            tunes.append(tune)
 
-        except Exception as e:
-            raise Exception(f"loading this ABC:\n---\n{abc0}\n---\nfailed") from e
+    if failed:
+        msg = f"{failed} out of {len(blocks)} Norbeck tune(s) in file {fp.name} failed to load."
+        if logger.level == logging.NOTSET or logger.level > logging.DEBUG:
+            msg += " Enable logging debug messages to see more info."
+        warnings.warn(msg)
+
+    if expected_failures:
+        logger.debug(
+            f"{len(expected_failures)} expected failure(s) in file {fp.name}: {expected_failures}"
+        )
 
     # Add norbeck.nu/abc/ URLs
     for tune in tunes:
@@ -151,7 +219,12 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
     return tunes
 
 
-def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> List[Tune]:
+# TODO: pre-process to json?
+
+
+def load(
+    which: Union[str, List[str]] = "all", *, ascii_only: bool = False, debug: bool = False
+) -> List[Tune]:
     """
     Load a list of tunes, by type(s) or all of them.
 
@@ -167,6 +240,11 @@ def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> L
     if isinstance(which, str):
         which = [which]
 
+    if debug:  # pragma: no cover
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.NOTSET)
+
     _maybe_download()
 
     fps: List[Path]
@@ -180,13 +258,56 @@ def load(which: Union[str, List[str]] = "all", *, ascii_only: bool = False) -> L
             if tune_type not in _TYPE_PREFIX:
                 raise ValueError(
                     f"tune type {tune_type!r} invalid or not supported. "
-                    f"Try one of: {', '.join(repr(s) for s in _TYPE_PREFIX)}."
+                    f"Try one of {set(_TYPE_PREFIX)}."
                 )
 
-            fps.extend(SAVE_TO.glob(f"{_TYPE_PREFIX[tune_type]}*.abc"))
+            fps.extend(_get_paths_type(tune_type))
 
     tunes = []
     for fp in sorted(fps):
         tunes.extend(_load_one_file(fp, ascii_only=ascii_only))
 
     return tunes
+
+
+def load_url(url: str) -> Tune:
+    """Load tune from a specified ``norbeck.nu/abc/`` URL.
+
+    For example:
+    - https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106
+    - https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=693
+
+    Grabs the ABC from the HTML source.
+    """
+    import re
+    from html import unescape
+    from urllib.parse import urlsplit, urlunsplit
+
+    import requests
+
+    res = urlsplit(url)
+    assert res.netloc in _URL_NETLOCS
+    assert res.path.startswith("/abc")
+
+    r = requests.get(urlunsplit(res._replace(scheme="https")))
+    r.raise_for_status()
+
+    m = re.search(
+        r'<div id="abc" class="monospace">X:[0-9]+<br/>\s*(.*?)\s*</div>', r.text, flags=re.DOTALL
+    )
+    assert m is not None
+    abc = unescape(m.group(1)).replace("<br/>", "")
+
+    return Tune(abc)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    tune = load_url("https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106")
+    print(tune.title)
+    tune.print_measures(5)
+
+    tune = load_url("https://www.norbeck.nu/abc/display.asp?rhythm=sl%C3%A4ngpolska&ref=8")
+    print()
+    print(tune.title)
+    tune.print_measures(5)
+    print(tune.abc)

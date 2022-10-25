@@ -47,8 +47,11 @@ def load_example_abc(title: Optional[str] = None) -> str:
     abc = examples.get(k)
 
     if abc is None:
-        example_list = "\n".join(f"  {t!r}" for t in examples)
-        raise ValueError("invalid tune title. Valid options are:\n" f"{example_list}")
+        example_list = "\n".join(f"  - {t!r}" for t in examples)
+        raise ValueError(
+            f"invalid tune title {title!r}. "
+            f"Valid options are (case-insensitive):\n{example_list}"
+        )
 
     return abc
 
@@ -58,4 +61,24 @@ def load_example(title: Optional[str] = None) -> Tune:
     random if `title` not provided.
     Case ignored in the title.
     """
-    return Tune(load_example_abc())
+    return Tune(load_example_abc(title))
+
+
+def load_url(url: str) -> Tune:
+    """Load tune from ABC corresponding to `url`.
+
+    Currently these URL types are supported:
+    - Norbeck (``norbeck.nu/abc/``)
+    - The Session (``thesession.org``)
+    """
+    from urllib.parse import urlsplit
+
+    from . import norbeck, the_session
+
+    res = urlsplit(url)
+    if res.netloc in norbeck._URL_NETLOCS:
+        return norbeck.load_url(url)
+    elif res.netloc in the_session._URL_NETLOCS:
+        return the_session.load_url(url)
+    else:
+        raise NotImplementedError("loading URL from {res.netloc} not implemented.")

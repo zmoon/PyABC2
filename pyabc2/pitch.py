@@ -667,13 +667,13 @@ class Pitch:
 
 # https://en.wikipedia.org/wiki/File:Main_intervals_from_C.png
 MAIN_INTERVAL_SHORT_NAMES = [
-    "P1",
+    "P1",  # aka "U"
     "m2",
     "M2",
     "m3",
     "M3",
     "P4",
-    "A4",
+    "A4",  # aka "TT"
     "P5",
     "m6",
     "M6",
@@ -710,6 +710,7 @@ class SimpleInterval:
     def name(self) -> str:
         """Major, minor, or perfect interval short name."""
         return MAIN_INTERVAL_SHORT_NAMES[self.value]
+        # TODO: based on context https://en.wikipedia.org/wiki/Interval_(music)#Main_intervals
 
     @property
     def whole_steps(self) -> float:
@@ -758,6 +759,8 @@ class SignedInterval(SimpleInterval):
         is_neg = self.value < 0
 
         n_o, i0 = divmod(abs(self.value), 12)
+
+        # TODO: https://en.wikipedia.org/wiki/Interval_(music)#Main_compound_intervals
 
         if n_o >= 2:
             s_o = f"{n_o}({MAIN_INTERVAL_SHORT_NAMES[-1]})"

@@ -9,10 +9,8 @@ readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
-requires-python = "~=3.7"
-dependencies = [
-    "requests ~=2.0",
-]
+requires-python = "~=3.8"
+dependencies = []
 
 [project.urls]
 Home = "https://github.com/zmoon/PyABC2"
@@ -20,10 +18,17 @@ Source = "https://github.com/zmoon/PyABC2"
 # Documentation = ""
 
 [project.optional-dependencies]
+sources = [
+    "numpy",
+    "pandas ~=1.4",
+    "requests ~=2.0",
+]
 test = [
     "mypy",
+    "pandas-stubs",
     "pytest",
     "pytest-cov",
+    "pytest-xdist",
 ]
 dev = [
     "ipython",
@@ -50,3 +55,7 @@ line_length = 100
 
 [tool.pytest.ini_options]
 markers = ["slow"]
+
+[tool.mypy]
+exclude = ["^venv"]
+install_types = true

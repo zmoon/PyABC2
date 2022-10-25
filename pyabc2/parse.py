@@ -164,6 +164,30 @@ def _load_abcjs_if_in_jupyter() -> None:
         print("abcjs loaded")
 
 
+def _find_first_chord(s: str) -> Optional[str]:
+    """Search for first chord spec in an ABC body portion.
+
+    https://abcnotation.com/wiki/abc:standard:v2.1#chords_and_unisons
+    """
+    from .note import _S_RE_NOTE
+
+    # `{2,}` (2 or more) doesn't seem to work,
+    # so we look for one or more and then count notes after
+    m = re.search(rf"\[({_S_RE_NOTE})+\]", s)
+    if m is None:
+        return None
+
+    # Here, we have a potential chord (may only have one note, which we want to reject)
+    # NOTE: did see some single notes inside `[]` in The Session data
+    c = m.group()
+    assert c.startswith("[") and c.endswith("]")
+    n = len(_RE_NOTE.findall(c))  # TODO: maybe just letter count would be suff.
+    if n >= 2:
+        return c
+    else:
+        return None
+
+
 # TODO: maybe should go in a tune module
 class Tune:
     """Tune."""
@@ -247,12 +271,26 @@ class Tune:
         measures = []
         for line in tune_lines:
 
+            # Check for chords (not currently supporting)
+            # https://abcnotation.com/wiki/abc:standard:v2.1#chords_and_unisons
+            # TODO: replace chords by one of the notes?
+            first_chord = _find_first_chord(line)
+            has_chord = first_chord is not None
+            if has_chord:
+                raise ValueError(
+                    "chords currently not supported, " f"but found {first_chord!r} in line {line!r}"
+                )
+
             if line.startswith("|:"):
                 # Left repeat detected -- new starting measure for a repeated section
                 i_measure_repeat = i_measure
 
             # 1. In line, find measures
             for m_measure in re.finditer(r"([^\|\:\]]+)(\:?\|+\:?)", line):
+                # TODO: breaks up measures that use general tuplet syntax (with `:`)
+                # https://abcnotation.com/wiki/abc:standard:v2.1#duplets_triplets_quadruplets_etc
+                # TODO: within-line meter changes (e.g. `|M:3/2 ...`) also have `:`
+                # Maybe could just remove `:` from the the search and lstrip it from `within_measure`
                 within_measure, right_sep = m_measure.groups()
 
                 if right_sep.endswith(":"):
@@ -262,14 +300,25 @@ class Tune:
                 if within_measure.startswith(("1", "[1", " [1")):
                     i_ending = i_measure
 
+                # TODO: other specs can indicate more than 2 endings (comma-sep list and range notations)
+                # https://abcnotation.com/wiki/abc:standard:v2.1#variant_endings
                 if within_measure.startswith(("3", "[3", " [3")):
-                    raise ValueError("3 or more endings not currently supported")
+                    # NOTE: can catch incorrect triplet `3(ABC)` at start of measure
+                    # Also have seen `3ABC` at start of tune or line
+                    # Triplets should be written like `(3ABC` (no closing paren)
+                    # https://abcnotation.com/wiki/abc:standard:v2.1#duplets_triplets_quadruplets_etc
+                    # Could look for these cases and fix them?
+                    raise ValueError(
+                        "3 or more endings not currently supported, "
+                        f"but measure {within_measure!r} starts with one of {'3', '[3', ' [3'}, "
+                        f"found in line {line!r}"
+                    )
 
                 # TODO: check for inline meter change; validate measure beat count?
 
                 measure = []
 
-                # 2. In measure, find note groups
+                # 2. In measure, find note groups ("beams")
                 # Currently not doing anything with note group, but may want to in the future
                 for note_group in within_measure.split(" "):
 
@@ -307,6 +356,16 @@ class Tune:
             f"{self.__class__.__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
         )
 
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+
+        # TODO: really would want to check _equivalent_ abc; need some normalization
+        return other.abc == self.abc
+
+    def __hash__(self):
+        return hash(self.abc)
+
     def _repr_html_(self):
         import uuid
 
@@ -328,10 +387,10 @@ class Tune:
         js = Javascript(_FMT_ABCJS_RENDER_JS.format(abc=abc, notation_id=notation_id))
         display(js)
 
-    def print_measures(self, *, note_format: str = "ABC"):
+    def print_measures(self, n: Optional[int] = None, *, note_format: str = "ABC"):
         """Print measures to check parsing."""
         nd = len(str(len(self.measures)))
-        for i, measure in enumerate(self.measures, start=1):
+        for i, measure in enumerate(self.measures[:n], start=1):
             if note_format == "ABC":
                 print(f"{i:0{nd}d}: {' '.join(n.to_abc(key=self.key) for n in measure)}")
             else:
