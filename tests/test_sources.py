@@ -229,8 +229,15 @@ def test_load_url_the_session():
 
 
 def test_load_url_norbeck():
-    tune = load_url("https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106")
-    assert tune.title == "For The Love Of Music"
+    import requests
+
+    url = "https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106"
+    try:
+        tune = load_url(url)
+    except requests.exceptions.ReadTimeout as e:
+        warnings.warn(f"reading Norbeck URL {url} timed out. ({e})")
+    else:
+        assert tune.title == "For The Love Of Music"
 
 
 def test_load_url_invalid_domain():
