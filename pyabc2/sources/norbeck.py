@@ -289,7 +289,7 @@ def load_url(url: str) -> Tune:
     assert res.netloc in _URL_NETLOCS
     assert res.path.startswith("/abc")
 
-    r = requests.get(urlunsplit(res._replace(scheme="https")))
+    r = requests.get(urlunsplit(res._replace(scheme="https")), timeout=5)
     r.raise_for_status()
 
     m = re.search(

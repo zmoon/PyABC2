@@ -223,12 +223,16 @@ def test_int_downcast():
         assert s3.dtype == expected_dtype_ext
 
 
-def test_load_url():
+def test_load_url_the_session():
     tune = load_url("https://thesession.org/tunes/10000")
     assert tune.title == "Brian Quinn's"
 
+
+def test_load_url_norbeck():
     tune = load_url("https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106")
     assert tune.title == "For The Love Of Music"
 
+
+def test_load_url_invalid_domain():
     with pytest.raises(NotImplementedError):
         _ = load_url("https://www.google.com")
