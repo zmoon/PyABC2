@@ -111,7 +111,7 @@ def load_url(url: str) -> Tune:
         setting = None
     to_query = urlunsplit(res._replace(scheme="https", fragment="", query="format=json"))
 
-    r = requests.get(to_query)
+    r = requests.get(to_query, timeout=5)
     r.raise_for_status()
     tune_data = r.json()
 
@@ -161,7 +161,7 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
     for fstem in which:  # TODO: threaded
         fn = f"{fstem}.json"
         url = base_url + fn
-        r = requests.get(url)
+        r = requests.get(url, timeout=5)
         r.raise_for_status()
         with open(SAVE_TO / fn, "wb") as f:
             f.write(r.content)
