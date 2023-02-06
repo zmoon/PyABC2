@@ -690,7 +690,6 @@ class SimpleInterval:
     """
 
     def __init__(self, value: int) -> None:
-
         if 0 <= value <= 12:
             value_ = value
         else:
@@ -750,7 +749,6 @@ class SignedInterval(SimpleInterval):
     """An interval that can be more than one octave and with sign (direction) included."""
 
     def __init__(self, value: int) -> None:
-
         self.value = value
         """Number of semitones (half-steps)."""
 
