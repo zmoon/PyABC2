@@ -148,7 +148,6 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
 
     blocks = []
     with open(fp, "r") as f:
-
         block = None
         add = False
 
@@ -254,7 +253,6 @@ def load(
     else:
         fps = []
         for tune_type in which:
-
             if tune_type not in _TYPE_PREFIX:
                 raise ValueError(
                     f"tune type {tune_type!r} invalid or not supported. "

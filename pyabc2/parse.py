@@ -270,7 +270,6 @@ class Tune:
         i_measure = i_measure_repeat = i_ending = 0
         measures = []
         for line in tune_lines:
-
             # Check for chords (not currently supporting)
             # https://abcnotation.com/wiki/abc:standard:v2.1#chords_and_unisons
             # TODO: replace chords by one of the notes?
@@ -321,13 +320,11 @@ class Tune:
                 # 2. In measure, find note groups ("beams")
                 # Currently not doing anything with note group, but may want to in the future
                 for note_group in within_measure.split(" "):
-
                     # TODO: deal with `>` and `<` dotted rhythm modifiers between notes
                     # https://abcnotation.com/wiki/abc:standard:v2.1#broken_rhythm
 
                     # 3. In note group, find notes
                     for m_note in _RE_NOTE.finditer(note_group):
-
                         # TODO: parse/store rests, maybe have an additional iterator for "rhythmic elements" or something
 
                         if m_note is None:

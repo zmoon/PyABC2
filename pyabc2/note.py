@@ -60,7 +60,6 @@ class Note(Pitch):
     """A note has a pitch and a duration."""
 
     def __init__(self, value: int, duration: Fraction = _DEFAULT_UNIT_DURATION):
-
         super().__init__(value)
 
         self.duration = duration
