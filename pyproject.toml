@@ -59,3 +59,4 @@ markers = ["slow"]
 [tool.mypy]
 exclude = ["^venv"]
 install_types = true
+ignore_missing_imports = true

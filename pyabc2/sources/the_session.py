@@ -384,7 +384,7 @@ def load_meta(
             )
 
         df = df.convert_dtypes()
-        df[cat_cols] = df[cat_cols].astype("category")
+        df[cat_cols] = df[cat_cols].astype(pd.CategoricalDtype())
 
     return df
 
