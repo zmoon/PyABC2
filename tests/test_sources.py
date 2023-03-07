@@ -195,6 +195,12 @@ def test_the_session_load_meta_invalid():
         _ = the_session.load_meta("sessions", format="asdf")
 
 
+def test_the_session_load_meta_doc_consistency():
+    s_options = ", ".join(repr(x) for x in sorted(the_session._META_ALLOWED))
+    expected_line = f"which : {{{s_options}}}"
+    assert expected_line in the_session.load_meta.__doc__
+
+
 def test_int_downcast():
     import numpy as np
     import pandas as pd

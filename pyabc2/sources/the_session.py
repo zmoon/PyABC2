@@ -285,6 +285,9 @@ def _choose_int_type(s, *, ext: bool = False):
     return ext_typ_str if ext else typ
 
 
+_META_ALLOWED = {"aliases", "events", "recordings", "sessions", "sets", "tune_popularity", "tunes"}
+
+
 def load_meta(
     which: str,
     *,
@@ -294,6 +297,12 @@ def load_meta(
 ) -> "pandas.DataFrame":
     """Load metadata file from The Session archive as dataframe (requires pandas).
 
+    Parameters
+    ----------
+    which : {'aliases', 'events', 'recordings', 'sessions', 'sets', 'tune_popularity', 'tunes'}
+
+    Notes
+    -----
     In string columns (dtype ``object``), missing value is ``''`` (empty string)
     and is currently left that way by default.
     However, if ``convert_dtypes=True`` is used, this will be set to null,
@@ -308,9 +317,8 @@ def load_meta(
     import numpy as np
     import pandas as pd
 
-    allowed = ["aliases", "events", "recordings", "sessions", "sets", "tune_popularity", "tunes"]
-    if which not in allowed:
-        raise ValueError(f"invalid `which`. Valid choices: {allowed}.")
+    if which not in _META_ALLOWED:
+        raise ValueError(f"invalid `which` {which!r}. Valid choices: {sorted(_META_ALLOWED)}.")
 
     if format not in {"csv", "json"}:
         raise ValueError("`format` must be 'csv' or 'json'.")
