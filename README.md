@@ -7,6 +7,42 @@
 
 ![image](https://user-images.githubusercontent.com/15079414/195207144-83df651a-6fe9-44b1-b7bc-e4aced14a2aa.png)
 
+## Getting started
+
+### Users
+
+Install from pypi:
+```
+pip install pyabc2
+```
+Then look at the [example notebooks](https://github.com/zmoon/PyABC2/tree/main/examples).
+
+### Developers
+
+To contribute to this project, first fork it on github and then clone your fork locally:
+```
+git clone https://github.com/<username>/PyABC2.git
+```
+
+Then set up a virtual env using venv or conda. For example:
+```
+python3 -m venv env
+source env/bin/activate
+```
+
+Then install dependencies:
+```
+pip install flit
+flit install
+```
+
+Then run tests to confirm that it works:
+```
+pytest -v -m "not slow"
+```
+
+You can now make a branch on your fork, work on the code, push you branch to github, and make a PR to the parent repo.
+
 ## Credits
 
 Inspired in part by and some portions based on [PyABC](https://github.com/campagnola/pyabc) (`pyabc`; [MIT License](https://github.com/campagnola/pyabc/blob/master/LICENSE.txt)), hence "PyABC2" and the package name `pyabc2`. No relation to [this pyabc](https://github.com/icb-dcm/pyabc) that is on PyPI.
