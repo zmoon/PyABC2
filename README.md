@@ -30,10 +30,11 @@ python3 -m venv env
 source env/bin/activate
 ```
 
-Then install dependencies:
+Then install dependencies and pre-commit hooks:
 ```
 pip install flit
 flit install
+pre-commit install
 ```
 
 Then run tests to confirm that it works:

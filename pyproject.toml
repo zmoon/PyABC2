@@ -33,6 +33,7 @@ test = [
 dev = [
     "ipython",
     "jupyterlab",
+    "pre-commit",
 ]
 
 
