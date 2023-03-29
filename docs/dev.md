@@ -11,16 +11,21 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-Then install dependencies and pre-commit hooks:
+Then install dependencies:
 ```
 pip install flit
 flit install --symlink
-pre-commit install
 ```
 
 Then run tests to confirm that it works:
 ```
 pytest -v -m "not slow"
+```
+
+Finally, there are several options for [installing `pre-commit`](https://pre-commit.com/#install).
+Once it is installed, install the pre-commit hooks for this project:
+```
+pre-commit install
 ```
 
 You can now make a branch on your fork, work on the code, push your branch to GitHub, and make a PR to the parent repo.
