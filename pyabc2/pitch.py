@@ -498,6 +498,14 @@ class Pitch:
         cn = self.to_pitch_class()._repr_html_()
         return f"{cn}<sub>{self.octave}</sub>"
 
+    def helmholtz(self) -> str:
+        """Note name in Helmholz pitch notation, e.g. "C," and "c'"."""
+        little_c_octave = self.octave - 3
+        if little_c_octave >= 0:
+            return self.class_name.lower() + "'" * little_c_octave
+        big_c_octave = -self.octave + 2
+        return self.class_name + "," * big_c_octave
+
     def unicode(self):
         """String repr using unicode accidental symbols and unicode subscripts for octave.
 
