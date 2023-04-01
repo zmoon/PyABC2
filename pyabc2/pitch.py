@@ -506,6 +506,20 @@ class Pitch:
         big_c_octave = -self.octave + 2
         return self.class_name + "," * big_c_octave
 
+    @classmethod
+    def from_helmholtz(cls, helmholtz_name: str) -> "Pitch":
+        helmholtz_name = helmholtz_name.strip()
+        is_upper = helmholtz_name[0].isupper()
+        helmoltz_re = r"([^,]+)(,*)" if is_upper else r"([^']+)('*)"
+        m = re.fullmatch(helmoltz_re, helmholtz_name)
+        if m is None:
+            raise ValueError(f"invalid helmholtz pitch name '{helmholtz_name}'")
+        pitch_class_name = m.group(1).title()
+        marks = len(m.group(2))
+        octave = -marks + 2 if is_upper else marks + 3
+
+        return Pitch.from_class_name(pitch_class_name, octave)
+
     def unicode(self):
         """String repr using unicode accidental symbols and unicode subscripts for octave.
 
@@ -585,6 +599,7 @@ class Pitch:
         class_value = pitch_class_value(class_name)
 
         p = cls.from_class_value(class_value, octave)
+        # TODO: Why are these attributes being set? Should other from_* methods do the same?
         p._class_name = class_name
         p._octave = octave
 

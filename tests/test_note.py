@@ -553,7 +553,7 @@ def test_note_to_from_nonimpl(meth):
         ("C", ",,''", 0),
     ],
 )
-def test_abc_octave_calc(note, oct, expected):
+def test_abc_doctave_calc(note, oct, expected):
     fn = partial(_octave_from_abc_parts, base=0)
     assert fn(note, oct) == expected
 
@@ -574,3 +574,21 @@ def test_abc_octave_calc(note, oct, expected):
 def test_helmholtz_from_pitch(scientific, expected_helmholtz):
     pitch = Pitch.from_name(scientific)
     assert pitch.helmholtz() == expected_helmholtz
+
+
+@pytest.mark.parametrize(
+    "helmholtz,expected_scientific",
+    [
+        ("C,", "C1"),
+        ("C", "C2"),
+        ("c", "C3"),
+        ("c'", "C4"),
+        ("c''", "C5"),
+        ("b", "B3"),
+        ("b#", "B#3"),
+        ("d", "D3"),
+    ],
+)
+def test_pitch_from_helmholtz(helmholtz, expected_scientific):
+    pitch = Pitch.from_helmholtz(helmholtz)
+    assert pitch.name == expected_scientific
