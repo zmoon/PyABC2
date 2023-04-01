@@ -592,3 +592,17 @@ def test_helmholtz_from_pitch(scientific, expected_helmholtz):
 def test_pitch_from_helmholtz(helmholtz, expected_scientific):
     pitch = Pitch.from_helmholtz(helmholtz)
     assert pitch.name == expected_scientific
+
+
+@pytest.mark.parametrize(
+    "helmholtz",
+    [
+        ("C'"),
+        ("c,"),
+        ("abc"),
+        ("c###"),
+    ],
+)
+def test_invalid_helmholtz(helmholtz):
+    with pytest.raises(ValueError):
+        Pitch.from_helmholtz(helmholtz)
