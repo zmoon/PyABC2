@@ -515,6 +515,10 @@ class Pitch:
 
     @classmethod
     def from_helmholtz(cls, helmholtz_name: str) -> "Pitch":
+        """From Helmholtz pitch notation.
+
+        https://en.wikipedia.org/wiki/Helmholtz_pitch_notation
+        """
         helmholtz_name = helmholtz_name.strip()
         is_upper = helmholtz_name[0].isupper()
         helmoltz_re = (
