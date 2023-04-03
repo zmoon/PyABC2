@@ -602,5 +602,5 @@ def test_pitch_from_helmholtz(helmholtz, expected_scientific):
     ],
 )
 def test_invalid_helmholtz(helmholtz):
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="invalid Helmholtz pitch"):
         Pitch.from_helmholtz(helmholtz)
