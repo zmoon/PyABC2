@@ -557,8 +557,9 @@ def test_abc_doctave_calc(note, oct, expected):
 
 
 @pytest.mark.parametrize(
-    "scientific,expected_helmholtz",
+    "scientific,helmholtz",
     [
+        ("C0", "C,,"),
         ("C1", "C,"),
         ("C2", "C"),
         ("C3", "c"),
@@ -566,38 +567,27 @@ def test_abc_doctave_calc(note, oct, expected):
         ("C5", "c''"),
         ("B3", "b"),
         ("B#3", "b#"),
-        ("D3", "d"),
+        ("Cb2", "Cb"),
     ],
 )
-def test_helmholtz_from_pitch(scientific, expected_helmholtz):
-    pitch = Pitch.from_name(scientific)
-    assert pitch.helmholtz == expected_helmholtz
+class TestHelholtz:
+    def test_helmholtz_from_pitch(self, scientific, helmholtz):
+        pitch = Pitch.from_name(scientific)
+        assert pitch.helmholtz == helmholtz
 
-
-@pytest.mark.parametrize(
-    "helmholtz,expected_scientific",
-    [
-        ("C,", "C1"),
-        ("C", "C2"),
-        ("c", "C3"),
-        ("c'", "C4"),
-        ("c''", "C5"),
-        ("b", "B3"),
-        ("b#", "B#3"),
-        ("d", "D3"),
-    ],
-)
-def test_pitch_from_helmholtz(helmholtz, expected_scientific):
-    pitch = Pitch.from_helmholtz(helmholtz)
-    assert pitch.name == expected_scientific
+    def test_pitch_from_helmholtz(self, scientific, helmholtz):
+        pitch = Pitch.from_helmholtz(helmholtz)
+        assert pitch.name == scientific
 
 
 @pytest.mark.parametrize(
     "helmholtz",
     [
+        (""),
+        ("H"),
         ("C'"),
         ("c,"),
-        ("abc"),
+        ("bbbb"),
         ("c###"),
     ],
 )

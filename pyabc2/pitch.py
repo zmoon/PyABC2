@@ -520,7 +520,9 @@ class Pitch:
         https://en.wikipedia.org/wiki/Helmholtz_pitch_notation
         """
         helmholtz_name = helmholtz_name.strip()
-        is_upper = helmholtz_name[0].isupper()
+        is_upper = helmholtz_name[
+            0:1
+        ].isupper()  # Single character range so it doesn't fail on empty string.
         helmoltz_re = (
             rf"({_S_RE_PITCH_CLASS})(,*)" if is_upper else rf"({_S_RE_LOWER_PITCH_CLASS})('*)"
         )
