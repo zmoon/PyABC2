@@ -26,7 +26,6 @@ C = Key("Cmaj")
         ("C", 0),
         ("C#", 1),
         ("Db", 1),
-        ("C###", 3),
         ("Eb", 3),
         ("Fbb", 3),
     ],
@@ -41,7 +40,6 @@ def test_pitch_value(name, expected_value):
     [
         ("B##", 13),
         ("Cb", -1),
-        ("Dbbb", -1),
     ],
 )
 def test_pitch_value_acc_outside_octave(name, expected_value):
@@ -573,7 +571,7 @@ def test_abc_doctave_calc(note, oct, expected):
 )
 def test_helmholtz_from_pitch(scientific, expected_helmholtz):
     pitch = Pitch.from_name(scientific)
-    assert pitch.helmholtz() == expected_helmholtz
+    assert pitch.helmholtz == expected_helmholtz
 
 
 @pytest.mark.parametrize(

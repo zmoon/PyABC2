@@ -58,7 +58,9 @@ NICE_C_CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", 
 The more common accidentals are used.
 """
 
-_S_RE_PITCH_CLASS = r"[A-G][\#b\=]*"
+_S_RE_ASCII_ACIDENTALS = r"(?:##|bb|b|#|=)"
+_S_RE_PITCH_CLASS = rf"[A-G]{_S_RE_ASCII_ACIDENTALS}?"
+_S_RE_LOWER_PITCH_CLASS = rf"[a-g]{_S_RE_ASCII_ACIDENTALS}?"
 _RE_PITCH_CLASS = re.compile(_S_RE_PITCH_CLASS)
 # _S_RE_PITCH_CLASS_ONE_ACC = r"[A-G][\#|b]?"
 _RE_PITCH = re.compile(rf"(?P<pitch_class>{_S_RE_PITCH_CLASS})" r"\s*" r"(?P<octave>[0-9]+)")
@@ -71,7 +73,9 @@ def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
     pitch = pitch.strip()
 
     if not _RE_PITCH_CLASS.fullmatch(pitch):
-        raise ValueError(f"invalid pitch class specification '{pitch}'")
+        raise ValueError(
+            f"invalid pitch class specification '{pitch}'; Should match '{_RE_PITCH_CLASS.pattern}'"
+        )
 
     # Base value
     val = PITCH_VALUES_WRT_C[pitch[0].upper()]
@@ -340,7 +344,9 @@ class PitchClass:
         if acc_fmt_ == "ascii":
             pass
         elif acc_fmt_ == "unicode":
-            s = re.sub(r"(##|bb|b|#|=)", lambda m: _ACCIDENTAL_ASCII_TO_UNICODE[m.group(0)], s)
+            s = re.sub(
+                _S_RE_ASCII_ACIDENTALS, lambda m: _ACCIDENTAL_ASCII_TO_UNICODE[m.group(0)], s
+            )
         else:
             raise ValueError("invalid `acc_fmt`")
 
@@ -511,7 +517,9 @@ class Pitch:
     def from_helmholtz(cls, helmholtz_name: str) -> "Pitch":
         helmholtz_name = helmholtz_name.strip()
         is_upper = helmholtz_name[0].isupper()
-        helmoltz_re = r"([^,]+)(,*)" if is_upper else r"([^']+)('*)"
+        helmoltz_re = (
+            rf"({_S_RE_PITCH_CLASS})(,*)" if is_upper else rf"({_S_RE_LOWER_PITCH_CLASS})('*)"
+        )
         m = re.fullmatch(helmoltz_re, helmholtz_name)
         if m is None:
             raise ValueError(f"invalid Helmholtz pitch name '{helmholtz_name}'")
