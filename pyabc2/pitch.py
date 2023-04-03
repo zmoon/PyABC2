@@ -498,8 +498,9 @@ class Pitch:
         cn = self.to_pitch_class()._repr_html_()
         return f"{cn}<sub>{self.octave}</sub>"
 
+    @property
     def helmholtz(self) -> str:
-        """Note name in Helmholz pitch notation, e.g. "C," and "c'"."""
+        """Pitch name in Helmholtz pitch notation, e.g. ``C,`` and ``c'`` (ASCII)."""
         little_c_octave = self.octave - 3
         if little_c_octave >= 0:
             return self.class_name.lower() + "'" * little_c_octave
@@ -513,7 +514,7 @@ class Pitch:
         helmoltz_re = r"([^,]+)(,*)" if is_upper else r"([^']+)('*)"
         m = re.fullmatch(helmoltz_re, helmholtz_name)
         if m is None:
-            raise ValueError(f"invalid helmholtz pitch name '{helmholtz_name}'")
+            raise ValueError(f"invalid Helmholtz pitch name '{helmholtz_name}'")
         pitch_class_name = m.group(1).title()
         marks = len(m.group(2))
         octave = -marks + 2 if is_upper else marks + 3
