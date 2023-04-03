@@ -579,6 +579,12 @@ class TestHelholtz:
         pitch = Pitch.from_helmholtz(helmholtz)
         assert pitch.name == scientific
 
+    def test_helmholtz_name_and_octave(self, scientific, helmholtz):
+        from_helmholtz = Pitch.from_helmholtz(helmholtz)
+        from_name = Pitch.from_name(scientific)
+        assert from_helmholtz.class_name == from_name.class_name
+        assert from_helmholtz.octave == from_name.octave
+
 
 @pytest.mark.parametrize(
     "helmholtz",
