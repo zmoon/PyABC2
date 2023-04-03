@@ -614,7 +614,8 @@ class Pitch:
         class_value = pitch_class_value(class_name)
 
         p = cls.from_class_value(class_value, octave)
-        # TODO: Why are these attributes being set? Should other from_* methods do the same?
+        # Preserve "non-standard" pitch class name input like Cb,
+        # which also affects the value since the octave is set by the natural note name.
         p._class_name = class_name
         p._octave = octave
 
