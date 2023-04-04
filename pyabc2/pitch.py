@@ -58,7 +58,9 @@ NICE_C_CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", 
 The more common accidentals are used.
 """
 
-_S_RE_PITCH_CLASS = r"[A-G][\#b\=]*"
+_S_RE_ASCII_ACCIDENTALS = r"(?:##|bb|b|#|=)"
+_S_RE_PITCH_CLASS = rf"[A-G]{_S_RE_ASCII_ACCIDENTALS}?"
+_S_RE_LOWER_PITCH_CLASS = rf"[a-g]{_S_RE_ASCII_ACCIDENTALS}?"
 _RE_PITCH_CLASS = re.compile(_S_RE_PITCH_CLASS)
 # _S_RE_PITCH_CLASS_ONE_ACC = r"[A-G][\#|b]?"
 _RE_PITCH = re.compile(rf"(?P<pitch_class>{_S_RE_PITCH_CLASS})" r"\s*" r"(?P<octave>[0-9]+)")
@@ -71,7 +73,9 @@ def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
     pitch = pitch.strip()
 
     if not _RE_PITCH_CLASS.fullmatch(pitch):
-        raise ValueError(f"invalid pitch class specification '{pitch}'")
+        raise ValueError(
+            f"invalid pitch class specification '{pitch}'; Should match '{_RE_PITCH_CLASS.pattern}'"
+        )
 
     # Base value
     val = PITCH_VALUES_WRT_C[pitch[0].upper()]
@@ -340,7 +344,9 @@ class PitchClass:
         if acc_fmt_ == "ascii":
             pass
         elif acc_fmt_ == "unicode":
-            s = re.sub(r"(##|bb|b|#|=)", lambda m: _ACCIDENTAL_ASCII_TO_UNICODE[m.group(0)], s)
+            s = re.sub(
+                _S_RE_ASCII_ACCIDENTALS, lambda m: _ACCIDENTAL_ASCII_TO_UNICODE[m.group(0)], s
+            )
         else:
             raise ValueError("invalid `acc_fmt`")
 
@@ -498,6 +504,36 @@ class Pitch:
         cn = self.to_pitch_class()._repr_html_()
         return f"{cn}<sub>{self.octave}</sub>"
 
+    @property
+    def helmholtz(self) -> str:
+        """Pitch name in Helmholtz pitch notation, e.g. ``C,`` and ``c'`` (ASCII)."""
+        little_c_octave = self.octave - 3
+        if little_c_octave >= 0:
+            return self.class_name.lower() + "'" * little_c_octave
+        big_c_octave = -self.octave + 2
+        return self.class_name + "," * big_c_octave
+
+    @classmethod
+    def from_helmholtz(cls, helmholtz_name: str) -> "Pitch":
+        """From Helmholtz pitch notation.
+
+        https://en.wikipedia.org/wiki/Helmholtz_pitch_notation
+        """
+        helmholtz_name = helmholtz_name.strip()
+        # Single character range so it doesn't fail on empty string.
+        is_upper = helmholtz_name[0:1].isupper()
+        helmoltz_re = (
+            rf"({_S_RE_PITCH_CLASS})(,*)" if is_upper else rf"({_S_RE_LOWER_PITCH_CLASS})('*)"
+        )
+        m = re.fullmatch(helmoltz_re, helmholtz_name)
+        if m is None:
+            raise ValueError(f"invalid Helmholtz pitch name '{helmholtz_name}'")
+        pitch_class_name = m.group(1).title()
+        marks = len(m.group(2))
+        octave = -marks + 2 if is_upper else marks + 3
+
+        return Pitch.from_class_name(pitch_class_name, octave)
+
     def unicode(self):
         """String repr using unicode accidental symbols and unicode subscripts for octave.
 
@@ -577,6 +613,8 @@ class Pitch:
         class_value = pitch_class_value(class_name)
 
         p = cls.from_class_value(class_value, octave)
+        # Preserve "non-standard" pitch class name input like Cb,
+        # which also affects the value since the octave is set by the natural note name.
         p._class_name = class_name
         p._octave = octave
 

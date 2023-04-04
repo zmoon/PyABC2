@@ -26,7 +26,6 @@ C = Key("Cmaj")
         ("C", 0),
         ("C#", 1),
         ("Db", 1),
-        ("C###", 3),
         ("Eb", 3),
         ("Fbb", 3),
     ],
@@ -41,7 +40,6 @@ def test_pitch_value(name, expected_value):
     [
         ("B##", 13),
         ("Cb", -1),
-        ("Dbbb", -1),
     ],
 )
 def test_pitch_value_acc_outside_octave(name, expected_value):
@@ -556,3 +554,50 @@ def test_note_to_from_nonimpl(meth):
 def test_abc_doctave_calc(note, oct, expected):
     fn = partial(_octave_from_abc_parts, base=0)
     assert fn(note, oct) == expected
+
+
+@pytest.mark.parametrize(
+    "scientific,helmholtz",
+    [
+        ("C0", "C,,"),
+        ("C1", "C,"),
+        ("C2", "C"),
+        ("C3", "c"),
+        ("C4", "c'"),
+        ("C5", "c''"),
+        ("B3", "b"),
+        ("B#3", "b#"),
+        ("Cb2", "Cb"),
+    ],
+)
+class TestHelmholtz:
+    def test_helmholtz_from_pitch(self, scientific, helmholtz):
+        pitch = Pitch.from_name(scientific)
+        assert pitch.helmholtz == helmholtz
+
+    def test_pitch_from_helmholtz(self, scientific, helmholtz):
+        pitch = Pitch.from_helmholtz(helmholtz)
+        assert pitch.name == scientific
+
+    def test_helmholtz_name_and_octave(self, scientific, helmholtz):
+        from_helmholtz = Pitch.from_helmholtz(helmholtz)
+        from_name = Pitch.from_name(scientific)
+        assert from_helmholtz.name == from_name.name
+        assert from_helmholtz.class_name == from_name.class_name
+        assert from_helmholtz.octave == from_name.octave
+
+
+@pytest.mark.parametrize(
+    "helmholtz",
+    [
+        (""),
+        ("H"),
+        ("C'"),
+        ("c,"),
+        ("bbbb"),
+        ("c###"),
+    ],
+)
+def test_invalid_helmholtz(helmholtz):
+    with pytest.raises(ValueError, match="invalid Helmholtz pitch"):
+        Pitch.from_helmholtz(helmholtz)
