@@ -570,7 +570,7 @@ def test_abc_doctave_calc(note, oct, expected):
         ("Cb2", "Cb"),
     ],
 )
-class TestHelholtz:
+class TestHelmholtz:
     def test_helmholtz_from_pitch(self, scientific, helmholtz):
         pitch = Pitch.from_name(scientific)
         assert pitch.helmholtz == helmholtz
