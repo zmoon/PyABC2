@@ -100,3 +100,15 @@ def test_scvs_consistency():
     scvs0 = key.scale_chromatic_values
     scvs = [pc.value_in(key) for pc in key.scale]
     assert scvs0 == scvs
+
+
+def test_str():
+    assert str(Key("C")) == "Cmaj"
+
+
+def test_repr():
+    assert repr(Key("C")) == "Key(tonic=C, mode='Major')"
+
+
+def test_inequality():
+    assert Key("C") != "this is not a Key"
