@@ -5,7 +5,13 @@ from itertools import product
 
 import pytest
 
-from pyabc2.key import CMAJ_LETTERS, MODE_VALUES, Key, _mode_chromatic_scale_degrees
+from pyabc2.key import (
+    CMAJ_LETTERS,
+    MODE_VALUES,
+    Key,
+    _mode_chromatic_scale_degrees,
+    _scale_intervals,
+)
 
 
 def many_possible_key_name_inputs():
@@ -53,11 +59,18 @@ def test_parse_key_invalid_mode_fails():
         Key.parse_key("Bad mode + extras warning")
 
 
-def test_key_sig():
+def test_sharp_key_sig():
     k = Key("Amaj")
     assert k.key_signature == ["F#", "C#", "G#"]
     for n in "FCG":
         assert k.accidentals[n] == "#"
+
+
+def test_flat_key_sig():
+    k = Key("Eb")
+    assert k.key_signature == ["Bb", "Eb", "Ab"]
+    for n in "BEA":
+        assert k.accidentals[n] == "b"
 
 
 def test_relatives():
@@ -127,3 +140,13 @@ def test_repr():
 
 def test_inequality():
     assert Key("C") != "this is not a Key"
+
+
+def test_whole_tone_scale_intervals_fails():
+    with pytest.raises(AssertionError):
+        _scale_intervals([0, 2, 4, 6, 8, 10])
+
+
+def test_blues_scale_intervals_fails():
+    with pytest.raises(ValueError, match=r"strange interval \(not W/H\)"):
+        _scale_intervals([0, 2, 3, 5, 6, 9, 10])
