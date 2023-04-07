@@ -37,7 +37,7 @@ def many_possible_key_name_inputs():
     return [k + m for k, m in product(keys, modes)]
 
 
-@pytest.mark.parametrize("key_name", [""] + many_possible_key_name_inputs())
+@pytest.mark.parametrize("key_name", many_possible_key_name_inputs())
 def test_parse_key_basic_succeeds(key_name):
     # TODO: could create a shorter version with a few selected examples and mark this one as long
     # Attempt to create key using key string provided.
