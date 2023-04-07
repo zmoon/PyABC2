@@ -90,6 +90,11 @@ def test_mode_chromatic_scale_degrees(mode, acc_format):
     assert all(len(s) in [1, 2, 5] and s[-1:-2:-1] in "1234567" for s in csds)
 
 
+def test_invalid_mode_chromatic_scale_degrees_fails():
+    with pytest.raises(ValueError, match="invalid mode name"):
+        _mode_chromatic_scale_degrees("invalid")
+
+
 @pytest.mark.parametrize("mode", MODE_VALUES)
 def test_mode_scale_degrees_wrt_major(mode):
     # They should be the same no matter the tonic is.
