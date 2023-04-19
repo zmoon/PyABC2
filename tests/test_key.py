@@ -182,7 +182,13 @@ def test_print_scale_chromatic_values(capsys):
     assert output == "0  2  4  5  7  9  11\n"
 
 
-def test_print_intervals(capsys):
+def test_print_intervals_wh(capsys):
     Key("C").print_intervals()
     output = capsys.readouterr().out
     assert output == "W W H W W W H\n"
+
+
+def test_print_intervals_dash(capsys):
+    Key("C").print_intervals(fmt="-")
+    output = capsys.readouterr().out
+    assert output == "|--|--|-|--|--|--|-\n"
