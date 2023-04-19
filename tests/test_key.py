@@ -56,7 +56,8 @@ def test_parse_key_invalid_base_fails():
 
 def test_parse_key_invalid_mode_fails():
     with pytest.raises(ValueError, match="Unrecognized mode specification"):
-        Key.parse_key("Bad mode + extras warning")
+        with pytest.warns(UserWarning, match="extra info"):
+            Key.parse_key("Bad mode + extras warning")
 
 
 def test_sharp_key_sig():
