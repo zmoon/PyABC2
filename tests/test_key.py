@@ -156,3 +156,33 @@ def test_whole_tone_scale_intervals_fails():
 def test_blues_scale_intervals_fails():
     with pytest.raises(ValueError, match=r"strange interval \(not W/H\)"):
         _scale_intervals([0, 2, 3, 5, 6, 9, 10])
+
+
+def test_print_scale(capsys):
+    Key("C").print_scale()
+    output = capsys.readouterr().out
+    assert output == "C  D  E  F  G  A  B \n"
+
+
+def test_print_scale_degrees_wrt_major(capsys):
+    Key("C").print_scale_degrees_wrt_major()
+    output = capsys.readouterr().out
+    assert output == "1  2  3  4  5  6  7 \n"
+
+
+def test_print_chromatic_scale_degrees(capsys):
+    Key("C").print_chromatic_scale_degrees()
+    output = capsys.readouterr().out
+    assert output == "1  #1 2  #2 3  4  #4 5  #5 6  #6 7 \n"
+
+
+def test_print_scale_chromatic_values(capsys):
+    Key("C").print_scale_chromatic_values()
+    output = capsys.readouterr().out
+    assert output == "0  2  4  5  7  9  11\n"
+
+
+def test_print_intervals(capsys):
+    Key("C").print_intervals()
+    output = capsys.readouterr().out
+    assert output == "W W H W W W H\n"
