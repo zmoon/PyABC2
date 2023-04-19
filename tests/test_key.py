@@ -149,7 +149,7 @@ def test_inequality():
 
 
 def test_whole_tone_scale_intervals_fails():
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError, match=r"should contain 7 intervals, not 6"):
         _scale_intervals([0, 2, 4, 6, 8, 10])
 
 

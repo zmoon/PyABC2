@@ -185,7 +185,8 @@ def _scale_intervals(
         Whether to return 7 intervals by computing the interval from scale degree 7 to 8,
         by default True.
     """
-    assert len(values) == 7
+    if len(values) != 7:
+        raise ValueError(f"scales should contain 7 intervals, not {len(values)}")
 
     if include_upper:
         values.append(12)
