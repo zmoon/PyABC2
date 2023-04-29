@@ -149,11 +149,11 @@ def test_inequality():
 
 
 def test_whole_tone_scale_intervals_fails():
-    with pytest.raises(ValueError, match=r"should contain 7 intervals, not 6"):
+    with pytest.raises(ValueError, match=r"expected 7 values, got 6"):
         _scale_intervals([0, 2, 4, 6, 8, 10])
 
 
-def test_blues_scale_intervals_fails():
+def test_scale_with_large_interval_fails():
     with pytest.raises(ValueError, match=r"strange interval \(not W/H\)"):
         _scale_intervals([0, 2, 3, 5, 6, 9, 10])
 
