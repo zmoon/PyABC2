@@ -186,7 +186,11 @@ def _scale_intervals(
         by default True.
     """
     if len(values) != 7:
-        raise ValueError(f"scales should contain 7 intervals, not {len(values)}")
+        raise ValueError(f"expected 7 values, got {len(values)}")
+    if values[0] != 0:
+        raise ValueError(f"first value should be 0, not {values[0]}")
+    if values[-1] < 12:
+        raise ValueError(f"last value should be < 12, not {values[-1]}")
 
     if include_upper:
         values.append(12)
