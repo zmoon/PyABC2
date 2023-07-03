@@ -246,7 +246,7 @@ def test_pitch_unicode(s, expected):
         ("C/", "C4_1/16"),
         ("C//", "C4_1/32"),
         ("C/3", "C4_1/24"),
-        ("C3/", "C4_3/16"),  # dotted eigth note
+        ("C3/", "C4_3/16"),  # dotted eighth note
         ("C3/2", "C4_3/16"),
     ],
 )
