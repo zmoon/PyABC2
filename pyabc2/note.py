@@ -1,6 +1,7 @@
 """
 Note class (pitch + duration)
 """
+
 import re
 from fractions import Fraction
 from typing import Optional

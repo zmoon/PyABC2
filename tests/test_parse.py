@@ -1,6 +1,7 @@
 """
 Test ABC parsing
 """
+
 from pyabc2.parse import INFO_FIELDS, Tune
 
 # Norbeck version
