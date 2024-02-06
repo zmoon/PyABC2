@@ -1,6 +1,7 @@
 """
 Key (e.g., G, Em, Ador)
 """
+
 # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L94
 import re
 import warnings

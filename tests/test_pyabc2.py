@@ -1,6 +1,7 @@
 """
 Test top-level
 """
+
 from importlib.metadata import metadata  # type: ignore[import]
 
 pyabc2_metadata = metadata("pyabc2")

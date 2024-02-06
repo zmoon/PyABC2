@@ -1,6 +1,7 @@
 """
 Load data from The Session (https://thesession.org)
 """
+
 import logging
 import os
 import warnings

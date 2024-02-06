@@ -1,6 +1,7 @@
 """
 Test the pitch and note modules
 """
+
 import warnings
 from functools import partial
 
