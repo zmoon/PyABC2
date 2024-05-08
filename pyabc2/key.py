@@ -141,8 +141,8 @@ def _mode_chromatic_scale_degrees(mode: str, *, acc_fmt: str = "#") -> List[str]
         if s:
             continue
 
-        s_s = f"#{csds[i-1]}"
-        s_f = f"b{csds[(i+1)%12]}"
+        s_s = f"#{csds[i - 1]}"
+        s_f = f"b{csds[(i + 1) % 12]}"
 
         if acc_fmt == "#":
             s_ = s_s
