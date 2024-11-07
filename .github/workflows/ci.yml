@@ -34,7 +34,7 @@ jobs:
 
       - name: Test with pytest
         run: |
-          pytest -v -ra --cov=pyabc2 --cov-report xml -n auto
+          pytest -v -ra --cov=pyabc2 --cov-report xml --cov-report term-missing -n auto
 
       - name: Check type annotations
         run: |
