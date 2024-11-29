@@ -32,6 +32,10 @@ function render({ model, el }) {
     console.log("render")
 
     let abc = () => model.get('abc');
+
+    let staffWidth = () => model.get('staff_width');
+    let scale = () => model.get('scale');
+
     let active_music_ids = model.get("_active_music_ids");
 
     let container = el;
@@ -62,7 +66,14 @@ function render({ model, el }) {
 
         // NOTE: doesn't work with `music_id` passed as target,
         // even though it should, still not sure why
-        let tunes = ABCJS.renderAbc(music, abc());
+        let tunes = ABCJS.renderAbc(
+            music,
+            abc(),
+            {
+                staffwidth: staffWidth(),
+                scale: scale(),
+            },
+        );
         if (tunes.length === 0) {
             console.log(`no tunes rendered for ${music_id}`);
         };
@@ -72,7 +83,9 @@ function render({ model, el }) {
     on_change();
 
     // Listen for changes
-    model.on("change:abc", on_change);
+    // model.on("change:abc", on_change);
+    // model.on("change:scale", on_change);
+    model.on("change", on_change);  // any change?
 
     // Clean up
     return () => {
