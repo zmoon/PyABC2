@@ -16,6 +16,7 @@ Then install dependencies:
 pip install flit
 flit install --symlink
 ```
+For Windows, use `--pth-file` instead of `--symlink`.
 
 Then run tests to confirm that it works:
 ```
