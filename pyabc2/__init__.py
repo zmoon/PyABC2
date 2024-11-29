@@ -5,7 +5,7 @@ Python ABC notation tools
 __version__ = "0.1.0.dev2"
 
 from .note import Key, Note
-from .parse import Tune, _load_abcjs_if_in_jupyter
+from .parse import Tune
 from .pitch import Pitch, PitchClass
 
 __all__ = (
@@ -15,5 +15,3 @@ __all__ = (
     "PitchClass",
     "Tune",
 )
-
-_load_abcjs_if_in_jupyter()

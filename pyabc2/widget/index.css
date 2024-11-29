@@ -1,3 +1,8 @@
-#abcjs-container {
+#container {
     color: forestgreen;
+    border: 1px solid forestgreen;
+}
+
+#music {
+    border: 1px dashed grey;
 }
