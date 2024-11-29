@@ -30,3 +30,15 @@ pre-commit install
 ```
 
 You can now make a branch on your fork, work on the code, push your branch to GitHub, and make a PR to the parent repo.
+
+## Widget
+
+Enable hot reloading by setting environment variable `ANYWIDGET_HMR` to `1`
+before starting Jupyter Lab.
+
+```bash
+export ANYWIDGET_HMR=1
+```
+```powershell
+$env:ANYWIDGET_HMR = "1"
+```
