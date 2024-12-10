@@ -4,6 +4,9 @@ const ABCJS_URL = 'https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min
 function initialize({ model }) {
     // TODO: skip if already loaded?
 
+    // TODO: display logo (on first load)
+    // https://raw.githubusercontent.com/paulrosen/abcjs/refs/heads/main/docs/.vuepress/public/img/abcjs_comp_extended_08.svg
+
     model.set("_active_music_ids", []);
 
     return new Promise((resolve, reject) => {
