@@ -52,7 +52,7 @@ _COMBINING_ACCENT_FROM_ASCII_SYM = {
     "'": "\u0301",  # acute
     "^": "\u0302",  # circumflex
     '"': "\u0308",  # umlaut
-    "r": "\u030A",  # ring above
+    "r": "\u030a",  # ring above
 }
 
 _URL_NETLOCS = {"norbeck.nu", "www.norbeck.nu"}
