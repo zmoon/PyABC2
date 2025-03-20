@@ -96,6 +96,17 @@ function render({ model, el }) {
         if (tunes.length === 0) {
             console.log(`no tunes rendered for ${music_id}`);
         };
+
+        // Get the SVGs that have been rendered
+        console.log(`music ${music_id} has ${music.children.length} children`);
+        let svg_arr = [];
+        for (let child of music.children) {
+            if (child.tagName.toLowerCase() !== 'svg') {continue};
+            let svg_str = new XMLSerializer().serializeToString(child);
+            svg_arr.push(svg_str);
+        }
+        model.set('svgs', svg_arr);
+        model.save_changes();
     }
 
     // Initial render
