@@ -43,8 +43,16 @@ function render({ model, el }) {
 
     let abc = () => model.get('abc');
 
-    let staffWidth = () => model.get('staff_width');
+    let foregroundColor = () => model.get('foreground');
+    let hide = () => model.get('hide');
+    let lineThickness = () => model.get('line_thickness_increase');
     let scale = () => model.get('scale');
+    let showDebugBox = () => model.get('debug_box');
+    let showDebugGrid = () => model.get('debug_grid');
+    let showDebugInput = () => model.get('debug_input');
+    let showLogo = () => model.get('logo');
+    let staffWidth = () => model.get('staff_width');
+    let visualTranspose = () => model.get('transpose');
 
     let active_music_ids = model.get("_active_music_ids");
     let first_load = model.get("_first_load");
@@ -53,7 +61,7 @@ function render({ model, el }) {
     let container = el;
     container.classList.add('container');
 
-    if (first_load) {
+    if ((first_load || showLogo()) && !hide()) {
         let logo = document.createElement('img');
         logo.src = ABCJS_LOGO_URL;
         logo.height = '24';
@@ -69,8 +77,10 @@ function render({ model, el }) {
     music.classList.add('music');
     active_music_ids.push(music_id);
 
-    container.appendChild(head);
-    container.appendChild(music);
+    if (!hide()) {
+        container.appendChild(head);
+        container.appendChild(music);
+    }
 
     function on_change() {
         console.log(`render_abc ${music_id}`);
@@ -81,7 +91,23 @@ function render({ model, el }) {
             music.innerHTML = '';
         };
 
-        head.innerHTML = `abcjs widget<br><code>${abc()}</code>`;
+        if (showDebugInput() && !hide()) {
+            head.innerHTML = `<code>${abc()}</code>`;
+        } else {
+            head.innerHTML = '';
+        }
+        if (showDebugBox() && !hide()) {
+            music.classList.add('debug');
+            container.classList.add('debug');
+        } else {
+            music.classList.remove('debug');
+            container.classList.remove('debug');
+        }
+
+        // Visual debug settings
+        let showDebug = [];
+        if (showDebugBox()) {showDebug.push('box')};
+        if (showDebugGrid()) {showDebug.push('grid')};
 
         // NOTE: doesn't work with `music_id` passed as target,
         // even though it should, still not sure why
@@ -89,8 +115,12 @@ function render({ model, el }) {
             music,
             abc(),
             {
-                staffwidth: staffWidth(),
+                foregroundColor: foregroundColor(),
+                lineThickness: lineThickness(),
                 scale: scale(),
+                showDebug: showDebug,
+                staffwidth: staffWidth(),
+                visualTranspose: visualTranspose(),
             },
         );
         if (tunes.length === 0) {
