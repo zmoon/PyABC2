@@ -1,6 +1,7 @@
 const ABCJS_URL = 'https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js';
 const ABCJS_LOGO_URL = 'https://raw.githubusercontent.com/paulrosen/abcjs/' +
-                       'refs/heads/main/docs/.vuepress/public/img/abcjs_comp_extended_08.svg';
+                       'refs/heads/main/docs/' +
+                       '.vuepress/public/img/abcjs_comp_extended_08.svg';
 
 
 function initialize({ model }) {
