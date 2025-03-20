@@ -1,15 +1,22 @@
 const ABCJS_URL = 'https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js';
+const ABCJS_LOGO_URL = 'https://raw.githubusercontent.com/paulrosen/abcjs/' +
+                       'refs/heads/main/docs/.vuepress/public/img/abcjs_comp_extended_08.svg';
 
 
 function initialize({ model }) {
-    // TODO: skip if already loaded?
-
-    // TODO: display logo (on first load)
-    // https://raw.githubusercontent.com/paulrosen/abcjs/refs/heads/main/docs/.vuepress/public/img/abcjs_comp_extended_08.svg
 
     model.set("_active_music_ids", []);
+    model.set("_first_load", null);
 
     return new Promise((resolve, reject) => {
+        if (window.ABCJS) {
+            model.set("_first_load", false);
+            console.log('ABCJS already loaded');
+            resolve();
+            return;
+        };
+
+        model.set("_first_load", true);
         let script = document.createElement('script');
         script.src = ABCJS_URL;
         script.onload = () => {
@@ -40,9 +47,18 @@ function render({ model, el }) {
     let scale = () => model.get('scale');
 
     let active_music_ids = model.get("_active_music_ids");
+    let first_load = model.get("_first_load");
+    console.log(`first_load ${first_load}`);
 
     let container = el;
     container.classList.add('container');
+
+    if (first_load) {
+        let logo = document.createElement('img');
+        logo.src = ABCJS_LOGO_URL;
+        logo.height = '24';
+        container.appendChild(logo);
+    }
 
     let head = document.createElement('div');
 
