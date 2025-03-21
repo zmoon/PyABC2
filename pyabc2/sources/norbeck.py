@@ -101,8 +101,9 @@ def download() -> None:
 
 def _maybe_download() -> None:
     if not list(SAVE_TO.glob("*.abc")):
-        print("downloading missing files...")
+        print("downloading...", end=" ", flush=True)
         download()
+        print("done")
 
 
 def _replace_escaped_diacritics(abc: str, *, ascii_only: bool = False) -> str:
