@@ -225,7 +225,7 @@ def load(
     else:
         logger.setLevel(logging.NOTSET)
 
-    if redownload is None and fp.is_file():
+    if redownload is None and fp.is_file():  # pragma: no cover
         redownload = _older_than_30d(fp)
 
     if not fp.is_file() or redownload:
