@@ -146,6 +146,8 @@ def load_url(url: str) -> Tune:
 
 
 def download(which: Union[str, List[str]] = "tunes") -> None:
+    import gzip
+
     import requests
 
     if isinstance(which, str):
@@ -164,7 +166,7 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
         url = base_url + fn
         r = requests.get(url, timeout=5)
         r.raise_for_status()
-        with open(SAVE_TO / fn, "wb") as f:
+        with gzip.open(SAVE_TO / (fn + ".gz"), "wb") as f:
             f.write(r.content)
 
 
@@ -198,9 +200,10 @@ def load(
 
     @adactio (Jeremy) is the creator of The Session.
     """
+    import gzip
     import json
 
-    fp = SAVE_TO / "tunes.json"
+    fp = SAVE_TO / "tunes.json.gz"
     parallel = num_workers > 1
 
     if debug:  # pragma: no cover
@@ -208,10 +211,10 @@ def load(
     else:
         logger.setLevel(logging.NOTSET)
 
-    if not fp.is_file() or redownload:
+    if not fp.is_file() or redownload:  # TODO: or older than a month
         download("tunes")
 
-    with open(fp, encoding="utf-8") as f:
+    with gzip.open(fp, "rt", encoding="utf-8") as f:
         data = json.load(f)
 
     if n is not None:
