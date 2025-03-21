@@ -75,6 +75,18 @@ def abctools_url_to_abc(
     return "\n".join(wanted_lines)
 
 
+def abc_to_abctools_url(abc: str) -> str:
+    """Create an Eskin abctools share URL for `abc`."""
+
+    # Must start with 'X:' (seems value is not required)
+    if not abc.lstrip().startswith("X"):
+        abc = "X:\n" + abc
+
+    lzw = LZString.compressToEncodedURIComponent(abc)
+
+    return f"https://michaeleskin.com/abctools/abctools.html?lzw={lzw}"
+
+
 def _download_data(tunebook_url: str):
     """Extract and save the tune data from the tunebook webpage as JSON."""
     import gzip
