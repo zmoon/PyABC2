@@ -48,6 +48,9 @@ ignore = [
   "W503", # line break before binary operator
   "E226", # missing whitespace around arithmetic operator - not always more readable imho
 ]
+per-file-ignores = [
+    "pyabc2/sources/_lzstring.py: E111,E225,E261,E302,E303,E703",
+]
 
 [tool.isort]
 profile = "black"
