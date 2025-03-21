@@ -203,7 +203,7 @@ def _older_than_30d(fp: Path) -> bool:
 def load(
     *,
     n: Optional[int] = None,
-    redownload: bool | None = None,
+    redownload: Optional[bool] = None,
     debug: bool = False,
     num_workers: int = 1,
 ) -> List[Tune]:
