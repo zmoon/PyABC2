@@ -5,7 +5,15 @@ import pytest
 
 from pyabc2 import Key
 from pyabc2.parse import Tune
-from pyabc2.sources import examples, load_example, load_example_abc, load_url, norbeck, the_session
+from pyabc2.sources import (
+    eskin,
+    examples,
+    load_example,
+    load_example_abc,
+    load_url,
+    norbeck,
+    the_session,
+)
 
 NORBECK_IRISH_COUNT = 2733
 
@@ -249,3 +257,19 @@ def test_load_url_norbeck():
 def test_load_url_invalid_domain():
     with pytest.raises(NotImplementedError):
         _ = load_url("https://www.google.com")
+
+
+@pytest.mark.parametrize("key", eskin._TBWS)
+def test_eskin_tunebook_url_exist(key):
+    import requests
+
+    url = eskin._TBWS[key]
+    r = requests.head(url, timeout=5)
+    r.raise_for_status()
+    # Bad URLs seem to just redirect to his homepage,
+    # so we need to check the final URL
+    if (
+        r.status_code == 302
+        and r.headers.get("Location", "").rstrip("/") == "https://michaeleskin.com"
+    ):
+        raise ValueError(f"{key!r} URL {url} redirects to homepage")

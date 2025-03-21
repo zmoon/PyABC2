@@ -7,6 +7,22 @@ from urllib.parse import parse_qs, urlsplit
 
 from pyabc2.sources._lzstring import LZString
 
+_TBW = "https://michaeleskin.com/tunebook_websites"
+_CCE_SD = "https://michaeleskin.com/cce_sd"
+_TBWS = {
+    # https://michaeleskin.com/tunebooks.html#websites_irish
+    "kss": f"{_TBW}/king_street_sessions_tunebook_17Jan2025.html",
+    "carp": f"{_TBW}/carp_celtic_jam_tunebook_17Jan2025.html",
+    "hardy": f"{_TBW}/paul_hardy_2024_8feb2025.html",
+    "cce_dublin_2001": f"{_CCE_SD}/cce_dublin_2001_tunebook_17Jan2025.html",
+    "cce_san_diego": f"{_CCE_SD}/cce_san_diego_tunes_31jan2025.html",
+    # https://michaeleskin.com/tunebooks.html#websites_18th_century_collections
+    "aird": f"{_TBW}/james_aird_campin_18jan2025.html",
+    "playford1": f"{_TBW}/playford_1_partington_17jan2025.html",
+    "playford2": f"{_TBW}/playford_2_partington_17jan2025.html",
+    "playford3": f"{_TBW}/playford_3_partington_20jan2025.html",
+}
+
 # https://michaeleskin.com/tunebook_websites/king_street_sessions_tunebook_17Jan2025.html
 # reels line extract
 s = """\
