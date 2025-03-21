@@ -201,7 +201,11 @@ def _older_than_30d(fp: Path) -> bool:
 
 
 def load(
-    *, n: Optional[int] = None, redownload: bool = False, debug: bool = False, num_workers: int = 1
+    *,
+    n: Optional[int] = None,
+    redownload: bool | None = None,
+    debug: bool = False,
+    num_workers: int = 1,
 ) -> List[Tune]:
     """Load tunes from https://github.com/adactio/TheSession-data
 
@@ -221,7 +225,10 @@ def load(
     else:
         logger.setLevel(logging.NOTSET)
 
-    if redownload or not fp.is_file() or _older_than_30d(fp):
+    if redownload is None and fp.is_file():
+        redownload = _older_than_30d(fp)
+
+    if not fp.is_file() or redownload:
         print("downloading...", end=" ", flush=True)
         download("tunes")
         print("done")
