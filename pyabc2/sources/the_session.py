@@ -190,13 +190,23 @@ def _maybe_load_one(d: dict) -> Optional[Tune]:
     return tune
 
 
+def _older_than_30d(fp: Path) -> bool:
+    import datetime
+
+    now = datetime.datetime.now().timestamp()
+    ddays = (now - fp.stat().st_mtime) / (3600 * 24)
+    logger.debug(f"{fp.as_posix()} is {ddays:.2f} days old")
+
+    return ddays > 30
+
+
 def load(
     *, n: Optional[int] = None, redownload: bool = False, debug: bool = False, num_workers: int = 1
 ) -> List[Tune]:
     """Load tunes from https://github.com/adactio/TheSession-data
 
     Use ``redownload=True`` to force re-download. Otherwise the file will only
-    be downloaded if it hasn't already been.
+    be downloaded if it hasn't already been or if it's older than 30 days.
 
     @adactio (Jeremy) is the creator of The Session.
     """
@@ -211,8 +221,10 @@ def load(
     else:
         logger.setLevel(logging.NOTSET)
 
-    if not fp.is_file() or redownload:  # TODO: or older than a month
+    if redownload or not fp.is_file() or _older_than_30d(fp):
+        print("downloading...", end=" ", flush=True)
         download("tunes")
+        print("done")
 
     with gzip.open(fp, "rt", encoding="utf-8") as f:
         data = json.load(f)
