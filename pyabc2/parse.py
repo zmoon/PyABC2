@@ -140,31 +140,6 @@ ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
 """
 
 
-def load_abcjs() -> None:
-    """Load abcjs into Jupyter from CDN using IPython display."""
-    from IPython.display import HTML, display  # type: ignore
-
-    html = HTML(_FMT_ABCJS_LOAD_HTML.format(abcjs_version=_ABCJS_VERSION))
-    display(html)
-
-
-def _in_jupyter() -> bool:
-    # Reference: https://stackoverflow.com/a/47428575
-    try:
-        from IPython.core import getipython  # type: ignore
-    except (ImportError, ModuleNotFoundError):
-        return False
-
-    # <class 'ipykernel.zmqshell.ZMQInteractiveShell'>
-    return "zmqshell" in str(type(getipython.get_ipython()))
-
-
-def _load_abcjs_if_in_jupyter() -> None:
-    if _in_jupyter():
-        load_abcjs()
-        print("abcjs loaded")
-
-
 def _find_first_chord(s: str) -> Optional[str]:
     """Search for first chord spec in an ABC body portion.
 
@@ -365,25 +340,11 @@ class Tune:
         return hash(self.abc)
 
     def _repr_html_(self):
-        import uuid
+        from IPython.display import display
 
-        notation_id = str(uuid.uuid4())
-        abc = "\\n".join(line for line in self.abc.strip().splitlines())
+        from .widget import ABCJSWidget
 
-        # return _fmt_abcjs.format(abc=abc, notation_id=notation_id, abcjs_version=_ABCJS_VERSION)
-
-        # It seems that if I just return <script> within the HTML,
-        # it is never loaded.
-        # https://discourse.jupyter.org/t/running-javascript-in-a-html-cell-fails-on-first-load/6707/3
-        # But we can use IPython display to make it work.
-
-        from IPython.display import HTML, Javascript, display
-
-        html = HTML(f"<div id=notation-{notation_id}>hi</div>")
-        display(html)
-
-        js = Javascript(_FMT_ABCJS_RENDER_JS.format(abc=abc, notation_id=notation_id))
-        display(js)
+        display(ABCJSWidget(abc=self.abc))
 
     def print_measures(self, n: Optional[int] = None, *, note_format: str = "ABC"):
         """Print measures to check parsing."""
