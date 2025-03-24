@@ -1,0 +1,16 @@
+{
+  "name": "pyabc2",
+  "version": "0.0.0",
+  "description": "Render ABC notation using abcjs",
+  "main": "render.js",
+  "type": "module",
+  "scripts": {
+    "start": "node render.js"
+  },
+  "dependencies": {
+    "abcjs": "6.4.4",
+    "jsdom": "^26.0.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

@@ -3,7 +3,11 @@ pyabc2/sources/_*
 !pyabc2/sources/__init__.py
 poetry.lock
 venv*/
+*.svg
 
+# node
+node_modules
+package-lock.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
