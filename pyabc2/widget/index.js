@@ -52,7 +52,7 @@ function render({ model, el }) {
     let showDebugGrid = () => model.get('debug_grid');
     let showDebugInput = () => model.get('debug_input');
     let showLogo = () => model.get('logo');
-    let staffWidth = () => model.get('staff_width');
+    let staffwidth = () => model.get('staff_width');
     let visualTranspose = () => model.get('transpose');
 
     let active_music_ids = model.get("_active_music_ids");
@@ -120,7 +120,7 @@ function render({ model, el }) {
                 lineThickness: lineThickness(),
                 scale: scale(),
                 showDebug: showDebug,
-                staffwidth: staffWidth(),
+                staffwidth: staffwidth(),
                 visualTranspose: visualTranspose(),
             },
         );

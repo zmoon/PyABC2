@@ -9,7 +9,13 @@ process.argv.slice(2).forEach(arg => {
     const match = arg.match(/^--([^=]+)=(.*)$/);
     if (match) {
         const key = match[1];
-        const value = match[2];
+        let value = match[2];
+
+        // Convert string value to number
+        if (!isNaN(value)) {
+            value = parseFloat(value);
+        }
+
         params[key] = value;
     }
 });
