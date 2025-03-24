@@ -1,7 +1,5 @@
 // Use abcjs to render an ABC string with nodejs
 
-import fs from 'fs';
-
 import ABCJS from 'abcjs';
 import { JSDOM } from 'jsdom';
 
@@ -12,7 +10,7 @@ global.document = dom.window.document;
 
 const XMLSerializer = dom.window.XMLSerializer;
 
-let div = document.createElement('div', { id: 'target' });
+const div = document.createElement('div', { id: 'target' });
 document.body.appendChild(div);
 
 let abc = `
@@ -32,5 +30,5 @@ ABCJS.renderAbc(
 )
 
 // Extract the SVG from the div and save it to a file
-let svg = new XMLSerializer().serializeToString(div.firstChild);
-fs.writeFileSync('output.svg', svg);
+const svg = new XMLSerializer().serializeToString(div.firstChild);
+console.log(svg);
