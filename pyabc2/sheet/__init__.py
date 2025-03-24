@@ -1,5 +1,6 @@
 import datetime
 import os
+import warnings
 from pathlib import Path
 from textwrap import indent
 
@@ -82,13 +83,35 @@ def svg(
 
 
 def svg_to(svg: str, fmt: str, **kwargs) -> bytes:
-    """Convert an SVG string to another format, returning bytes."""
+    """Convert an SVG string to another format, returning bytes.
+
+    Parameters
+    ----------
+    svg
+        The SVG string to convert.
+    fmt
+        The format to convert to, e.g., 'png', 'pdf', 'ps', 'svg'.
+    **kwargs
+        Passed to the `cairgosvg function <https://cairosvg.org/documentation/#python>`__.
+        Options include:
+
+        - ``scale``
+        - ``dpi``
+        - ``parent_width``, ``parent_height`` (for SVGs using percentages)
+        - ``output_width``, ``output_height``
+    """
     try:
         import cairosvg
     except ImportError as e:
         raise RuntimeError(
             "The 'cairosvg' package is required to convert SVG to other formats."
         ) from e
+
+    to_remove = ["url", "file_obj", "write_to"]
+    for key in to_remove:
+        if key in kwargs:
+            warnings.warn(f"Keyword {key!r} is not supported and will be ignored.", stacklevel=2)
+            del kwargs[key]
 
     try:
         func = getattr(cairosvg, f"svg2{fmt.lower()}")
@@ -123,4 +146,4 @@ if __name__ == "__main__":
 
     for fmt in ["png", "PDF"]:
         with open(f"test.{fmt}", "wb") as f:
-            f.write(svg_to(svg_str, fmt))
+            f.write(svg_to(svg_str, fmt, write_to="asdf"))
