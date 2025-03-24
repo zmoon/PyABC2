@@ -3,7 +3,8 @@ pyabc2/sources/_*
 !pyabc2/sources/__init__.py
 poetry.lock
 venv*/
-*.svg
+examples/music*.svg
+pyabc2/sheet/test.*
 
 # node
 node_modules
