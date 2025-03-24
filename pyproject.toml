@@ -23,6 +23,12 @@ sources = [
     "pandas ~=1.4",
     "requests ~=2.0",
 ]
+widget = [
+    "anywidget",
+]
+sheet = [
+    "nodejs-wheel-binaries",
+]
 test = [
     "mypy",
     "pandas-stubs",
