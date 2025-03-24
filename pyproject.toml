@@ -27,6 +27,7 @@ widget = [
     "anywidget",
 ]
 sheet = [
+    "cairosvg",
     "nodejs-wheel-binaries",
 ]
 test = [

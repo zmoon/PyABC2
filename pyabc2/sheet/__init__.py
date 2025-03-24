@@ -14,7 +14,7 @@ def build():
     except ImportError as e:
         raise RuntimeError(
             "The 'nodejs-wheel-binaries' package is required "
-            "to render sheet music outside of Jupyter. "
+            "to render sheet music in the background with abcjs via Node.js. "
             "It is included with the pyabc2 'sheet' extra."
         ) from e
 
@@ -81,6 +81,25 @@ def svg(
     return cp.stdout
 
 
+def svg_to(svg: str, fmt: str, **kwargs) -> bytes:
+    """Convert an SVG string to another format, returning bytes."""
+    try:
+        import cairosvg
+    except ImportError as e:
+        raise RuntimeError(
+            "The 'cairosvg' package is required to convert SVG to other formats."
+        ) from e
+
+    try:
+        func = getattr(cairosvg, f"svg2{fmt.lower()}")
+    except AttributeError:
+        raise ValueError(
+            f"Unsupported format: {fmt!r}. Supported formats include: 'png', 'pdf', 'ps', 'svg'."
+        )
+
+    return func(bytestring=svg, **kwargs)
+
+
 if __name__ == "__main__":
     abc = """\
     K: G
@@ -99,5 +118,9 @@ if __name__ == "__main__":
 
     print(svg_str[:500])
 
-    with open(HERE / "output.svg", "w") as f:
+    with open(HERE / "test.svg", "w") as f:
         f.write(svg_str)
+
+    for fmt in ["png", "PDF"]:
+        with open(f"test.{fmt}", "wb") as f:
+            f.write(svg_to(svg_str, fmt))
