@@ -28,11 +28,3 @@ export function render(abc, params = {}) {
     // Extract the SVG from the div and save it to a file
     return new XMLSerializer().serializeToString(div.firstChild);
 }
-
-let abc = `
-K: G
-M: 6/8
-BAG AGE | GED GBd | edB dgb | age dBA |
-`
-
-console.log(render(abc));

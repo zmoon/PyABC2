@@ -9,10 +9,17 @@ HERE = Path(__file__).parent
 # TODO: skip if already built recently-ish
 rc = npm(["install", HERE.as_posix()])
 
+abc = """\
+K: G
+M: 6/8
+BAG AGE | GED GBd | edB dgb | age dBA |
+"""
+
 # Run the script
 cp = node(
-    ["render.js"],
+    [(HERE / "cli.cjs").as_posix(), "--staffwidth=500", "--scale=0.85"],
     return_completed_process=True,
+    input=abc,
     capture_output=True,
     text=True,
 )

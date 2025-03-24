@@ -5,7 +5,10 @@
   "main": "render.js",
   "type": "module",
   "scripts": {
-    "start": "node render.js"
+    "cli": "node cli.cjs"
+  },
+  "bin": {
+    "abcjs-render": "./cli.cjs"
   },
   "dependencies": {
     "abcjs": "6.4.4",
