@@ -40,7 +40,7 @@ def svg(
     staff_width: int = 600,
     **kwargs,
 ) -> str:
-    """Render ABC notation to SVG sheet music using abcjs.
+    """Render ABC notation to sheet music using abcjs, returning SVG string.
 
     Parameters
     ----------
