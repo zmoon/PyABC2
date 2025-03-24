@@ -17,7 +17,11 @@ cp = node(
     text=True,
 )
 if cp.returncode != 0:
-    info = indent(cp.stderr, "| ", lambda line: True)
+    info = indent(cp.stderr, "| ", lambda _: True)
     raise RuntimeError(f"Failed to render sheet music:\n{info}")
-else:
-    print(cp.stdout[:100])
+
+svg = cp.stdout
+print(svg[:500])
+
+with open(HERE / "output.svg", "w") as f:
+    f.write(cp.stdout)

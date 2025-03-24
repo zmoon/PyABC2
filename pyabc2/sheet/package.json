@@ -1,5 +1,5 @@
 {
-  "name": "pyabc2",
+  "name": "abcjs-render",
   "version": "0.0.0",
   "description": "Render ABC notation using abcjs",
   "main": "render.js",
@@ -11,6 +11,6 @@
     "abcjs": "6.4.4",
     "jsdom": "^26.0.0"
   },
-  "author": "",
+  "author": "zmoon",
   "license": "ISC"
 }

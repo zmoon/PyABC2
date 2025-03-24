@@ -3,15 +3,31 @@
 import ABCJS from 'abcjs';
 import { JSDOM } from 'jsdom';
 
-const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`);
+/**
+ * Render an ABC notation string to sheet music with abcjs, returning an SVG string.
+ *
+ * @param {string} abc - The ABC notation string to render.
+ * @param {Object.<string, *>} [params] - Optional abcjs parameters
+ * (https://paulrosen.github.io/abcjs/visual/render-abc-options.html).
+ * @returns {string} SVG string.
+ */
+export function render(abc, params = {}) {
+    const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`);
 
-// We make `document` globally accessibly since abcjs uses it to create the SVG
-global.document = dom.window.document;
+    // We make `document` globally accessibly since abcjs uses it to create the SVG
+    global.document = dom.window.document;
 
-const XMLSerializer = dom.window.XMLSerializer;
+    const XMLSerializer = dom.window.XMLSerializer;
 
-const div = document.createElement('div', { id: 'target' });
-document.body.appendChild(div);
+    const div = document.createElement('div', { id: 'target' });
+    document.body.appendChild(div);
+
+    // Render
+    ABCJS.renderAbc(div, abc, params);
+
+    // Extract the SVG from the div and save it to a file
+    return new XMLSerializer().serializeToString(div.firstChild);
+}
 
 let abc = `
 K: G
@@ -19,16 +35,4 @@ M: 6/8
 BAG AGE | GED GBd | edB dgb | age dBA |
 `
 
-// Render
-ABCJS.renderAbc(
-    div,
-    abc,
-    {
-        scale: 1.0,
-        staffWidth: 500,
-    },
-)
-
-// Extract the SVG from the div and save it to a file
-const svg = new XMLSerializer().serializeToString(div.firstChild);
-console.log(svg);
+console.log(render(abc));
