@@ -12,7 +12,7 @@ function initialize({ model }) {
     return new Promise((resolve, reject) => {
         if (window.ABCJS) {
             model.set("_first_load", false);
-            console.log('ABCJS already loaded');
+            console.log('abcjs already loaded');
             resolve();
             return;
         };
@@ -21,11 +21,11 @@ function initialize({ model }) {
         let script = document.createElement('script');
         script.src = ABCJS_URL;
         script.onload = () => {
-            console.log('ABCJS loaded');
+            console.log('abcjs loaded');
             resolve();
         };
         script.onerror = () => {
-            console.error('Failed to load ABCJS');
+            console.error('Failed to load abcjs');
             reject();
         };
         document.head.appendChild(script);
@@ -71,7 +71,7 @@ function render({ model, el }) {
 
     let head = document.createElement('div');
 
-    // ABCJS render target
+    // abcjs render target
     let music = document.createElement('div');
     let music_id = 'music' + '-' + getRandomString();
     music.id = music_id;

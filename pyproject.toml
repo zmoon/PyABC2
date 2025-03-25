@@ -25,6 +25,8 @@ sources = [
 ]
 widget = [
     "anywidget",
+    "ipywidgets",
+    "traitlets",
 ]
 sheet = [
     "cairosvg",
