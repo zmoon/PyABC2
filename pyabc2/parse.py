@@ -97,49 +97,6 @@ TUNE_BODY_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_b
 TUNE_INLINE_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_inline}
 
 
-_ABCJS_VERSION = "6.0.0-beta.33"
-
-_FMT_ABCJS_COMPLETE_PAGE_HTML = """\
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>{title:s}</title>
-    <script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
-  </head>
-  <body>
-    <div id="notation"></div>
-
-    <script>
-      const tune = "{abc:s}";
-      const params = {{}};
-      ABCJS.renderAbc("notation", tune, params);
-    </script>
-  </body>
-</html>
-"""
-
-_FMT_ABCJS_LOAD_HTML = """\
-<script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
-"""
-
-_FMT_ABCJS_BODY_HTML = """\
-<div id="notation-{notation_id:s}">hi</div>
-
-<script>
-  const tune = "{abc:s}";
-  const params = {{}};
-  ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
-</script>
-"""
-
-_FMT_ABCJS_RENDER_JS = """\
-const tune = "{abc:s}";
-const params = {{}};
-ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
-"""
-
-
 def _find_first_chord(s: str) -> Optional[str]:
     """Search for first chord spec in an ABC body portion.
 

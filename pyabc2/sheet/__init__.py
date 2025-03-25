@@ -123,8 +123,9 @@ def svg_to(svg: str, fmt: str, **kwargs) -> bytes:
     return func(bytestring=svg, **kwargs)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     abc = """\
+    T: Awesome Tune
     K: G
     M: 6/8
     BAG AGE | GED GBd | edB dgb | age dBA |
