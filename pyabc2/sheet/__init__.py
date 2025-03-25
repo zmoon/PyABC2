@@ -1,3 +1,5 @@
+"""Render ABC notation to SVG sheet music using abcjs in the background."""
+
 import datetime
 import os
 import warnings
