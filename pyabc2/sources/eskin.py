@@ -76,7 +76,10 @@ def abctools_url_to_abc(
 
 
 def abc_to_abctools_url(abc: str) -> str:
-    """Create an Eskin abctools share URL for `abc`."""
+    """Create an Eskin abctools share URL for `abc`.
+
+    More info: https://michaeleskin.com/tools/generate_share_link.html
+    """
 
     # Must start with 'X:' (seems value is not required)
     if not abc.lstrip().startswith("X"):
@@ -137,3 +140,11 @@ def _load_data(key: str):
     fp = SAVE_TO / f"{stem}.json.gz"
     with gzip.open(fp, "rt") as f:
         return json.load(f)
+
+
+if __name__ == "__main__":
+    from . import load_example_abc
+
+    abc = load_example_abc("For the Love of Music")
+    url = abc_to_abctools_url(abc)
+    print(url)
