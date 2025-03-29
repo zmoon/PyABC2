@@ -1,16 +1,16 @@
 # New parser
 
-PEG parser using [pyparsing](https://pyparsing-docs.readthedocs.io/).
-Abtract syntax tree (AST).
+PEG parser using [pyparsing](https://pyparsing-docs.readthedocs.io/) [v3.2](https://pyparsing-docs.readthedocs.io/en/latest/whats_new_in_3_2.html#new-features),
+producing an abtract syntax tree (AST).
 
 ## Goals
 
-Supporting the most common features of the [ABC v2.1 spec](https://abcnotation.com/wiki/abc:standard:v2.1/) that are used for traditional Celtic and Celtic-adjacent dance music (Irish, Scottish, English, Swedish, etc.).
+Supporting the most common features of the [ABC v2.1 spec](https://abcnotation.com/wiki/abc:standard:v2.1/) that are used for representing the melodies of traditional Celtic and Celtic-adjacent dance music (Irish, Scottish, English, Swedish, etc.).
 
 Basic ABC features that we need include:
 
 * Notes and rests
-* Bar lines and repeat signs
+* [Bar lines and repeat signs](https://abcnotation.com/wiki/abc:standard:v2.1/#repeat_bar_symbols)
 
 Some relevant ABC features that are perhaps beyond the most basic:
 
@@ -26,6 +26,7 @@ Some relevant ABC features that are perhaps beyond the most basic:
 * [grace notes](https://abcnotation.com/wiki/abc:standard:v2.1/#grace_notes) often used to indicate piping ornaments
 * in-body part labels (e.g. `P:A`)
 * D.S., D.C., Coda repeat structures
+* Shorthands for repeats (`::` = `:| ... |:`, `::|` repeat 2x)
 
 Note information [parse order](https://abcnotation.com/wiki/abc:standard:v2.1/#order_of_abc_constructs):
 
@@ -52,12 +53,13 @@ Some things we'd like to be able to do with the parser:
 ### Linter/formatter ideas
 
 * Normalizing whitespace usage (configure whether to include space around bar lines or not, space between key and value in header lines, etc.)
-* Normalizing note groupings (e.g. `B A G` vs `BAG`)
+* Normalizing note groupings ("beams"; e.g. `B A G` vs `BAG`)
 * Putting in repeat signs where they appear to be missing (or just warn)
 * Identify/fix incorrect triplet notation (e.g. `3BAG`, `(3BAG)`)
 * Remove EOL `\` continuations (optionally)
-* Replace `!` (deprecated [line break symbol](https://abcnotation.com/wiki/abc:standard:v2.1/#line-breaking_dialects)but recognized by abcjs) with the new `$ ` or real newline (`\n`), or input `I:linebreak` directive
+* Replace `!` (deprecated [symbol for line-break](https://abcnotation.com/wiki/abc:standard:v2.1/#line-breaking_dialects) though recognized by abcjs) with the new `$ ` or real newline (`\n`), or input `I:linebreak` directive
 * Optionally remove grace notes, decorations, chords, etc. to focus on the melody
+* Optional back ticks between beam elements, to "increase legibility"
 
 > For processing as an abc tune, the parsing code is notionally assumed to add empty `X:`, `T:` and `K:` fields, if these are missing. However, since the processing generally takes place internally within a software package, these need not be added in actuality.
 
@@ -75,3 +77,4 @@ At this time, not aiming to support:
 * microtonal accidentals
 * `%` (line or EOL) comments
 * `%%` pseudo-comments
+* generalized `(p:q:r` tuplets
