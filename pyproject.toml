@@ -23,6 +23,9 @@ sources = [
     "pandas ~=1.4",
     "requests ~=2.0",
 ]
+peg = [
+    "pyparsing ~=3.2",
+]
 test = [
     "mypy",
     "pandas-stubs",
