@@ -10,7 +10,7 @@ Supporting the most common features of the [ABC v2.1 spec](https://abcnotation.c
 Basic ABC features that we need include:
 
 * notes and rests
-* [bar lines and repeat signs](https://abcnotation.com/wiki/abc:standard:v2.1/#repeat_bar_symbols)
+* [bar lines and repeat signs](https://abcnotation.com/wiki/abc:standard:v2.1/#repeat_bar_symbols), including `|1 ` and `:|2 ` endings
 
 Many tunes can be represented with just these features.
 Additional features include:
@@ -25,9 +25,10 @@ Additional features include:
 * [chord symbols](https://abcnotation.com/wiki/abc:standard:v2.1/#chord_symbols) (e.g. `"G"BAG` for indicating a G chord that plays with the `B`)
 * key (`K`) and/or meter (`M`) changes [within the tune body](https://abcnotation.com/wiki/abc:standard:v2.1/#use_of_fields_within_the_tune_body) (though on The Session a tune has one primary key/meter, this info is needed for extracting the correct melody and for correctly validating measure durations; can be [inline within `[]`](https://abcnotation.com/wiki/abc:standard:v2.1/#inline_field_definition) or on own line)
 * [grace notes](https://abcnotation.com/wiki/abc:standard:v2.1/#grace_notes), often used to indicate piping ornaments
-* in-body part labels (e.g. `P:A`)
+* in-body [part](https://abcnotation.com/wiki/abc:standard:v2.1/#pparts) labels (e.g. `P:A`), which can be combined with usage in header (e.g. `P:ABABCDCD`) to change the playing order
 * D.S., D.C., Coda repeat structures
 * shorthand repeat notation (`::` = `:| ... |:`, `::|` repeat 2x)
+* [variant endings](https://abcnotation.com/wiki/abc:standard:v2.1/#variant_endings) (e.g. `[1-3 <notes> :|`)
 
 The [header](https://abcnotation.com/wiki/abc:standard:v2.1/#tune_header_definition) can be parsed separately from the body. The Session stores the body ABC separately (metadata needed for selected header fields stored separately).
 
@@ -92,5 +93,5 @@ Useful new features of pyparsing v3:
 * PEP-8--compatible (snake case) [names](https://pyparsing-docs.readthedocs.io/en/latest/whats_new_in_3_0_0.html#pep-8-naming)
 * [making railroad diagrams](https://pyparsing-docs.readthedocs.io/en/latest/whats_new_in_3_0_0.html#railroad-diagramming)
 * type annotations
-* improved warning/debug message control
+* improved warning/debug message control (`.set_debug()`, `enable_diag()`, `enable_all_warnings()`, `ParseException.explain()` instance method, etc.)
 * `Tag` ParserElement for inserting metadata
