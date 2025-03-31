@@ -85,3 +85,12 @@ Note information [parse order](https://abcnotation.com/wiki/abc:standard:v2.1/#o
 > ```
 > "Gm7"(v.=G,2~^c'2)
 > ```
+
+Useful new features of pyparsing v3:
+
+* [supports](https://pyparsing-docs.readthedocs.io/en/latest/whats_new_in_3_0_0.html#support-for-left-recursive-parsers) left-recursive and packrat techniques
+* PEP-8--compatible (snake case) [names](https://pyparsing-docs.readthedocs.io/en/latest/whats_new_in_3_0_0.html#pep-8-naming)
+* [making railroad diagrams](https://pyparsing-docs.readthedocs.io/en/latest/whats_new_in_3_0_0.html#railroad-diagramming)
+* type annotations
+* improved warning/debug message control
+* `Tag` ParserElement for inserting metadata
