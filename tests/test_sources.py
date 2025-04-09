@@ -259,11 +259,11 @@ def test_load_url_invalid_domain():
         _ = load_url("https://www.google.com")
 
 
-@pytest.mark.parametrize("key", eskin._TBWS)
+@pytest.mark.parametrize("key", eskin._TUNEBOOK_KEY_TO_URL)
 def test_eskin_tunebook_url_exist(key):
     import requests
 
-    url = eskin._TBWS[key]
+    url = eskin._TUNEBOOK_KEY_TO_URL[key]
     r = requests.head(url, timeout=5)
     r.raise_for_status()
     # Bad URLs seem to just redirect to his homepage,
@@ -276,7 +276,7 @@ def test_eskin_tunebook_url_exist(key):
         raise ValueError(f"{key!r} URL {url} redirects to homepage")
 
 
-@pytest.mark.parametrize("key", eskin._TBWS)
+@pytest.mark.parametrize("key", eskin._TUNEBOOK_KEY_TO_URL)
 def test_eskin_tunebook_data_load(key):
     data = eskin.load_meta(key)
 

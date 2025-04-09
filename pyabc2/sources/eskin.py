@@ -14,21 +14,25 @@ HERE = Path(__file__).parent
 
 SAVE_TO = HERE / "_eskin"
 
-_TBW = "https://michaeleskin.com/tunebook_websites"
+_TBWS = "https://michaeleskin.com/tunebook_websites"
 _CCE_SD = "https://michaeleskin.com/cce_sd"
-_TBWS = {
+_TUNEBOOK_KEY_TO_URL = {
     # https://michaeleskin.com/tunebooks.html#websites_irish
-    "kss": f"{_TBW}/king_street_sessions_tunebook_17Jan2025.html",
-    "carp": f"{_TBW}/carp_celtic_jam_tunebook_17Jan2025.html",
-    "hardy": f"{_TBW}/paul_hardy_2024_8feb2025.html",
+    "kss": f"{_TBWS}/king_street_sessions_tunebook_17Jan2025.html",
+    "carp": f"{_TBWS}/carp_celtic_jam_tunebook_17Jan2025.html",
+    "hardy": f"{_TBWS}/paul_hardy_2024_8feb2025.html",
     "cce_dublin_2001": f"{_CCE_SD}/cce_dublin_2001_tunebook_17Jan2025.html",
     "cce_san_diego": f"{_CCE_SD}/cce_san_diego_tunes_31jan2025.html",
     # https://michaeleskin.com/tunebooks.html#websites_18th_century_collections
-    "aird": f"{_TBW}/james_aird_campin_18jan2025.html",
-    "playford1": f"{_TBW}/playford_1_partington_17jan2025.html",
-    "playford2": f"{_TBW}/playford_2_partington_17jan2025.html",
-    "playford3": f"{_TBW}/playford_3_partington_20jan2025.html",
+    "aird": f"{_TBWS}/james_aird_campin_18jan2025.html",
+    "playford1": f"{_TBWS}/playford_1_partington_17jan2025.html",
+    "playford2": f"{_TBWS}/playford_2_partington_17jan2025.html",
+    "playford3": f"{_TBWS}/playford_3_partington_20jan2025.html",
 }
+"""Mapping of tunebook keys (defined here, not by Eskin; e.g. 'kss' for King Street Sessions)
+to tunebook website URLs, which come from this page:
+https://michaeleskin.com/tunebooks.html
+"""
 
 
 def abctools_url_to_abc(
@@ -44,6 +48,8 @@ def abctools_url_to_abc(
     ),
 ) -> str:
     """Extract the ABC from an Eskin abctools share URL.
+
+    More info: https://michaeleskin.com/tools/generate_share_link.html
 
     Parameters
     ----------
@@ -64,7 +70,7 @@ def abctools_url_to_abc(
     query_params = parse_qs(res.query)
     (lzw,) = query_params["lzw"]
     # Note `+` has been replaced with space by parse_qs
-    # js LZString.compressToEncodedURIComponent() is used to compress/encode the ABC
+    # Note js LZString.compressToEncodedURIComponent() is used to compress/encode the ABC
 
     abc = LZString.decompressFromEncodedURIComponent(lzw)
 
@@ -98,7 +104,7 @@ class EskinTunebookInfo(NamedTuple):
 
 
 def get_tunebook_info(key: str) -> EskinTunebookInfo:
-    url = _TBWS[key]
+    url = _TUNEBOOK_KEY_TO_URL[key]
     stem = Path(urlsplit(url).path).stem
 
     return EskinTunebookInfo(
@@ -160,9 +166,7 @@ def _load_data(key: str):
     """Load the data from the saved JSON."""
     import gzip
 
-    tb_info = get_tunebook_info(key)
-
-    with gzip.open(tb_info.path, "rt") as f:
+    with gzip.open(get_tunebook_info(key).path, "rt") as f:
         return json.load(f)
 
 
