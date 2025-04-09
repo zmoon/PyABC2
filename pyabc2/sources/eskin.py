@@ -38,7 +38,7 @@ https://michaeleskin.com/tunebooks.html
 def abctools_url_to_abc(
     url: str,
     *,
-    remove_prefs: str | Tuple[str] | Literal[False] = (
+    remove_prefs: str | Tuple[str, ...] | Literal[False] = (
         r"%%titlefont ",
         r"%%subtitlefont ",
         r"%%infofont ",
