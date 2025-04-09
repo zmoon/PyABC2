@@ -5,7 +5,7 @@ Load data from the Eskin tunebook websites.
 import json
 import re
 from pathlib import Path
-from typing import Literal, Tuple
+from typing import Literal, NamedTuple, Tuple
 from urllib.parse import parse_qs, urlsplit
 
 from pyabc2.sources._lzstring import LZString
@@ -90,28 +90,53 @@ def abc_to_abctools_url(abc: str) -> str:
     return f"https://michaeleskin.com/abctools/abctools.html?lzw={lzw}"
 
 
-def _download_data(tunebook_url: str):
+class EskinTunebookInfo(NamedTuple):
+    key: str
+    url: str
+    stem: str
+    path: Path
+
+
+def get_tunebook_info(key: str) -> EskinTunebookInfo:
+    url = _TBWS[key]
+    stem = Path(urlsplit(url).path).stem
+
+    return EskinTunebookInfo(
+        key=key,
+        url=url,
+        stem=stem,
+        path=SAVE_TO / f"{stem}.json.gz",
+    )
+
+
+def _download_data(key: str):
     """Extract and save the tune data from the tunebook webpage as JSON."""
     import gzip
 
     import requests
 
-    r = requests.get(tunebook_url, timeout=5)
+    tb_info = get_tunebook_info(key)
+
+    r = requests.get(tb_info.url, timeout=5)
     r.raise_for_status()
     html = r.text
 
     # First find the tune type options by searching for 'tunes = type;'
     types = sorted(set(re.findall(r"tunes = (.*?);", html)))
-    if not types:
+    if types:
+        pass
+    elif "const tunes=[" in html:  # no types, just one list of tunes
+        types = ["tunes"]
+    else:
         raise RuntimeError("Unable to detect tune types")
 
     # Then the data are in like `const reels=[{...}, ...];`
     all_data = {}
     for type_ in types:
-        m = re.search(f"const {type_}=(.*?);", html, flags=re.DOTALL)
+        m = re.search(rf"const {type_}=\[(.*?)\];", html, flags=re.DOTALL)
         if m is None:
             raise RuntimeError(f"Unable to find data for type {type_!r}")
-        s_data = m.group(1)
+        s_data = "[" + m.group(1) + "]"
 
         try:
             data = json.loads(s_data)
@@ -127,8 +152,7 @@ def _download_data(tunebook_url: str):
         all_data[type_] = data
 
     SAVE_TO.mkdir(exist_ok=True)
-    stem = Path(urlsplit(tunebook_url).path).stem
-    with gzip.open(SAVE_TO / f"{stem}.json.gz", "wt") as f:
+    with gzip.open(tb_info.path, "wt") as f:
         json.dump(all_data, f, indent=2)
 
 
@@ -136,10 +160,24 @@ def _load_data(key: str):
     """Load the data from the saved JSON."""
     import gzip
 
-    stem = Path(urlsplit(_TBWS[key]).path).stem
-    fp = SAVE_TO / f"{stem}.json.gz"
-    with gzip.open(fp, "rt") as f:
+    tb_info = get_tunebook_info(key)
+
+    with gzip.open(tb_info.path, "rt") as f:
         return json.load(f)
+
+
+def load_meta(key: str, *, redownload: bool = False):
+    """Load the tunebook data, no parsing."""
+
+    tb_info = get_tunebook_info(key)
+
+    fp = tb_info.path
+    if not fp.is_file() or redownload:
+        print("downloading...", end=" ", flush=True)
+        _download_data(key)
+        print("done")
+
+    return _load_data(key)
 
 
 if __name__ == "__main__":
@@ -148,3 +186,6 @@ if __name__ == "__main__":
     abc = load_example_abc("For the Love of Music")
     url = abc_to_abctools_url(abc)
     print(url)
+
+    kss = load_meta("kss")
+    print(kss.keys())

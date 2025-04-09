@@ -268,8 +268,33 @@ def test_eskin_tunebook_url_exist(key):
     r.raise_for_status()
     # Bad URLs seem to just redirect to his homepage,
     # so we need to check the final URL
+    # TODO: maybe move this to the module
     if (
         r.status_code == 302
         and r.headers.get("Location", "").rstrip("/") == "https://michaeleskin.com"
     ):
         raise ValueError(f"{key!r} URL {url} redirects to homepage")
+
+
+@pytest.mark.parametrize("key", eskin._TBWS)
+def test_eskin_tunebook_data_load(key):
+    data = eskin.load_meta(key)
+
+    tune_type_keys = {
+        "airs_songs",
+        "hornpipes",
+        "jigs",
+        "long_dances",
+        "marches",
+        "misc_tunes",
+        "ocarolan",
+        "polkas",
+        "reels",
+        "scotchreels",
+        "slides",
+        "slipjigs",
+        "strathspeys",
+        "waltzes",
+    }
+
+    assert data.keys() <= tune_type_keys or list(data) == ["tunes"]
