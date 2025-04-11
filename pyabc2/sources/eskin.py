@@ -5,7 +5,7 @@ Load data from the Eskin tunebook websites.
 import json
 import re
 from pathlib import Path
-from typing import Literal, NamedTuple, Tuple
+from typing import Literal, NamedTuple, Tuple, Union
 from urllib.parse import parse_qs, urlsplit
 
 from pyabc2.sources._lzstring import LZString
@@ -38,7 +38,7 @@ https://michaeleskin.com/tunebooks.html
 def abctools_url_to_abc(
     url: str,
     *,
-    remove_prefs: str | Tuple[str, ...] | Literal[False] = (
+    remove_prefs: Union[str, Tuple[str, ...], Literal[False]] = (
         r"%%titlefont ",
         r"%%subtitlefont ",
         r"%%infofont ",
