@@ -83,6 +83,11 @@ COLLECTIONS: List[Collection] = [
         folder="13",
         volumes=["131", "132", "133", "134"],
     ),
+    Collection(
+        key="car",
+        title="Carolan Tunes",
+        folder="14",
+    ),
     # http://www.capeirish.com/ittl/tunefolders/18/181/181-ABC.rtf
     Collection(
         key="cre",
@@ -105,6 +110,17 @@ COLLECTIONS: List[Collection] = [
         title="Foinn Seisiún",
         folder="25",
         volumes=["251", "252", "253"],
+    ),
+    Collection(
+        key="jol",
+        title="Johnny O'Leary of Sliabh Luachra",
+        folder="31",
+    ),
+    Collection(
+        key="levey",
+        title="Levey Collection",
+        folder="33",
+        volumes=["331", "332"],
     ),
     Collection(
         key="ofpc",
