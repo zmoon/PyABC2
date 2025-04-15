@@ -249,3 +249,17 @@ def test_load_url_norbeck():
 def test_load_url_invalid_domain():
     with pytest.raises(NotImplementedError):
         _ = load_url("https://www.google.com")
+
+
+def test_bill_black_no_https():
+    import requests
+
+    url = "http://www.capeirish.com/ittl/tunefolders/"
+    url_https = url.replace("http://", "https://")
+
+    r = requests.head(url, timeout=5)
+    r.raise_for_status()
+
+    with pytest.raises(requests.exceptions.SSLError):
+        r = requests.head(url_https, timeout=5)
+        r.raise_for_status()
