@@ -6,7 +6,7 @@ http://www.capeirish.com/ittl/tunefolders/
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Iterable, List, Optional, Union
 
 HERE = Path(__file__).parent
 
@@ -145,7 +145,18 @@ COLLECTIONS: List[Collection] = [
 _KEY_TO_COLLECTION = {c.key: c for c in COLLECTIONS}
 
 
-def download(key: Optional[Union[str, List[str]]] = None, *, verbose: bool = False) -> None:
+def get_collection(key: str) -> Collection:
+    """Get a collection by key."""
+    try:
+        return _KEY_TO_COLLECTION[key]
+    except KeyError as e:
+        raise ValueError(
+            f"Unknown collection key: {key!r}. "
+            f"Valid keys are: {sorted(c.key for c in COLLECTIONS)}."
+        ) from e
+
+
+def download(key: Optional[Union[str, Iterable[str]]] = None, *, verbose: bool = False) -> None:
     import gzip
 
     import requests
@@ -155,9 +166,9 @@ def download(key: Optional[Union[str, List[str]]] = None, *, verbose: bool = Fal
     if key is None:
         collections = COLLECTIONS
     elif isinstance(key, str):
-        collections = [_KEY_TO_COLLECTION[key]]
+        collections = [get_collection(key)]
     else:
-        collections = [_KEY_TO_COLLECTION[k] for k in key]
+        collections = [get_collection(k) for k in key]
 
     for collection in collections:
         for url in collection.abc_urls:
@@ -172,5 +183,43 @@ def download(key: Optional[Union[str, List[str]]] = None, *, verbose: bool = Fal
                 f.write(r.content)
 
 
+def load_meta(key: str, *, redownload: bool = False) -> List[str]:
+    """Load the tunebook data, no parsing."""
+
+    import gzip
+    import re
+
+    collection = get_collection(key)
+    if redownload or any(not p.is_file() for p in collection.files):
+        print("downloading...", end=" ", flush=True)
+        download(key=collection.key, verbose=False)
+        print("done")
+
+    abcs = []
+    for p in collection.files:
+        print(p)
+        with gzip.open(p, "rt") as f:
+            text = f.read()
+
+        # A tune block starts with the X: line and ends with a %%% line
+        # or the end of the file.
+
+        # Find the start of the first tune, in order to skip header info
+        start = text.find("X:")
+        if start == -1:
+            raise RuntimeError(f"Could not find start of tune in {p.name}")
+
+        # Split on 3 or more %
+        blocks = re.split(r"\s*%{3,}\s*", text[start:])
+        if not blocks:
+            raise RuntimeError(f"Splitting blocks failed for {p.name}")
+
+        abcs.extend(blocks)
+
+    return abcs
+
+
 if __name__ == "__main__":
-    download(verbose=True)
+    # download(verbose=True)
+
+    abcs = load_meta("cre")
