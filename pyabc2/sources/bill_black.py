@@ -4,9 +4,12 @@ Bill Black's Irish Traditional Tune Library
 http://www.capeirish.com/ittl/tunefolders/
 """
 
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable, List, Optional, Union
+
+logger = logging.getLogger(__name__)
 
 HERE = Path(__file__).parent
 
@@ -223,18 +226,26 @@ def load_meta(key: str, *, redownload: bool = False) -> List[str]:
         good_blocks = []
         for i, block in enumerate(blocks):
             if not block.strip():
+                logger.debug(f"Empty block {i} in {p.name}")
                 continue
 
             if re.fullmatch(r"[0-9]+ deleted", block) is not None:
+                logger.debug(f"Tune in block {i} in {p.name} marked as deleted: {block!r}")
                 continue
 
             if not block.startswith("X:"):
+                logger.debug(f"Block {i} in {p.name} does not start with `X:`: {block!r}")
                 continue
 
             # Remove anything that may be after the final bar symbol
             j = max(block.rfind("]"), block.rfind("|"))
             assert j != -1
             good_blocks.append(block[: j + 1])
+            if j < len(block) - 1:
+                logger.info(
+                    f"Block {i} in {p.name} has trailing data after the final bar symbol "
+                    f"that will be ignored: {block[j+1:]!r}"
+                )
 
         abcs.extend(good_blocks)
 
@@ -243,5 +254,10 @@ def load_meta(key: str, *, redownload: bool = False) -> List[str]:
 
 if __name__ == "__main__":
     # download(verbose=True)
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(levelname)s:%(message)s",
+    )
 
     abcs = load_meta("cre")
