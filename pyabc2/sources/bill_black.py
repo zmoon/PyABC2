@@ -201,6 +201,12 @@ def load_meta(key: str, *, redownload: bool = False) -> List[str]:
         with gzip.open(p, "rt") as f:
             text = f.read()
 
+        # Replace \\\n with just \n
+        text = text.replace("\\\n", "\n")
+
+        # Continuation
+        text = text.replace("\\\\", "\\")
+
         # A tune block starts with the X: line and ends with a %%% line
         # or the end of the file.
 
@@ -214,7 +220,23 @@ def load_meta(key: str, *, redownload: bool = False) -> List[str]:
         if not blocks:
             raise RuntimeError(f"Splitting blocks failed for {p.name}")
 
-        abcs.extend(blocks)
+        good_blocks = []
+        for i, block in enumerate(blocks):
+            if not block.strip():
+                continue
+
+            if re.fullmatch(r"[0-9]+ deleted", block) is not None:
+                continue
+
+            if not block.startswith("X:"):
+                continue
+
+            # Remove anything that may be after the final bar symbol
+            j = max(block.rfind("]"), block.rfind("|"))
+            assert j != -1
+            good_blocks.append(block[: j + 1])
+
+        abcs.extend(good_blocks)
 
     return abcs
 
