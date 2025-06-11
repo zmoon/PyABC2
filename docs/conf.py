@@ -1,6 +1,6 @@
 import pyabc2
 
-project = "stringcalc"
+project = "PyABC2"
 copyright = "2021\u20132025"
 author = "zmoon"
 

@@ -15,5 +15,5 @@ examples/sources.ipynb
 
 api.rst
 dev.md
-GitHub <https://github.com/zmoon/stringcalc>
+GitHub <https://github.com/zmoon/PyABC2>
 ```
