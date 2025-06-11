@@ -21,6 +21,8 @@ intersphinx_mapping = {
     "pandas": ("https://pandas.pydata.org/docs/", None),
 }
 
+exclude_patterns = ["_build"]
+
 html_theme = "furo"
 
 napoleon_google_docstring = False

@@ -4,7 +4,9 @@
 :caption: Examples
 :hidden:
 
-../examples/types.ipynb
+examples/types.ipynb
+examples/modes.ipynb
+examples/sources.ipynb
 ```
 
 ```{toctree}
