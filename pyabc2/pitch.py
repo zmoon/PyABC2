@@ -221,10 +221,12 @@ class PitchClass:
 
     @classmethod
     def from_pitch(cls, p: "Pitch") -> "PitchClass":
+        """From pitch instance."""
         return cls.from_name(p.class_name)
 
     @classmethod
     def from_name(cls, name: str) -> "PitchClass":
+        """From pitch class name (e.g., ``C``, ``F#``)."""
         _validate_pitch_class_name(name)
 
         value = pitch_class_value(name, mod=True)
@@ -401,6 +403,7 @@ class PitchClass:
         return s
 
     def to_pitch(self, octave: int) -> "Pitch":
+        """Convert to pitch in the specified octave."""
         p = Pitch.from_class_value(self.value, octave)
         p._class_name = self._name
 
@@ -553,7 +556,7 @@ class Pitch:
 
     @property
     def n(self) -> int:
-        """Alias for piano_key_number."""
+        """Alias for :attr:`piano_key_number`."""
         return self.piano_key_number
 
     @property
@@ -571,11 +574,12 @@ class Pitch:
 
     @property
     def etf(self) -> float:
-        """Alias for equal_temperament_frequency."""
+        """Alias for :attr:`equal_temperament_frequency`."""
         return self.equal_temperament_frequency
 
     @classmethod
     def from_etf(cls, f: float) -> "Pitch":
+        """From frequency, rounding to the nearest piano key."""
         from math import log2
 
         n_f = 12 * log2(f / 440) + 49  # piano key number
@@ -623,20 +627,24 @@ class Pitch:
 
     @classmethod
     def from_class_value(cls, value: int, octave: int) -> "Pitch":
+        """From pitch class chromatic value and octave."""
         return cls(value + octave * 12)
 
     @classmethod
     def from_class_name(cls, class_name: str, octave: int) -> "Pitch":
+        """From pitch class name and octave."""
         return cls.from_name(f"{class_name}{octave}")
 
     @classmethod
     def from_pitch_class(cls, pc: PitchClass, octave: int) -> "Pitch":
+        """From pitch class instance."""
         p = cls(pc.value + octave * 12)
         p._class_name = pc._name
 
         return p
 
     def to_pitch_class(self) -> PitchClass:
+        """Convert to pitch class, preserving the class name."""
         # Preserve explicit name if set
         if self._class_name is not None:
             return PitchClass.from_name(self.class_name)
@@ -644,6 +652,7 @@ class Pitch:
             return PitchClass(self.class_value)
 
     def to_note(self, *, duration: Optional[Fraction] = None):
+        """Convert to note (eighth note by default)."""
         from .note import _DEFAULT_UNIT_DURATION, Note
 
         if duration is None:

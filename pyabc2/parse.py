@@ -222,6 +222,7 @@ class Tune:
         """Revelant URL for this particular tune/setting."""
 
         self.measures: List[List[Note]]
+        """Notes from "playing" the tune."""
 
         self._parse_abc()
 
@@ -395,5 +396,5 @@ class Tune:
                 raise ValueError(f"invalid note format {note_format!r}")
 
     def iter_notes(self) -> Iterator[Note]:
-        """Iterator (generator) for `Note`s of the tune."""
+        r"""Iterator (generator) for `Note`\ s of the tune."""
         return (n for m in self.measures for n in m)
