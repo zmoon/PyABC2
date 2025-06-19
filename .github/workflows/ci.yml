@@ -42,7 +42,7 @@ jobs:
 
       - name: Run the example notebooks
         run: |
-          cd examples
+          cd docs/examples
           for f in *.ipynb; do
             jupyter nbconvert --to notebook --execute $f || exit 1
           done
