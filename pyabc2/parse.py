@@ -380,7 +380,7 @@ class Tune:
 
         from IPython.display import HTML, Javascript, display
 
-        html = HTML(f"<div id=notation-{notation_id}>hi</div>")
+        html = HTML(f"<div id=notation-{notation_id}><i>abcjs target</i></div>")
         display(html)
 
         js = Javascript(_FMT_ABCJS_RENDER_JS.format(abc=abc, notation_id=notation_id))
