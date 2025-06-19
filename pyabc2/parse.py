@@ -365,7 +365,7 @@ class Tune:
     def __hash__(self):
         return hash(self.abc)
 
-    def _repr_html_(self):
+    def _repr_html_(self):  # pragma: no cover
         import uuid
 
         notation_id = str(uuid.uuid4())
