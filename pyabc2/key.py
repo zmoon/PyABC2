@@ -230,7 +230,13 @@ FLAT_ORDER = list("BEADGCF")
 
 
 class Key:
-    """Key, including mode."""
+    """Key, including mode.
+
+    Attributes
+    ----------
+    tonic : PitchClass
+        Tonic of the key.
+    """
 
     # TODO: maybe should move name to a .from_name for consistency with Pitch(Class)
     def __init__(
@@ -241,15 +247,18 @@ class Key:
         mode: Optional[str] = None,
     ):
         """
+        Pass either `name` (key spec with tonic and mode combined)
+        or `tonic` and `mode`.
+
         Parameters
         ---------
         name
-            Key name, e.g., `D`, `Ador`, `Bbmin`, ...
-        tonic
-            Tonic of the key, e.g., `C`, `D`, ...
-        mode
-            Mode specification, e.g., `m`, `min`, `dor`.
+            Key name (e.g., ``D``, ``Amaj``, ``Em``, ``Ador``, ``Bbmin``, ...).
             (Major assumed if mode not specified.)
+        tonic
+            Tonic of the key (e.g., ``C``, ``D``, ...).
+        mode
+            Mode specification, (e.g., ``maj``, ``min``, ``dor``, ...).
         """
         if name is not None:
             assert tonic is None and mode is None, "pass either `name` or `tonic`+`mode`"
@@ -258,16 +267,23 @@ class Key:
                 name = "C"
             self.tonic, self._mode = Key.parse_key(name)
         else:
+            # TODO: default mode to major for consistency?
             assert tonic is not None and mode is not None, "pass either `name` or `tonic`+`mode`"
             self.tonic = PitchClass.from_name(tonic)
             self._mode = _validate_and_normalize_mode_name(mode)
 
     @property
     def mode(self) -> str:
+        """Full mode name (e.g., ``Major``)."""
         return _MODE_ABBR_TO_FULL[self._mode].capitalize()
 
     @staticmethod
     def parse_key(key: str) -> Tuple[PitchClass, str]:
+        """Parse a key spec string (e.g., ``D``, ``Amin``)
+        and return the tonic and mode (3-char abbreviation).
+
+        Used when you pass ``name`` to the constructor.
+        """
         m = re.match(r"([A-G])(\#|b)?\s*(\w+)?(.*)", key)
         if m is None:
             raise ValueError(f"Invalid key specification '{key}'")

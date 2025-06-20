@@ -526,12 +526,25 @@ def test_note_name_preservation():
 
 
 @pytest.mark.parametrize(
-    "meth", ["from_name", "from_etf", "from_pitch_class", "from_class_name", "from_class_value"]
+    "meth",
+    [
+        "from_name",
+        "from_etf",
+        "from_pitch_class",
+        "from_class_name",
+        "from_class_value",
+        "to_note",
+        "unicode",
+    ],
 )
 def test_note_to_from_nonimpl(meth):
     assert hasattr(Note, meth)
+    if meth.startswith("from_"):
+        args = ()
+    else:
+        args = (None,)  # self
     with pytest.raises(NotImplementedError):
-        getattr(Note, meth)()
+        getattr(Note, meth)(*args)
 
 
 @pytest.mark.parametrize(
