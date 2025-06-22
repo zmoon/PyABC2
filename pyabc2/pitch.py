@@ -236,6 +236,8 @@ class PitchClass:
 
         return pc
 
+    # TODO: PitchClass from value with acc option (to hint name)?
+
     @property
     def equivalent_sharp(self) -> "PitchClass":
         pcnew = self - 1

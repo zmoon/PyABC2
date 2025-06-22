@@ -359,23 +359,20 @@ class Key:
 
         if match_acc:
             # Select accidentals to match the current key name
-            # (haven't identified a case where the result is different than
+            # (haven't identified a case where a successful result is different than
             # the default approach below though)
 
-            # TODO: PitchClass from value with acc option?
-            if "#" in key.name:
-                if tonic_es.acc == key.acc:
-                    tonic_name = tonic_es.name
-                else:
-                    raise ValueError(f"unable to match accidentals ({key} -> {tonic_es})")
-            elif "b" in key.name:
-                if tonic_ef.acc == key.acc:
-                    tonic_name = tonic_ef.name
-                else:
-                    raise ValueError(f"unable to match accidentals ({key} -> {tonic_ef})")
+            # Note = is allowed for explicit natural, but it wouldn't be added automatically
+            orig_acc = key.acc.replace("=", "")
+            for tonic_cand in [tonic_es, tonic_ef, tonic]:
+                if tonic_cand.acc == orig_acc:
+                    tonic_name = tonic_cand.name
+                    break
             else:
-                tonic_name = tonic.name
-
+                raise ValueError(
+                    f"unable to match accidentals ({key}{mode0} -> "
+                    f"{{{tonic_es}, {tonic_ef}, {tonic}}}{mode})"
+                )
         else:
             # Use the letter that it should be in the scale
             sd0 = MODE_SCALE_DEGREE[mode0]
