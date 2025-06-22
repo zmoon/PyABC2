@@ -91,9 +91,14 @@ def test_mode_chromatic_scale_degrees(mode, acc_format):
     assert all(len(s) in [1, 2, 5] and s[-1:-2:-1] in "1234567" for s in csds)
 
 
-def test_invalid_mode_chromatic_scale_degrees_fails():
+def test_invalid_mode_chromatic_scale_degrees_bad_mode():
     with pytest.raises(ValueError, match="invalid mode name"):
         _mode_chromatic_scale_degrees("invalid")
+
+
+def test_invalid_mode_chromatic_scale_degrees_bad_acc_fmt():
+    with pytest.raises(ValueError, match="invalid `acc_format`"):
+        _mode_chromatic_scale_degrees("ionian", acc_fmt="invalid")
 
 
 @pytest.mark.parametrize("mode", MODE_VALUES)
