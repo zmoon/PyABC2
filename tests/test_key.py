@@ -81,6 +81,12 @@ def test_relatives():
     assert C.relative("aeolian") == C.relative_minor == Am
     assert Key("Ador").relative_major == Key("G")
 
+    assert Am.relative("major", match_acc=True) == C
+    assert Key("Cb").relative("dorian") == Key("Dbdor")
+    assert Key("Cb").relative("dorian", match_acc=True) == Key("Dbdor")
+    assert Key("C#").relative("dorian", match_acc=True) == Key("D#dor")
+    assert Key("C#").relative("dorian") == Key("D#dor")
+
 
 @pytest.mark.parametrize(
     ("mode", "acc_format"), [(m, a) for m, a in product(MODE_VALUES, ["#", "b", "#/b", "b/#"])]
