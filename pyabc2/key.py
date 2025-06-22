@@ -359,7 +359,8 @@ class Key:
 
         if match_acc:
             # Select flat or sharp to match the current key name
-            # (haven't identified a case where the result is different than below though)
+            # (haven't identified a case where the result is different than
+            # the default approach below though)
 
             # TODO: PitchClass from value with acc option?
             if "#" in key.name:
