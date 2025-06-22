@@ -1,6 +1,7 @@
 """
 Load data from The Session (https://thesession.org)
 """
+
 import logging
 import os
 import warnings
@@ -145,6 +146,8 @@ def load_url(url: str) -> Tune:
 
 
 def download(which: Union[str, List[str]] = "tunes") -> None:
+    import gzip
+
     import requests
 
     if isinstance(which, str):
@@ -163,7 +166,7 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
         url = base_url + fn
         r = requests.get(url, timeout=5)
         r.raise_for_status()
-        with open(SAVE_TO / fn, "wb") as f:
+        with gzip.open(SAVE_TO / (fn + ".gz"), "wb") as f:
             f.write(r.content)
 
 
@@ -187,19 +190,34 @@ def _maybe_load_one(d: dict) -> Optional[Tune]:
     return tune
 
 
+def _older_than_30d(fp: Path) -> bool:
+    import datetime
+
+    now = datetime.datetime.now().timestamp()
+    ddays = (now - fp.stat().st_mtime) / (3600 * 24)
+    logger.debug(f"{fp.as_posix()} is {ddays:.2f} days old")
+
+    return ddays > 30
+
+
 def load(
-    *, n: Optional[int] = None, redownload: bool = False, debug: bool = False, num_workers: int = 1
+    *,
+    n: Optional[int] = None,
+    redownload: Optional[bool] = None,
+    debug: bool = False,
+    num_workers: int = 1,
 ) -> List[Tune]:
     """Load tunes from https://github.com/adactio/TheSession-data
 
     Use ``redownload=True`` to force re-download. Otherwise the file will only
-    be downloaded if it hasn't already been.
+    be downloaded if it hasn't already been or if it's older than 30 days.
 
     @adactio (Jeremy) is the creator of The Session.
     """
+    import gzip
     import json
 
-    fp = SAVE_TO / "tunes.json"
+    fp = SAVE_TO / "tunes.json.gz"
     parallel = num_workers > 1
 
     if debug:  # pragma: no cover
@@ -207,10 +225,15 @@ def load(
     else:
         logger.setLevel(logging.NOTSET)
 
-    if not fp.is_file() or redownload:
-        download("tunes")
+    if redownload is None and fp.is_file():
+        redownload = _older_than_30d(fp)
 
-    with open(fp, encoding="utf-8") as f:
+    if not fp.is_file() or redownload:
+        print("downloading...", end=" ", flush=True)
+        download("tunes")
+        print("done")
+
+    with gzip.open(fp, "rt", encoding="utf-8") as f:
         data = json.load(f)
 
     if n is not None:

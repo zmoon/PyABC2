@@ -3,6 +3,7 @@ pyabc2/sources/_*
 !pyabc2/sources/__init__.py
 poetry.lock
 venv*/
+docs/api/
 
 
 # Byte-compiled / optimized / DLL files

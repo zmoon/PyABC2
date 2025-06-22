@@ -1,6 +1,7 @@
 """
 Test the key module
 """
+
 from itertools import product
 
 import pytest

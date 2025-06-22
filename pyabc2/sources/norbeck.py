@@ -3,6 +3,7 @@ Henrik Norbeck's ABC Tunes
 
 https://www.norbeck.nu/abc/
 """
+
 import logging
 import os
 import string
@@ -51,7 +52,7 @@ _COMBINING_ACCENT_FROM_ASCII_SYM = {
     "'": "\u0301",  # acute
     "^": "\u0302",  # circumflex
     '"': "\u0308",  # umlaut
-    "r": "\u030A",  # ring above
+    "r": "\u030a",  # ring above
 }
 
 _URL_NETLOCS = {"norbeck.nu", "www.norbeck.nu"}
@@ -100,8 +101,9 @@ def download() -> None:
 
 def _maybe_download() -> None:
     if not list(SAVE_TO.glob("*.abc")):
-        print("downloading missing files...")
+        print("downloading...", end=" ", flush=True)
         download()
+        print("done")
 
 
 def _replace_escaped_diacritics(abc: str, *, ascii_only: bool = False) -> str:

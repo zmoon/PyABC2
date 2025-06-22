@@ -1,6 +1,7 @@
 """
 ABC parsing/info
 """
+
 import re
 from typing import Dict, Iterator, List, NamedTuple, Optional
 
@@ -221,6 +222,7 @@ class Tune:
         """Revelant URL for this particular tune/setting."""
 
         self.measures: List[List[Note]]
+        """Notes from "playing" the tune."""
 
         self._parse_abc()
 
@@ -363,7 +365,7 @@ class Tune:
     def __hash__(self):
         return hash(self.abc)
 
-    def _repr_html_(self):
+    def _repr_html_(self):  # pragma: no cover
         import uuid
 
         notation_id = str(uuid.uuid4())
@@ -378,7 +380,7 @@ class Tune:
 
         from IPython.display import HTML, Javascript, display
 
-        html = HTML(f"<div id=notation-{notation_id}>hi</div>")
+        html = HTML(f"<div id=notation-{notation_id}><i>abcjs target</i></div>")
         display(html)
 
         js = Javascript(_FMT_ABCJS_RENDER_JS.format(abc=abc, notation_id=notation_id))
@@ -394,5 +396,5 @@ class Tune:
                 raise ValueError(f"invalid note format {note_format!r}")
 
     def iter_notes(self) -> Iterator[Note]:
-        """Iterator (generator) for `Note`s of the tune."""
+        r"""Iterator (generator) for `Note`\ s of the tune."""
         return (n for m in self.measures for n in m)
