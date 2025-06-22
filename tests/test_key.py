@@ -153,6 +153,16 @@ def test_whole_tone_scale_intervals_fails():
         _scale_intervals([0, 2, 4, 6, 8, 10])
 
 
+def test_nonzero_start_fails():
+    with pytest.raises(ValueError, match=r"first value should be 0"):
+        _scale_intervals([1] * 7)
+
+
+def test_beyond_octave_fails():
+    with pytest.raises(ValueError, match=r"last value should be < 12"):
+        _scale_intervals([0, 2, 4, 5, 7, 9, 13])
+
+
 def test_scale_with_large_interval_fails():
     with pytest.raises(ValueError, match=r"strange interval \(not W/H\)"):
         _scale_intervals([0, 2, 3, 5, 6, 9, 10])
