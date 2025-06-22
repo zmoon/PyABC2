@@ -358,17 +358,21 @@ class Key:
         tonic_ef = tonic.equivalent_flat
 
         if match_acc:
-            # Select flat or sharp to match the current key name
+            # Select accidentals to match the current key name
             # (haven't identified a case where the result is different than
             # the default approach below though)
 
             # TODO: PitchClass from value with acc option?
             if "#" in key.name:
-                if tonic_es.acc == "#":  # single sharp used
+                if tonic_es.acc == key.acc:
                     tonic_name = tonic_es.name
+                else:
+                    raise ValueError(f"unable to match accidentals ({key} -> {tonic_es})")
             elif "b" in key.name:
-                if tonic_ef.acc == "b":  # single flat used
+                if tonic_ef.acc == key.acc:
                     tonic_name = tonic_ef.name
+                else:
+                    raise ValueError(f"unable to match accidentals ({key} -> {tonic_ef})")
             else:
                 tonic_name = tonic.name
 

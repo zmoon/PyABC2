@@ -100,6 +100,15 @@ def test_relatives():
     assert Key("C#").relative("dorian", match_acc=True) == Key("D#dor")
     assert Key("C#").relative("dorian") == Key("D#dor")
 
+    # Note key spec parsing currently only supports single #/b,
+    # while pitch class parsing (used when passing tonic) supports up to 2.
+    assert Key("Cbdorian").relative_major == Key(tonic="Bbb", mode="Major")
+    with pytest.raises(ValueError, match="unable to match accidentals"):
+        Key("Cbdorian").relative("Major", match_acc=True)
+    assert Key("E#major").relative("Dorian") == Key(tonic="F##", mode="Dorian")
+    with pytest.raises(ValueError, match="unable to match accidentals"):
+        Key("E#major").relative("Dorian", match_acc=True)
+
 
 @pytest.mark.parametrize(
     ("mode", "acc_format"), [(m, a) for m, a in product(MODE_VALUES, ["#", "b", "#/b", "b/#"])]
