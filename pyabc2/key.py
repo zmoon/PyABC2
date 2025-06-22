@@ -203,7 +203,7 @@ def _scale_intervals(
         elif dv == 1:
             interval = "H"
         else:
-            raise ValueError("strange interval (not W/H)")
+            raise ValueError(f"strange interval {dv} (not W/H)")
         intervals.append(interval)
     # TODO: should make a class for interval!
 
@@ -292,8 +292,8 @@ class Key:
 
         try:
             mode = _validate_and_normalize_mode_name(mode)
-        except ValueError:
-            raise ValueError("Unrecognized mode specification '{mode}' from key '{key}'")
+        except ValueError as e:
+            raise ValueError(f"Unrecognized mode specification '{mode}' from key '{key}'") from e
 
         return PitchClass.from_name(base + acc), mode
         # TODO: probably should either return a Key or be private / maybe outside class
@@ -365,8 +365,8 @@ class Key:
                     tonic_name = tonic_es.name
                 elif tonic_ef.nat == new_nat:
                     tonic_name = tonic_ef.name
-                else:
-                    raise Exception
+                else:  # pragma: no cover
+                    raise AssertionError
             else:
                 tonic_name = tonic.name
 

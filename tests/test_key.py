@@ -175,7 +175,7 @@ def test_beyond_octave_fails():
 
 
 def test_scale_with_large_interval_fails():
-    with pytest.raises(ValueError, match=r"strange interval \(not W/H\)"):
+    with pytest.raises(ValueError, match=r"strange interval 3 \(not W/H\)"):
         _scale_intervals([0, 2, 3, 5, 6, 9, 10])
 
 
