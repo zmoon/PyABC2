@@ -255,14 +255,17 @@ class Key:
             Mode specification, e.g., `m`, `min`, `dor`.
             (Major assumed if mode not specified.)
         """
+        msg = "pass either just `name` or both `tonic` and `mode`"
         if name is not None:
-            assert tonic is None and mode is None, "pass either `name` or `tonic`+`mode`"
+            if not (tonic is None and mode is None):
+                raise ValueError(msg)
             # Handle occasional `K:` line used to indicate default key (C) and tune start
             if name == "":
                 name = "C"
             self.tonic, self._mode = Key.parse_key(name)
         else:
-            assert tonic is not None and mode is not None, "pass either `name` or `tonic`+`mode`"
+            if not (tonic is not None and mode is not None):
+                raise ValueError(msg)
             self.tonic = PitchClass.from_name(tonic)
             self._mode = _validate_and_normalize_mode_name(mode)
 

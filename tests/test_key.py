@@ -49,6 +49,18 @@ def test_default_key():
     assert k.tonic.name == "C"
 
 
+def test_arg_mix_fails():
+    with pytest.raises(ValueError, match="pass either just `name` or both `tonic` and `mode`"):
+        Key(name="C", tonic="D")
+
+
+def test_tonic_mode_both_needed():
+    # Maybe will default to major in the future, but currently requiring both
+    # be passed and mode be valid.
+    with pytest.raises(ValueError, match="pass either just `name` or both `tonic` and `mode`"):
+        Key(tonic="C")
+
+
 def test_parse_key_invalid_base_fails():
     with pytest.raises(ValueError, match="Invalid key specification"):
         Key.parse_key("X")
