@@ -91,10 +91,13 @@ def load_url(url: str) -> Tune:
     """Load tune from a specified ``thesession.org`` URL.
 
     For example:
+
     - https://thesession.org/tunes/10000 (first setting assumed)
     - https://thesession.org/tunes/10000#setting31601 (specific setting)
 
-    Using the API: https://thesession.org/api
+    Notes
+    -----
+    Uses the API: https://thesession.org/api
     """
     from urllib.parse import urlsplit, urlunsplit
 
@@ -207,10 +210,29 @@ def load(
     debug: bool = False,
     num_workers: int = 1,
 ) -> List[Tune]:
-    """Load tunes from https://github.com/adactio/TheSession-data
+    """Load tunes from The Session archive
+    (https://github.com/adactio/TheSession-data).
 
-    Use ``redownload=True`` to force re-download. Otherwise the file will only
-    be downloaded if it hasn't already been or if it's older than 30 days.
+    .. note::
+       The file will be downloaded automatically if it hasn't already been
+       or if it's older than 30 days.
+       Use ``redownload=True`` to force re-download.
+
+    Parameters
+    ----------
+    n
+        Cap the number of tunes to process.
+        By default, all tunes are loaded.
+    redownload
+        Re-download the data file.
+    debug
+        Show debug messages.
+    num_workers
+        Number of worker processes to use when processing tunes.
+
+    Notes
+    -----
+    Specifically we load https://github.com/adactio/TheSession-data/raw/main/json/tunes.json
 
     @adactio (Jeremy) is the creator of The Session.
     """
@@ -318,11 +340,21 @@ def load_meta(
     downcast_ints: bool = False,
     format: Literal["json", "csv"] = "json",
 ) -> "pandas.DataFrame":
-    """Load metadata file from The Session archive as dataframe (requires pandas).
+    """Load data from The Session archive
+    (https://github.com/adactio/TheSession-data)
+    as a dataframe (requires pandas).
 
     Parameters
     ----------
     which : {'aliases', 'events', 'recordings', 'sessions', 'sets', 'tune_popularity', 'tunes'}
+        Which dataset to load.
+    convert_dtypes
+        If ``True``, convert dtypes to pandas extension types
+        (e.g. nullable integers, categorical strings).
+        If ``False`` (default), keep the original dtypes.
+    downcast_ints
+        If ``True`` (not default),
+        downcast integer columns to the smallest possible integer dtype.
 
     Notes
     -----
@@ -332,10 +364,16 @@ def load_meta(
     and dtypes converted to nullable pandas extension types
     (:meth:`pandas.DataFrame.convert_dtypes` applied).
 
-    https://github.com/adactio/TheSession-data/tree/main/json
-    https://github.com/adactio/TheSession-data/tree/main/csv
+    Data locations:
+
+    - https://github.com/adactio/TheSession-data/tree/main/json
+    - https://github.com/adactio/TheSession-data/tree/main/csv
 
     @adactio (Jeremy) is the creator of The Session.
+
+    See Also
+    --------
+    :doc:`/examples/sources`
     """
     import numpy as np
     import pandas as pd
