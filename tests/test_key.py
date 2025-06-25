@@ -6,7 +6,13 @@ from itertools import product
 
 import pytest
 
-from pyabc2.key import CMAJ_LETTERS, MODE_VALUES, Key, _mode_chromatic_scale_degrees
+from pyabc2.key import (
+    CMAJ_LETTERS,
+    MODE_VALUES,
+    Key,
+    _mode_chromatic_scale_degrees,
+    _scale_intervals,
+)
 
 
 def many_possible_key_name_inputs():
@@ -39,11 +45,46 @@ def test_parse_key_basic_succeeds(key_name):
     Key(name=key_name)
 
 
-def test_key_sig():
+def test_default_key():
+    k = Key("")
+    assert k.tonic.name == "C"
+
+
+def test_arg_mix_fails():
+    with pytest.raises(ValueError, match="pass either just `name` or both `tonic` and `mode`"):
+        Key(name="C", tonic="D")
+
+
+def test_tonic_mode_both_needed():
+    # Maybe will default to major in the future, but currently requiring both
+    # be passed and mode be valid.
+    with pytest.raises(ValueError, match="pass either just `name` or both `tonic` and `mode`"):
+        Key(tonic="C")
+
+
+def test_parse_key_invalid_base_fails():
+    with pytest.raises(ValueError, match="Invalid key specification"):
+        Key.parse_key("X")
+
+
+def test_parse_key_invalid_mode_fails():
+    with pytest.raises(ValueError, match="Unrecognized mode specification"):
+        with pytest.warns(UserWarning, match="extra info"):
+            Key.parse_key("Bad mode + extras warning")
+
+
+def test_sharp_key_sig():
     k = Key("Amaj")
     assert k.key_signature == ["F#", "C#", "G#"]
     for n in "FCG":
         assert k.accidentals[n] == "#"
+
+
+def test_flat_key_sig():
+    k = Key("Eb")
+    assert k.key_signature == ["Bb", "Eb", "Ab"]
+    for n in "BEA":
+        assert k.accidentals[n] == "b"
 
 
 def test_relatives():
@@ -53,6 +94,21 @@ def test_relatives():
     assert C.relative("aeolian") == C.relative_minor == Am
     assert Key("Ador").relative_major == Key("G")
 
+    assert Am.relative("major", match_acc=True) == C
+    assert Key("Cb").relative("dorian") == Key("Dbdor")
+    assert Key("Cb").relative("dorian", match_acc=True) == Key("Dbdor")
+    assert Key("C#").relative("dorian", match_acc=True) == Key("D#dor")
+    assert Key("C#").relative("dorian") == Key("D#dor")
+
+    # Note key spec parsing currently only supports single #/b,
+    # while pitch class parsing (used when passing tonic) supports up to 2.
+    assert Key("Cbdorian").relative_major == Key(tonic="Bbb", mode="Major")
+    with pytest.raises(ValueError, match="unable to match accidentals"):
+        Key("Cbdorian").relative("Major", match_acc=True)
+    assert Key("E#major").relative("Dorian") == Key(tonic="F##", mode="Dorian")
+    with pytest.raises(ValueError, match="unable to match accidentals"):
+        Key("E#major").relative("Dorian", match_acc=True)
+
 
 @pytest.mark.parametrize(
     ("mode", "acc_format"), [(m, a) for m, a in product(MODE_VALUES, ["#", "b", "#/b", "b/#"])]
@@ -61,6 +117,16 @@ def test_mode_chromatic_scale_degrees(mode, acc_format):
     csds = _mode_chromatic_scale_degrees(mode, acc_fmt=acc_format)
     assert len(csds) == 12
     assert all(len(s) in [1, 2, 5] and s[-1:-2:-1] in "1234567" for s in csds)
+
+
+def test_invalid_mode_chromatic_scale_degrees_bad_mode():
+    with pytest.raises(ValueError, match="invalid mode name"):
+        _mode_chromatic_scale_degrees("invalid")
+
+
+def test_invalid_mode_chromatic_scale_degrees_bad_acc_fmt():
+    with pytest.raises(ValueError, match="invalid `acc_format`"):
+        _mode_chromatic_scale_degrees("ionian", acc_fmt="invalid")
 
 
 @pytest.mark.parametrize("mode", MODE_VALUES)
@@ -101,3 +167,71 @@ def test_scvs_consistency():
     scvs0 = key.scale_chromatic_values
     scvs = [pc.value_in(key) for pc in key.scale]
     assert scvs0 == scvs
+
+
+def test_str():
+    assert str(Key("C")) == "Cmaj"
+
+
+def test_repr():
+    assert repr(Key("C")) == "Key(tonic=C, mode='Major')"
+
+
+def test_inequality():
+    assert Key("C") != "this is not a Key"
+
+
+def test_whole_tone_scale_intervals_fails():
+    with pytest.raises(ValueError, match=r"expected 7 values, got 6"):
+        _scale_intervals([0, 2, 4, 6, 8, 10])
+
+
+def test_nonzero_start_fails():
+    with pytest.raises(ValueError, match=r"first value should be 0"):
+        _scale_intervals([1] * 7)
+
+
+def test_beyond_octave_fails():
+    with pytest.raises(ValueError, match=r"last value should be < 12"):
+        _scale_intervals([0, 2, 4, 5, 7, 9, 13])
+
+
+def test_scale_with_large_interval_fails():
+    with pytest.raises(ValueError, match=r"strange interval 3 \(not W/H\)"):
+        _scale_intervals([0, 2, 3, 5, 6, 9, 10])
+
+
+def test_print_scale(capsys):
+    Key("C").print_scale()
+    output = capsys.readouterr().out
+    assert output == "C  D  E  F  G  A  B \n"
+
+
+def test_print_scale_degrees_wrt_major(capsys):
+    Key("C").print_scale_degrees_wrt_major()
+    output = capsys.readouterr().out
+    assert output == "1  2  3  4  5  6  7 \n"
+
+
+def test_print_chromatic_scale_degrees(capsys):
+    Key("C").print_chromatic_scale_degrees()
+    output = capsys.readouterr().out
+    assert output == "1  #1 2  #2 3  4  #4 5  #5 6  #6 7 \n"
+
+
+def test_print_scale_chromatic_values(capsys):
+    Key("C").print_scale_chromatic_values()
+    output = capsys.readouterr().out
+    assert output == "0  2  4  5  7  9  11\n"
+
+
+def test_print_intervals_wh(capsys):
+    Key("C").print_intervals()
+    output = capsys.readouterr().out
+    assert output == "W W H W W W H\n"
+
+
+def test_print_intervals_dash(capsys):
+    Key("C").print_intervals(fmt="-")
+    output = capsys.readouterr().out
+    assert output == "|--|--|-|--|--|--|-\n"
