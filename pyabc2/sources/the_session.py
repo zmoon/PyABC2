@@ -98,6 +98,10 @@ def load_url(url: str) -> Tune:
     Notes
     -----
     Uses the API: https://thesession.org/api
+
+    See Also
+    --------
+    pyabc2.sources.load_url
     """
     from urllib.parse import urlsplit, urlunsplit
 

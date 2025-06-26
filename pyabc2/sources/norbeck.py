@@ -293,6 +293,10 @@ def load_url(url: str) -> Tune:
     Notes
     -----
     Grabs the ABC from the HTML source.
+
+    See Also
+    --------
+    pyabc2.sources.load_url
     """
     import re
     from html import unescape

@@ -71,7 +71,7 @@ def load_example(title: Optional[str] = None) -> Tune:
 
 
 def load_url(url: str) -> Tune:
-    """Load tune from ABC corresponding to `url`.
+    """Load tune from ABC found at the specified webpage.
 
     Currently these URL types are supported:
 
