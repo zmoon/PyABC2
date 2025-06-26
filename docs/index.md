@@ -27,6 +27,7 @@ Inspired in part by and some portions based on [PyABC](https://github.com/campag
 examples/types.ipynb
 examples/modes.ipynb
 examples/sources.ipynb
+examples/plots.ipynb
 ```
 
 ```{toctree}
