@@ -220,7 +220,14 @@ class Tune:
         """Revelant URL for this particular tune/setting."""
 
         self.measures: List[List[Note]]
-        """Notes from "playing" the tune."""
+        """Notes from "playing" the tune.
+
+        That is, expanding repeats and endings, etc.
+
+        .. note::
+           Currently this is computed during class initialization,
+           but this may change in the future.
+        """
 
         self._parse_abc()
 
@@ -381,7 +388,12 @@ class Tune:
         html = HTML(f"<div id=notation-{notation_id}><i>abcjs target</i></div>")
         display(html)
 
-        js = Javascript(_FMT_ABCJS_RENDER_JS.format(abc=abc, notation_id=notation_id))
+        js = Javascript(
+            _FMT_ABCJS_RENDER_JS.format(
+                abc=abc.replace('"', '\\"'),
+                notation_id=notation_id,
+            )
+        )
         display(js)
 
     def print_measures(self, n: Optional[int] = None, *, note_format: str = "ABC"):
@@ -394,5 +406,9 @@ class Tune:
                 raise ValueError(f"invalid note format {note_format!r}")
 
     def iter_notes(self) -> Iterator[Note]:
-        r"""Iterator (generator) for `Note`\ s of the tune."""
+        r"""Iterator (generator) for :class:`Note`\ s of the tune.
+
+        This is a stream of the notes from "playing" the tune
+        (:attr:`measures`).
+        """
         return (n for m in self.measures for n in m)
