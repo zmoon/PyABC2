@@ -198,11 +198,24 @@ class Tune:
         abc
             String of a single ABC tune.
         """
-        self.abc = abc
+        self.abc: str = abc
         """Original ABC string."""
 
         self.header: Dict[str, str]
-        """Information contained in the tune header."""
+        """Information contained in the tune header.
+
+        Examples
+        --------
+        >>> from pyabc2.sources import load_example
+        >>> load_example("For the Love of Music").header
+        {'tune title': 'For The Love Of Music',
+         'rhythm': 'slip jig',
+         'composer': 'Liz Carroll',
+         'meter': '9/8',
+         'unit note length': '1/8',
+         'key': 'G'}
+        """
+        # TODO: access key with 'key' or 'K:', e.g.
 
         self.title: Optional[str]
         """Tune primary title (first in the ABC)."""
@@ -211,7 +224,12 @@ class Tune:
         """All tune titles."""
 
         self.type: str
-        """Tune type/rhythm."""
+        """Tune type/rhythm, e.g. 'jig'.
+
+        .. note::
+           This is just the ``R:`` field value.
+           Currently no validation or coercion is done.
+        """
 
         self.key: Key
         """Key object corresponding to the tune's key."""
@@ -397,7 +415,18 @@ class Tune:
         display(js)
 
     def print_measures(self, n: Optional[int] = None, *, note_format: str = "ABC"):
-        """Print measures to check parsing."""
+        """Print measures to check parsing.
+
+        Parameters
+        ----------
+        n
+            Number of measures to print.
+            If ``None`` (default), all measures are printed.
+        note_format
+            Format for printing notes.
+            Currently only ``'ABC'`` is supported,
+            which prints the notes in ABC notation (ASCII).
+        """
         nd = len(str(len(self.measures)))
         for i, measure in enumerate(self.measures[:n], start=1):
             if note_format == "ABC":

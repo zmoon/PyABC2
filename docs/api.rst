@@ -49,13 +49,35 @@ Tune type
 
    Tune
 
-   Tune.abc
-   Tune.header
+Some tune attributes derived from parsing the ABC header
+are available as instance attributes:
+
+.. autosummary::
+   :toctree: api/
+
    Tune.title
+   Tune.titles
    Tune.type
    Tune.key
    Tune.url
+
+Other metadata from the ABC can be found in the :attr:`Tune.header` dict,
+and the original ABC is present at :attr:`Tune.abc`.
+
+.. autosummary::
+   :toctree: api/
+
+   Tune.header
+   Tune.abc
+
+These methods/properties result from tune body parsing and repeat/ending expansion:
+
+.. autosummary::
+   :toctree: api/
+
    Tune.measures
+   Tune.iter_notes
+   Tune.print_measures
 
 Tune sources
 ============
