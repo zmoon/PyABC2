@@ -24,6 +24,8 @@ intersphinx_mapping = {
 exclude_patterns = ["_build"]
 
 html_theme = "furo"
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True

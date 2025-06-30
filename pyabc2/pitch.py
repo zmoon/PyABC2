@@ -145,18 +145,38 @@ def _to_roman(n: int) -> str:
 
 class PitchClass:
     """Pitch without octave.
-    Value as integer chromatic distance from C.
+    Value as integer chromatic distance from C in semitones (half-steps).
+
+    Parameters
+    ----------
+    value
+        Chromatic distance from C in semitones (half-steps).
+        For example, C is 0, D is 2, B is 11.
+
+    Examples
+    --------
+    >>> from pyabc2 import PitchClass
+    >>> PitchClass(0)
+    PitchClass(value=0, name='C')
+    >>> PitchClass(2)
+    PitchClass(value=2, name='D')
+    >>> PitchClass(11)
+    PitchClass(value=11, name='B')
+
+    >>> PitchClass.from_name('Bb')
+    PitchClass(value=10, name='Bb')
+
+    >>> PitchClass.from_name('E#')
+    PitchClass(value=5, name='E#')
+    >>> PitchClass(5)
+    PitchClass(value=5, name='F')
     """
 
     def __init__(self, value: int):
-        """
-        Parameters
-        ----------
-        value
-            Chromatic note value relative to C.
-        """
         self.value: int = value % 12
-        """Pitch class value, as integer chromatic distance from the C (0--11)."""
+        """Pitch class value
+        (integer chromatic distance from C in semitones (half-steps)).
+        """
 
         self._name: Optional[str] = None
 
@@ -226,7 +246,10 @@ class PitchClass:
 
     @classmethod
     def from_name(cls, name: str) -> "PitchClass":
-        """From pitch class name (e.g., ``C``, ``F#``)."""
+        """From pitch class name (e.g., ``C``, ``F#``).
+
+        `name` is preserved (:attr:`name`) if using this initializer.
+        """
         _validate_pitch_class_name(name)
 
         value = pitch_class_value(name, mod=True)
@@ -454,23 +477,42 @@ class PitchClass:
 @functools.total_ordering
 class Pitch:
     """A pitch with value relative to C0.
-    Note names are expressed in the context of C major.
+
+    Parameters
+    ----------
+    value
+        Chromatic distance from C0 in semitones (half-steps).
+        For example, C4 (middle C) is 48, A4 is 57.
+
+    Examples
+    --------
+    >>> from pyabc2 import Pitch
+    >>> Pitch(48)
+    Pitch(value=48, name='C4')
+    >>> Pitch(57)
+    Pitch(value=57, name='A4')
+
+    >>> Pitch.from_name('E#3')
+    Pitch(value=41, name='E#3')
+    >>> Pitch(41)
+    Pitch(value=41, name='F3')
+
+    >>> Pitch.from_etf(440)  # Hz
+    Pitch(value=57, name='A4')
     """
 
     # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L204-L293
     def __init__(self, value: int):
-        """
-        Parameters
-        ----------
-        value
-            Chromatic note value relative to C0.
-        """
 
-        self.value = value
-        """Chromatic note value relative to C0."""
+        self.value: int = value
+        """Pitch value
+        (integer chromatic distance from C0 in semitones (half-steps)).
+        """
 
         self._class_name: Optional[str] = None
         self._octave: Optional[int] = None
+        # TODO: we should be able to determine octave from value and class name
+        # in the case that _class_name is set
 
     @property
     def class_value(self) -> int:
@@ -495,7 +537,7 @@ class Pitch:
 
     @property
     def name(self) -> str:
-        """Note name with octave, e.g., C4, Bb2.
+        """Note (pitch) name with octave, e.g., C4, Bb2.
         (ASCII scientific pitch notation.)
         """
         return f"{self.class_name}{self.octave}"

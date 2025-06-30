@@ -36,6 +36,7 @@ dev = [
 ]
 doc = [
     "furo",
+    "matplotlib",
     "myst-nb",
     "sphinx",
 ]

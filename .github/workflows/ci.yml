@@ -33,8 +33,11 @@ jobs:
           flit install -s
 
       - name: Test with pytest
-        run: |
-          pytest -v -ra --cov=pyabc2 --cov-report xml --cov-report term-missing -n auto
+        run: >
+          pytest -v -ra
+          --doctest-modules
+          --cov=pyabc2 --cov-report xml --cov-report term-missing
+          -n auto
 
       - name: Check type annotations
         run: |
