@@ -17,8 +17,7 @@ pip install pyabc2
 ```
 Then check out [the documentation](https://pyabc2.readthedocs.io/).
 
-To contribute to this project, see the [instructions for developers](https://github.com/zmoon/PyABC2/tree/main/docs/dev.md).
-
+To contribute to this project, see the [instructions for developers](https://pyabc2.readthedocs.io/en/latest/dev.html).
 
 ## Credits
 
