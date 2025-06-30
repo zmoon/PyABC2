@@ -4,7 +4,8 @@ Python ABC notation tools
 
 __version__ = "0.1.0.dev3"
 
-from .note import Key, Note
+from .key import Key
+from .note import Note
 from .parse import Tune, _load_abcjs_if_in_jupyter
 from .pitch import Pitch, PitchClass
 
