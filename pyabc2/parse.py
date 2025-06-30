@@ -134,7 +134,7 @@ _FMT_ABCJS_BODY_HTML = """\
 """
 
 _FMT_ABCJS_RENDER_JS = """\
-ABCJS.renderAbc("notation-{notation_id:s}", "{abc:s}", {{}});
+ABCJS.renderAbc("notation-{notation_id:s}", "{abc:s}", {{ scale: 0.87, staffwidth: 650 }});
 """
 
 
