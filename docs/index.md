@@ -23,9 +23,6 @@ pip install pyabc2
 ```
 
 Then look at the [example notebooks](examples/types.ipynb).
-```{nb-exec-table}
-
-```
 
 To contribute to this project, see the [instructions for developers](dev.md).
 
@@ -50,4 +47,8 @@ examples/plots.ipynb
 api.rst
 dev.md
 GitHub <https://github.com/zmoon/PyABC2>
+```
+
+```{nb-exec-table}
+
 ```
