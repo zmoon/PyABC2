@@ -1,5 +1,14 @@
 """
-Load data from The Session (https://thesession.org)
+Load data from The Session (https://thesession.org).
+
+Requires (to load tunes with :func:`load` or :func:`load_url`):
+
+* `requests <https://requests.readthedocs.io/>`__
+
+To load additional archive datasets with :func:`load_meta`, requires:
+
+* `numpy <https://numpy.org/>`__
+* `pandas <https://pandas.pydata.org/>`__
 """
 
 import logging

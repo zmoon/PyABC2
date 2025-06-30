@@ -106,6 +106,12 @@ For example::
 Norbeck
 -------
 
+.. automodule:: pyabc2.sources.norbeck
+
+Functions:
+
+.. currentmodule:: pyabc2.sources
+
 .. autosummary::
    :toctree: api/
 
@@ -114,6 +120,12 @@ Norbeck
 
 The Session
 -----------
+
+.. automodule:: pyabc2.sources.the_session
+
+Functions:
+
+.. currentmodule:: pyabc2.sources
 
 .. autosummary::
    :toctree: api/

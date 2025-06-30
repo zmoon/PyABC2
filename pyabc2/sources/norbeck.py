@@ -1,7 +1,9 @@
 """
-Henrik Norbeck's ABC Tunes
+Load Henrik Norbeck's ABC Tunes (https://www.norbeck.nu/abc/).
 
-https://www.norbeck.nu/abc/
+Requires:
+
+* `requests <https://requests.readthedocs.io/>`__
 """
 
 import logging
