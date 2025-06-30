@@ -237,10 +237,32 @@ FLAT_ORDER = list("BEADGCF")
 class Key:
     """Key, including mode.
 
-    Attributes
-    ----------
-    tonic : PitchClass
-        Tonic of the key.
+    Pass either `name` (key spec with tonic and mode combined, used in ABC notation)
+    or `tonic` and `mode`.
+
+    Parameters
+    ---------
+    name
+        Key name (e.g., ``D``, ``Amaj``, ``Em``, ``Ador``, ``Bbmin``, ...).
+        (Major assumed if mode not specified.)
+    tonic
+        Tonic of the key (e.g., ``C``, ``D``, ...).
+    mode
+        Mode specification, (e.g., ``maj``, ``min``, ``dor``, ...).
+
+    Examples
+    --------
+    >>> from pyabc2 import Key
+    >>> Key('C')
+    Key(tonic=C, mode='Major')
+
+    >>> Key('Ador')
+    Key(tonic=A, mode='Dorian')
+    >>> Key('Em')
+    Key(tonic=E, mode='Minor')
+
+    >>> Key(tonic='Bb', mode='Locrian')
+    Key(tonic=Bb, mode='Locrian')
     """
 
     # TODO: maybe should move name to a .from_name for consistency with Pitch(Class)
@@ -251,20 +273,9 @@ class Key:
         tonic: Optional[str] = None,
         mode: Optional[str] = None,
     ):
-        """
-        Pass either `name` (key spec with tonic and mode combined)
-        or `tonic` and `mode`.
+        self.tonic: PitchClass
+        """The tonic of the key."""
 
-        Parameters
-        ---------
-        name
-            Key name (e.g., ``D``, ``Amaj``, ``Em``, ``Ador``, ``Bbmin``, ...).
-            (Major assumed if mode not specified.)
-        tonic
-            Tonic of the key (e.g., ``C``, ``D``, ...).
-        mode
-            Mode specification, (e.g., ``maj``, ``min``, ``dor``, ...).
-        """
         msg = "pass either just `name` or both `tonic` and `mode`"
         if name is not None:
             if not (tonic is None and mode is None):
@@ -275,6 +286,7 @@ class Key:
             self.tonic, self._mode = Key.parse_key(name)
         else:
             # TODO: default mode to major for consistency?
+            # TODO: allow passing tonic as PitchClass
             if not (tonic is not None and mode is not None):
                 raise ValueError(msg)
             self.tonic = PitchClass.from_name(tonic)
@@ -348,6 +360,7 @@ class Key:
         return {p: a for p, a in self.key_signature}  # type: ignore[misc, has-type]
 
     def relative(self, mode: str, *, match_acc: bool = False) -> "Key":
+        """Compute a relative key by specifying the target mode."""
         mode = _validate_and_normalize_mode_name(mode)
         key, mode0 = self.tonic, self._mode
 

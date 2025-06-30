@@ -39,7 +39,12 @@ Key type
    :toctree: api/
 
    Key
+
+.. autosummary::
+   :toctree: api/
+
    Key.parse_key
+   Key.relative
 
 Tune type
 =========
