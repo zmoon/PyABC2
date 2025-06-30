@@ -21,7 +21,11 @@ Install from PyPI:
 ```
 pip install pyabc2
 ```
+
 Then look at the [example notebooks](examples/types.ipynb).
+```{nb-exec-table}
+
+```
 
 To contribute to this project, see the [instructions for developers](dev.md).
 
