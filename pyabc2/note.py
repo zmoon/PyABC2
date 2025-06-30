@@ -63,7 +63,7 @@ class Note(Pitch):
     Parameters
     ----------
     value
-        Chromatic distance from C0 in semitones (half-steps).
+        Chromatic distance from C0 in semitones (half steps).
         For example, C4 (middle C) is 48, A4 is 57.
     duration
         The duration of the note,

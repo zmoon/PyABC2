@@ -145,12 +145,12 @@ def _to_roman(n: int) -> str:
 
 class PitchClass:
     """Pitch without octave.
-    Value as integer chromatic distance from C in semitones (half-steps).
+    Value as integer chromatic distance from C in semitones (half steps).
 
     Parameters
     ----------
     value
-        Chromatic distance from C in semitones (half-steps).
+        Chromatic distance from C in semitones (half steps).
         For example, C is 0, D is 2, B is 11.
 
     Examples
@@ -175,7 +175,7 @@ class PitchClass:
     def __init__(self, value: int):
         self.value: int = value % 12
         """Pitch class value
-        (integer chromatic distance from C in semitones (half-steps)).
+        (integer chromatic distance from C in semitones (half steps)).
         """
 
         self._name: Optional[str] = None
@@ -481,7 +481,7 @@ class Pitch:
     Parameters
     ----------
     value
-        Chromatic distance from C0 in semitones (half-steps).
+        Chromatic distance from C0 in semitones (half steps).
         For example, C4 (middle C) is 48, A4 is 57.
 
     Examples
@@ -506,7 +506,7 @@ class Pitch:
 
         self.value: int = value
         """Pitch value
-        (integer chromatic distance from C0 in semitones (half-steps)).
+        (integer chromatic distance from C0 in semitones (half steps)).
         """
 
         self._class_name: Optional[str] = None
@@ -795,7 +795,7 @@ class SimpleInterval:
                 f"input value {value} not between 0 and 12 " f"has been coerced to {value_}"
             )
         self.value = value_
-        """Number of semitones (half-steps)."""
+        """Number of semitones (half steps)."""
 
     @property
     def name(self) -> str:
@@ -842,7 +842,7 @@ class SignedInterval(SimpleInterval):
 
     def __init__(self, value: int) -> None:
         self.value = value
-        """Number of semitones (half-steps)."""
+        """Number of semitones (half steps)."""
 
     @property
     def name(self) -> str:
