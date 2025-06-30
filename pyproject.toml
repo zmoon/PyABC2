@@ -39,6 +39,7 @@ doc = [
     "matplotlib",
     "myst-nb",
     "sphinx",
+    "sphinx-inline-tabs",
 ]
 
 

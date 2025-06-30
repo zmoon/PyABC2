@@ -14,6 +14,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
     "myst_nb",
+    "sphinx_inline_tabs",
 ]
 
 intersphinx_mapping = {
