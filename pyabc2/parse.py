@@ -189,15 +189,37 @@ def _find_first_chord(s: str) -> Optional[str]:
 
 # TODO: maybe should go in a tune module
 class Tune:
-    """Tune."""
+    '''Tune.
+
+    Parameters
+    ----------
+    abc
+        String of a single ABC tune.
+
+    Examples
+    --------
+    >>> from pyabc2 import Tune
+    >>> Tune("""\\
+    ... T: G major scale
+    ... K: G
+    ... GABc defg | fedc BAG2 ||
+    ... """)
+    Tune(title='G major scale', key=Gmaj, type='?')
+
+    .. note::
+
+       You must include the ``K:``
+       `info field <https://abcnotation.com/wiki/abc:standard:v2.1#kkey>`__
+       as the last header line
+       for the tune header and body to be properly recognized
+       (:attr:`title` and :attr:`measures` to be populated, etc.).
+
+    >>> from pyabc2.sources import load_example_abc
+    >>> Tune(load_example_abc("Tell Her I am"))
+    Tune(title='Tell Her I Am', key=Gmaj, type='jig')
+    '''
 
     def __init__(self, abc: str):
-        """
-        Parameters
-        ----------
-        abc
-            String of a single ABC tune.
-        """
         self.abc: str = abc
         """Original ABC string."""
 
