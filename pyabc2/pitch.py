@@ -61,9 +61,9 @@ The more common accidentals are used.
 
 _S_RE_ASCII_ACCIDENTALS = r"(?:##|bb|b|#|=)"
 _S_RE_PITCH_CLASS = rf"[A-G]{_S_RE_ASCII_ACCIDENTALS}?"
+# _S_RE_PITCH_CLASS_ONE_ACC = r"[A-G][\#|b]?"
 _S_RE_LOWER_PITCH_CLASS = rf"[a-g]{_S_RE_ASCII_ACCIDENTALS}?"
 _RE_PITCH_CLASS = re.compile(_S_RE_PITCH_CLASS)
-# _S_RE_PITCH_CLASS_ONE_ACC = r"[A-G][\#|b]?"
 _RE_PITCH = re.compile(rf"(?P<pitch_class>{_S_RE_PITCH_CLASS})" r"\s*" r"(?P<octave>[0-9]+)")
 
 
