@@ -134,7 +134,7 @@ _FMT_ABCJS_BODY_HTML = """\
 """
 
 _FMT_ABCJS_RENDER_JS = """\
-ABCJS.renderAbc("notation-{notation_id:s}", "{abc:s}", {{ scale: 0.87, staffwidth: 650 }});
+ABCJS.renderAbc("notation-{notation_id:s}", "{abc:s}", {{ scale: 0.87, responsive: "resize" }});
 """
 
 
@@ -403,7 +403,11 @@ class Tune:
 
         from IPython.display import HTML, Javascript, display
 
-        html = HTML(f"<div id=notation-{notation_id}><i>abcjs target</i></div>")
+        html = HTML(
+            f'<div id=notation-{notation_id}-container style="max-width: 660px;">'
+            f"<div id=notation-{notation_id}><i>abcjs target</i></div>"
+            f"</div>"
+        )
         display(html)
 
         js = Javascript(
