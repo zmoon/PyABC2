@@ -54,7 +54,7 @@ _ACCIDENTAL_ASCII_TO_HTML = {
 }
 _TRAN_NUM_TO_UNICODE = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 
-NICE_C_CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
+NICE_C_CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"]
 """ASCII chromatic notes, starting with C at index 0.
 The more common accidentals are used.
 """

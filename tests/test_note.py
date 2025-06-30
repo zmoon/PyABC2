@@ -170,8 +170,8 @@ def test_eq():
 
 
 def test_nice_names_from_values():
-    ps = [PitchClass(i) for i in range(6)]
-    assert [p.name for p in ps] == ["C", "C#", "D", "Eb", "E", "F"]
+    ps = [PitchClass(i) for i in range(12)]
+    assert [p.name for p in ps] == ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"]
 
 
 @pytest.mark.parametrize(("note", "octave", "expected_freq"), [("C", 4, 261.6256), ("A", 4, 440.0)])
