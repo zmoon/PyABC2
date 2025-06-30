@@ -2,7 +2,7 @@
 Python ABC notation tools
 """
 
-__version__ = "0.1.0.dev2"
+__version__ = "0.1.0.dev3"
 
 from .note import Key, Note
 from .parse import Tune, _load_abcjs_if_in_jupyter
