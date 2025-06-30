@@ -3,6 +3,7 @@ Test the pitch and note modules
 """
 
 import warnings
+from fractions import Fraction
 from functools import partial
 
 import pytest
@@ -180,7 +181,7 @@ def test_etf(note, octave, expected_freq):
 
 
 def test_pitch_from_etf():
-    Pitch.from_etf(440) == Pitch.from_name("A4")
+    assert Pitch.from_etf(440) == Pitch.from_name("A4")
 
 
 def test_pitch_class_to_pitch():
@@ -260,7 +261,7 @@ def test_note_from_abc_key():
 
 
 def test_note_to_from_abc_consistency():
-    n = Note(49, duration=2)
+    n = Note(49, duration=Fraction("1/4"))
     assert Note.from_abc(n.to_abc()) == n
 
     assert Note.from_abc(n.to_abc(key=Key("C#")), key=Key("C#")) == n
