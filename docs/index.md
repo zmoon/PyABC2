@@ -4,7 +4,16 @@
 
 ```
 
-![image](https://user-images.githubusercontent.com/15079414/195207144-83df651a-6fe9-44b1-b7bc-e4aced14a2aa.png)
+```{figure} https://user-images.githubusercontent.com/15079414/195207144-83df651a-6fe9-44b1-b7bc-e4aced14a2aa.png
+:alt: Polar tune plot for "For the Love of Music" by Liz Carroll
+
+This polar axis plot combines melody trajectory and note histogram.
+Each ring represents an octave (outer = higher).
+The trajectory changes color with progression through the tune
+(dark blue/purple to light yellow).
+{ref}`polar-tune-plot` shows how the plot is generated,
+with the tune itself shown {doc}`at the top <examples/plots>`.
+```
 
 ## Getting started
 
