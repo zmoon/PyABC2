@@ -6,7 +6,7 @@ import re
 from typing import Dict, Iterator, List, NamedTuple, Optional
 
 from .key import Key
-from .note import _RE_NOTE, Note
+from .note import RE_NOTE, Note
 
 
 class InfoField(NamedTuple):
@@ -180,7 +180,7 @@ def _find_first_chord(s: str) -> Optional[str]:
     # NOTE: did see some single notes inside `[]` in The Session data
     c = m.group()
     assert c.startswith("[") and c.endswith("]")
-    n = len(_RE_NOTE.findall(c))  # TODO: maybe just letter count would be suff.
+    n = len(RE_NOTE.findall(c))  # TODO: maybe just letter count would be suff.
     if n >= 2:
         return c
     else:
@@ -375,7 +375,7 @@ class Tune:
                     # https://abcnotation.com/wiki/abc:standard:v2.1#broken_rhythm
 
                     # 3. In note group, find notes
-                    for m_note in _RE_NOTE.finditer(note_group):
+                    for m_note in RE_NOTE.finditer(note_group):
                         # TODO: parse/store rests, maybe have an additional iterator for "rhythmic elements" or something
 
                         if m_note is None:
