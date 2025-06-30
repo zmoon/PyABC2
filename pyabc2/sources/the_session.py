@@ -95,6 +95,12 @@ def load_url(url: str) -> Tune:
     - https://thesession.org/tunes/10000 (first setting assumed)
     - https://thesession.org/tunes/10000#setting31601 (specific setting)
 
+    Examples
+    --------
+    >>> from pyabc2.sources import the_session
+    >>> the_session.load_url("https://thesession.org/tunes/1")
+    Tune(title="Cooley's", key=Edor, type='reel')
+
     Notes
     -----
     Uses the API: https://thesession.org/api

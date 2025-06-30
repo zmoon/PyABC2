@@ -41,7 +41,10 @@ def load_example_abc(title: Optional[str] = None) -> str:
 
     See Also
     --------
+    :func:`load_example`
+
     :doc:`/examples/types`
+        Example notebook.
     """
     if title is None:
         import random
@@ -66,6 +69,10 @@ def load_example(title: Optional[str] = None) -> Tune:
     """Load an example tune,
     random if `title` not provided.
     Case ignored in the title.
+
+    See Also
+    --------
+    load_example_abc
     """
     return Tune(load_example_abc(title))
 

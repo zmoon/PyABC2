@@ -84,6 +84,20 @@ Tune sources
 
 .. currentmodule:: pyabc2.sources
 
+The :mod:`pyabc2.sources` namespace contains a few general tools.
+
+.. autosummary::
+   :toctree: api/
+
+   load_example_abc
+   load_example
+   load_url
+
+Others are found in source-specific submodules.
+For example::
+
+   from pyabc2.sources import norbeck
+
 Norbeck
 -------
 
@@ -92,7 +106,6 @@ Norbeck
 
    norbeck.load
    norbeck.load_url
-
 
 The Session
 -----------
@@ -103,13 +116,3 @@ The Session
    the_session.load
    the_session.load_meta
    the_session.load_url
-
-Shared
-------
-
-.. autosummary::
-   :toctree: api/
-
-   load_example_abc
-   load_example
-   load_url
