@@ -254,6 +254,11 @@ class Note(Pitch):
         octave = self.octave
         note_name = self.class_name
 
+        # Mark natural if necessary in the key context
+        pc = self.to_pitch_class()
+        if not pc.acc and pc not in key.scale:
+            note_name += "="
+
         # Accidental(s). Hack for now
         if len(note_name) == 1:
             note_nat = note_name

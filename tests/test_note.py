@@ -308,6 +308,15 @@ def test_note_issue27():
     )
 
 
+def test_to_abc_nat():
+    pc = Key("Ador").scale[-1]
+    assert pc.name == "G"
+    n = pc.to_pitch(octave=4).to_note()
+    assert n.name == "G4"
+    assert n.to_abc(key=Key("Amaj")) == "=G", "explicit natural needed"
+    assert n.to_abc(key=Key("C")) == "G", "implicit natural okay"
+
+
 @pytest.mark.parametrize(
     ("v", "expected_name"),
     [
