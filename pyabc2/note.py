@@ -256,7 +256,7 @@ class Note(Pitch):
 
         # Mark natural if necessary in the key context
         pc = self.to_pitch_class()
-        if pc.isnat and pc not in key.scale:
+        if not pc.acc and pc not in key.scale:
             note_name += "="
 
         # Accidental(s). Hack for now
