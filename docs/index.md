@@ -1,5 +1,7 @@
 # PyABC2
 
+Python library for working with melodies in [ABC notation](https://abcnotation.com/).
+
 ```{module} pyabc2
 
 ```
