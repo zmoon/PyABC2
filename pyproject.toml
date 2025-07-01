@@ -15,7 +15,7 @@ dependencies = []
 [project.urls]
 Home = "https://github.com/zmoon/PyABC2"
 Source = "https://github.com/zmoon/PyABC2"
-# Documentation = ""
+Documentation = "https://pyabc2.readthedocs.io"
 
 [project.optional-dependencies]
 sources = [
