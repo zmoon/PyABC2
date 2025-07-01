@@ -33,6 +33,8 @@ To contribute code to this project, see the [instructions for developers](dev.md
 
 Inspired in part by and some portions based on [PyABC](https://github.com/campagnola/pyabc) (`pyabc`; [MIT License](https://github.com/campagnola/pyabc/blob/master/LICENSE.txt)), hence "PyABC2" and the package name `pyabc2`. No relation to [this pyabc](https://github.com/icb-dcm/pyabc) that is on PyPI.
 
+---
+
 ```{toctree}
 :caption: Examples
 :hidden:
