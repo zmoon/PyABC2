@@ -24,7 +24,8 @@ pip install pyabc2
 
 Then look at the [example notebooks](examples/types.ipynb).
 
-To contribute to this project, see the [instructions for developers](dev.md).
+If you have a feature request or find a bug, feel free to open an issue [on GitHub](https://github.com/zmoon/PyABC2/issues).
+To contribute code to this project, see the [instructions for developers](dev.md).
 
 ## Credits
 
