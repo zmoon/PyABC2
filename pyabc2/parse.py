@@ -267,6 +267,10 @@ class Tune:
         .. note::
            Currently this is computed during class initialization,
            but this may change in the future.
+
+        See Also
+        --------
+        iter_notes
         """
 
         self._parse_abc()
