@@ -12,6 +12,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.extlinks",
     "sphinx.ext.mathjax",
     "myst_nb",
     "sphinx_inline_tabs",
@@ -21,6 +22,11 @@ extensions = [
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "pandas": ("https://pandas.pydata.org/docs/", None),
+}
+
+extlinks = {
+    "issue": ("https://github.com/zmoon/PyABC2/issues/%s", "GH%s"),
+    "pull": ("https://github.com/zmoon/PyABC2/pull/%s", "PR%s"),
 }
 
 exclude_patterns = ["_build"]

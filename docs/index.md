@@ -50,6 +50,7 @@ examples/plots.ipynb
 :hidden:
 
 api.rst
+changes.md
 dev.md
 GitHub <https://github.com/zmoon/PyABC2>
 ```
