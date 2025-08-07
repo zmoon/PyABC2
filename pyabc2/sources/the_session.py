@@ -403,7 +403,7 @@ def load_meta(
     if format not in {"csv", "json"}:
         raise ValueError("`format` must be 'csv' or 'json'.")
 
-    base_url = f"https://raw.githubusercontent.com/adactio/TheSession-data/main/{format}/"
+    base_url = f"https://github.com/adactio/TheSession-data/raw/main/{format}/"
     fn = f"{which}.{format}"
     url = base_url + fn
 
