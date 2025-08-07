@@ -1,5 +1,9 @@
 # Release notes
 
+## v0.1.1 (unreleased)
+
+* Fix loading The Session sets data ({pull}`77`)
+
 ## v0.1.0 (2025-07-02)
 
 I've recently cleaned up a few things and added docs ({pull}`68`, {pull}`69`),
