@@ -227,8 +227,7 @@ class PitchClass:
         return f"{type(self).__name__}(value={self.value}, name={self.name!r})"
 
     def _repr_html_(self):
-        name = self.name
-        return name[0] + "".join(_ACCIDENTAL_ASCII_TO_HTML[c] for c in name[1:])
+        return f"{self.nat}{_ACCIDENTAL_ASCII_TO_HTML[self.acc]}"
 
     def unicode(self):
         """String repr using unicode accidental symbols.
