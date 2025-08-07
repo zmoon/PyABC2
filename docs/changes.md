@@ -3,6 +3,7 @@
 ## v0.1.1 (unreleased)
 
 * Fix loading The Session sets data ({pull}`77`)
+* Fix HTML display of pitch classes with double accidentals ({pull}`76`)
 
 ## v0.1.0 (2025-07-02)
 

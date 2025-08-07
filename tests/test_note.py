@@ -218,6 +218,21 @@ def test_pitch_class_unicode(s, expected):
 @pytest.mark.parametrize(
     "s, expected",
     [
+        ("A", "A"),
+        ("Ab", "A&flat;"),
+        ("Abb", "A&#119083;"),
+        ("A#", "A&sharp;"),
+        ("A##", "A&#119082;"),
+        ("A=", "A&natural;"),
+    ],
+)
+def test_pitch_class_html(s, expected):
+    assert PitchClass.from_name(s)._repr_html_() == expected
+
+
+@pytest.mark.parametrize(
+    "s, expected",
+    [
         ("A4", "A₄"),
         ("A14", "A₁₄"),
         ("Ab4", "A♭₄"),
