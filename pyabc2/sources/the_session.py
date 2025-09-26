@@ -477,6 +477,48 @@ def load_meta(
     return df
 
 
+def _consume(
+    endpoint: str,
+    *,
+    pages: Optional[int] = None,
+    size: Optional[int] = None,
+) -> List[dict]:
+    """Consume paginated The Session API endpoint, returning a list of entries."""
+    import requests
+
+    if not endpoint.startswith("/"):
+        endpoint = "/" + endpoint
+
+    base_url = "https://thesession.org"
+
+    if size is not None:
+        per_page = size
+    else:
+        per_page = 50  # max
+
+    def get_page(page: int) -> dict:
+        url = base_url + f"{endpoint}?format=json&perpage={per_page}&page={page}"
+        r = requests.get(url, timeout=5)
+        r.raise_for_status()
+        return r.json()
+
+    # Even for page out of bounds
+    # https://thesession.org/tunes/popular?format=json&perpage=50&page=1000000
+    # we get 'pages' (page count) and 'total' (entry count)
+    # (though the key that contains the data we want varies by endpoint)
+    # So start by getting the first page, and then we can multithread the rest
+    first_page = get_page(1)
+    if pages is None:
+        pages = first_page.get("pages", 1)
+    assert isinstance(pages, int)
+
+    remaining_pages = []
+    for page in range(2, pages + 1):
+        remaining_pages.append(get_page(page))
+
+    return [first_page] + remaining_pages
+
+
 if __name__ == "__main__":  # pragma: no cover
     tune = load_url("https://thesession.org/tunes/10000")
     print(tune)
