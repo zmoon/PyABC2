@@ -558,6 +558,26 @@ def _consume(
     return [first_page] + remaining_pages
 
 
+def get_tune_collections(tune_id: int) -> "pandas.DataFrame":
+    """Get data about the other collections a tune is in."""
+    # https://thesession.org/tunes/1/collections?format=json
+    import pandas as pd
+
+    endpoint = f"/tunes/{tune_id}/collections"
+    (result,) = _consume(endpoint)
+
+    return pd.DataFrame(result["collections"]).rename(
+        columns={
+            "id": "collection_id",
+            "name": "collection_name",
+            "url": "collection_page",
+            # ^ https://thesession.org/tunes/collections/ID
+            "identifier": "collection_tune_id",
+            # ^ sometimes string ID (e.g. for print book), sometimes URL (e.g. for Norbeck)
+        }
+    )
+
+
 if __name__ == "__main__":  # pragma: no cover
     tune = load_url("https://thesession.org/tunes/10000")
     print(tune)
