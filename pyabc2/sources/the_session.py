@@ -481,7 +481,7 @@ def _consume(
     endpoint: str,
     *,
     pages: Optional[int] = None,
-    size: Optional[int] = 50,
+    size: int = 50,
     max_threads: int = 1,
     **params,
 ) -> List[Dict]:
@@ -510,6 +510,13 @@ def _consume(
 
     if not endpoint.startswith("/"):
         endpoint = "/" + endpoint
+
+    if not 1 <= size <= 50:
+        raise ValueError("`size` must be between 1 and 50 (inclusive).")
+    if pages is not None and pages < 1:
+        raise ValueError("`pages` must be >= 1.")
+    if max_threads < 1:
+        raise ValueError("`max_threads` must be >= 1.")
 
     base_url = "https://thesession.org"
 
