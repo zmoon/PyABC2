@@ -15,7 +15,7 @@ import logging
 import os
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Literal, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Union
 
 from .._util import get_logger as _get_logger
 from ..parse import Tune
@@ -481,9 +481,27 @@ def _consume(
     endpoint: str,
     *,
     pages: Optional[int] = None,
-    size: Optional[int] = None,
-) -> List[dict]:
-    """Consume paginated The Session API endpoint, returning a list of entries."""
+    size: Optional[int] = 50,
+    **params,
+) -> List[Dict]:
+    """Consume paginated The Session API endpoint, returning a list of entries.
+
+    Parameters
+    ----------
+    endpoint
+        The API endpoint, e.g. ``'/tunes/popular'``.
+    pages
+        Number of pages to retrieve.
+        Default: all pages.
+    size
+        Number of entries per page.
+        Corresponds to the ``perpage`` API parameter.
+        Default: 50 (maximum).
+    **params
+        Additional parameters to pass to the API.
+        For example, ``sortby=popular`` works for some endpoints.
+        Note that these, if provided, will be ignored: ``format``, ``perpage``, ``page``.
+    """
     import requests
 
     if not endpoint.startswith("/"):
@@ -491,14 +509,18 @@ def _consume(
 
     base_url = "https://thesession.org"
 
-    if size is not None:
-        per_page = size
-    else:
-        per_page = 50  # max
+    params.update(
+        {
+            "format": "json",
+            "perpage": size,
+        }
+    )
 
     def get_page(page: int) -> dict:
-        url = base_url + f"{endpoint}?format=json&perpage={per_page}&page={page}"
-        r = requests.get(url, timeout=5)
+        page_params = params.copy()
+        page_params["page"] = page
+        url = base_url + endpoint
+        r = requests.get(url, timeout=5, params=page_params)
         r.raise_for_status()
         return r.json()
 
