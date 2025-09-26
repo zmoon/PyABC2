@@ -482,6 +482,7 @@ def _consume(
     *,
     pages: Optional[int] = None,
     size: Optional[int] = 50,
+    max_threads: int = 1,
     **params,
 ) -> List[Dict]:
     """Consume paginated The Session API endpoint, returning a list of entries.
@@ -497,6 +498,9 @@ def _consume(
         Number of entries per page.
         Corresponds to the ``perpage`` API parameter.
         Default: 50 (maximum).
+    max_threads
+        Maximum number of threads to use.
+        Default: 1 (no multi-threading).
     **params
         Additional parameters to pass to the API.
         For example, ``sortby=popular`` works for some endpoints.
@@ -533,10 +537,16 @@ def _consume(
     if pages is None:
         pages = first_page.get("pages", 1)
     assert isinstance(pages, int)
+    parallel = pages > 2 and max_threads > 1
 
-    remaining_pages = []
-    for page in range(2, pages + 1):
-        remaining_pages.append(get_page(page))
+    page_range = range(2, pages + 1)
+    if parallel:
+        from multiprocessing.pool import ThreadPool
+
+        with ThreadPool(min(max_threads, pages - 1)) as pool:
+            remaining_pages = pool.map(get_page, page_range)
+    else:
+        remaining_pages = [get_page(page) for page in page_range]
 
     return [first_page] + remaining_pages
 
