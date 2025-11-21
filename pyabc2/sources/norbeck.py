@@ -216,7 +216,7 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
     for tune in tunes:
         # Example: https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=10
         ref = tune.header["reference number"]
-        rhy = tune.type
+        rhy = tune.type.replace(" ", "+")
         tune.url = f"https://www.norbeck.nu/abc/display.asp?rhythm={rhy}&ref={ref}"
 
     return tunes
