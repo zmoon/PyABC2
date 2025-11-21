@@ -578,6 +578,48 @@ def get_tune_collections(tune_id: int) -> "pandas.DataFrame":
     )
 
 
+def get_member_set(member_id: int, set_id: int) -> List[Result]:
+    import requests
+
+    url = f"https://thesession.org/members/{member_id}/sets/{set_id}?format=json"
+    r = requests.get(url)
+    r.raise_for_status()
+    data = r.json()
+
+    results = []
+    for setting in data["settings"]:
+        url = setting["url"]
+        tune_id = int(url.split("/")[-1].split("#")[0])
+        d: Result = {
+            "name": setting["name"],
+            "tune_id": tune_id,
+            "setting_id": setting["id"],
+            "type": setting["type"],
+            "key": setting["key"],
+            "starts": starts(setting["abc"].replace("! ", "")),
+            "name_input": setting["name"],
+        }
+        results.append(d)
+
+    return results
+
+
+def get_member_sets(member_id: int) -> list[list[Result]]:
+    import requests
+
+    url = f"https://thesession.org/members/{member_id}/sets?format=json"
+    r = requests.get(url)
+    r.raise_for_status()
+    data = r.json()
+
+    sets = []
+    for set in data["sets"]:
+        set_id = set["id"]
+        sets.append(get_member_set(member_id, set_id))
+
+    return sets
+
+
 if __name__ == "__main__":  # pragma: no cover
     tune = load_url("https://thesession.org/tunes/10000")
     print(tune)
