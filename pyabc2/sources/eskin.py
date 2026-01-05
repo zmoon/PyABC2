@@ -106,7 +106,12 @@ class EskinTunebookInfo(NamedTuple):
 
 
 def get_tunebook_info(key: str) -> EskinTunebookInfo:
-    url = _TUNEBOOK_KEY_TO_URL[key]
+    try:
+        url = _TUNEBOOK_KEY_TO_URL[key.lower()]
+    except KeyError:
+        raise ValueError(
+            f"Unknown Eskin tunebook key: {key!r}. Valid options: {sorted(_TUNEBOOK_KEY_TO_URL)}."
+        ) from None
     stem = Path(urlsplit(url).path).stem
 
     return EskinTunebookInfo(
