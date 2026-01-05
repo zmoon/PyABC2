@@ -298,3 +298,18 @@ def test_eskin_tunebook_data_load(key):
     }
 
     assert data.keys() <= tune_type_keys or list(data) == ["tunes"]
+
+
+def test_eskin_abc_url_creation():
+    import requests
+
+    abc = load_example_abc("For the Love of Music")
+
+    url = eskin.abc_to_abctools_url(abc)
+    r = requests.head(url, timeout=5)
+    r.raise_for_status()
+    if (
+        r.status_code == 302
+        and r.headers.get("Location", "").rstrip("/") == "https://michaeleskin.com"
+    ):
+        raise ValueError(f"URL {url} redirects to homepage")
