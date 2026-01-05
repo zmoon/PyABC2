@@ -3,6 +3,8 @@
 # - Remove unused imports
 # - Fix UTF-16 decompress (PR#7)
 
+# type: ignore
+
 from __future__ import division
 from __future__ import unicode_literals
 from __future__ import print_function

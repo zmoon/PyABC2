@@ -73,6 +73,8 @@ def abctools_url_to_abc(
     # Note js LZString.compressToEncodedURIComponent() is used to compress/encode the ABC
 
     abc = LZString.decompressFromEncodedURIComponent(lzw)
+    if abc is None:
+        raise RuntimeError("Failed to decompress LZString data")
 
     wanted_lines = [
         line.strip() for line in abc.splitlines() if not line.lstrip().startswith(remove_prefs)

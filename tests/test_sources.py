@@ -206,6 +206,7 @@ def test_the_session_load_meta_invalid():
 def test_the_session_load_meta_doc_consistency():
     s_options = ", ".join(repr(x) for x in sorted(the_session._META_ALLOWED))
     expected_line = f"which : {{{s_options}}}"
+    assert the_session.load_meta.__doc__ is not None
     assert expected_line in the_session.load_meta.__doc__
 
 
