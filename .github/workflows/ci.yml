@@ -18,10 +18,10 @@ jobs:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -33,8 +33,11 @@ jobs:
           flit install -s
 
       - name: Test with pytest
-        run: |
-          pytest -v -ra --cov=pyabc2 --cov-report xml --cov-report term-missing -n auto
+        run: >
+          pytest -v -ra
+          --doctest-modules
+          --cov=pyabc2 --cov-report xml --cov-report term-missing
+          -n auto
 
       - name: Check type annotations
         run: |
@@ -42,7 +45,7 @@ jobs:
 
       - name: Run the example notebooks
         run: |
-          cd examples
+          cd docs/examples
           for f in *.ipynb; do
             jupyter nbconvert --to notebook --execute $f || exit 1
           done

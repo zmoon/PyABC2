@@ -15,7 +15,7 @@ dependencies = []
 [project.urls]
 Home = "https://github.com/zmoon/PyABC2"
 Source = "https://github.com/zmoon/PyABC2"
-# Documentation = ""
+Documentation = "https://pyabc2.readthedocs.io"
 
 [project.optional-dependencies]
 sources = [
@@ -34,23 +34,18 @@ dev = [
     "ipython",
     "jupyterlab",
 ]
+doc = [
+    "furo",
+    "matplotlib",
+    "myst-nb",
+    "sphinx",
+    "sphinx-copybutton",
+    "sphinx-inline-tabs",
+]
 
 
 [tool.black]
 line-length = 100
-
-[tool.flake8]  # pyproject-flake8
-max-line-length = 100
-ignore = [
-  "E203", # whitespace before ':' - doesn't work well with black
-  "E402", # module level import not at top of file
-  "E501", # line too long - let black worry about that
-  "W503", # line break before binary operator
-  "E226", # missing whitespace around arithmetic operator - not always more readable imho
-]
-per-file-ignores = [
-    "pyabc2/sources/_lzstring.py: E111,E225,E261,E302,E303,E703",
-]
 
 [tool.isort]
 profile = "black"

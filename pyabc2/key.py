@@ -186,7 +186,12 @@ def _scale_intervals(
         Whether to return 7 intervals by computing the interval from scale degree 7 to 8,
         by default True.
     """
-    assert len(values) == 7
+    if len(values) != 7:
+        raise ValueError(f"expected 7 values, got {len(values)}")
+    if values[0] != 0:
+        raise ValueError(f"first value should be 0, not {values[0]}")
+    if not values[-1] < 12:
+        raise ValueError(f"last value should be < 12, not {values[-1]}")
 
     if include_upper:
         values.append(12)
@@ -199,7 +204,7 @@ def _scale_intervals(
         elif dv == 1:
             interval = "H"
         else:
-            raise ValueError("strange interval (not W/H)")
+            raise ValueError(f"strange interval {dv} (not W/H)")
         intervals.append(interval)
     # TODO: should make a class for interval!
 
@@ -230,7 +235,35 @@ FLAT_ORDER = list("BEADGCF")
 
 
 class Key:
-    """Key, including mode."""
+    """Key, including mode.
+
+    Pass either `name` (key spec with tonic and mode combined, used in ABC notation)
+    or `tonic` and `mode`.
+
+    Parameters
+    ---------
+    name
+        Key name (e.g., ``D``, ``Amaj``, ``Em``, ``Ador``, ``Bbmin``, ...).
+        (Major assumed if mode not specified.)
+    tonic
+        Tonic of the key (e.g., ``C``, ``D``, ...).
+    mode
+        Mode specification, (e.g., ``maj``, ``min``, ``dor``, ...).
+
+    Examples
+    --------
+    >>> from pyabc2 import Key
+    >>> Key('C')
+    Key(tonic=C, mode='Major')
+
+    >>> Key('Ador')
+    Key(tonic=A, mode='Dorian')
+    >>> Key('Em')
+    Key(tonic=E, mode='Minor')
+
+    >>> Key(tonic='Bb', mode='Locrian')
+    Key(tonic=Bb, mode='Locrian')
+    """
 
     # TODO: maybe should move name to a .from_name for consistency with Pitch(Class)
     def __init__(
@@ -240,34 +273,37 @@ class Key:
         tonic: Optional[str] = None,
         mode: Optional[str] = None,
     ):
-        """
-        Parameters
-        ---------
-        name
-            Key name, e.g., `D`, `Ador`, `Bbmin`, ...
-        tonic
-            Tonic of the key, e.g., `C`, `D`, ...
-        mode
-            Mode specification, e.g., `m`, `min`, `dor`.
-            (Major assumed if mode not specified.)
-        """
+        self.tonic: PitchClass
+        """The tonic of the key."""
+
+        msg = "pass either just `name` or both `tonic` and `mode`"
         if name is not None:
-            assert tonic is None and mode is None, "pass either `name` or `tonic`+`mode`"
+            if not (tonic is None and mode is None):
+                raise ValueError(msg)
             # Handle occasional `K:` line used to indicate default key (C) and tune start
             if name == "":
                 name = "C"
             self.tonic, self._mode = Key.parse_key(name)
         else:
-            assert tonic is not None and mode is not None, "pass either `name` or `tonic`+`mode`"
+            # TODO: default mode to major for consistency?
+            # TODO: allow passing tonic as PitchClass
+            if not (tonic is not None and mode is not None):
+                raise ValueError(msg)
             self.tonic = PitchClass.from_name(tonic)
             self._mode = _validate_and_normalize_mode_name(mode)
 
     @property
     def mode(self) -> str:
+        """Full mode name (e.g., ``Major``)."""
         return _MODE_ABBR_TO_FULL[self._mode].capitalize()
 
     @staticmethod
     def parse_key(key: str) -> Tuple[PitchClass, str]:
+        """Parse a key spec string (e.g., ``D``, ``Amin``)
+        and return the tonic and mode (3-char abbreviation).
+
+        Used when you pass ``name`` to the constructor.
+        """
         m = re.match(r"([A-G])(\#|b)?\s*(\w+)?(.*)", key)
         if m is None:
             raise ValueError(f"Invalid key specification '{key}'")
@@ -288,8 +324,8 @@ class Key:
 
         try:
             mode = _validate_and_normalize_mode_name(mode)
-        except ValueError:
-            raise ValueError("Unrecognized mode specification '{mode}' from key '{key}'")
+        except ValueError as e:
+            raise ValueError(f"Unrecognized mode specification '{mode}' from key '{key}'") from e
 
         return PitchClass.from_name(base + acc), mode
         # TODO: probably should either return a Key or be private / maybe outside class
@@ -324,6 +360,7 @@ class Key:
         return {p: a for p, a in self.key_signature}  # type: ignore[misc, has-type]
 
     def relative(self, mode: str, *, match_acc: bool = False) -> "Key":
+        """Compute a relative key by specifying the target mode."""
         mode = _validate_and_normalize_mode_name(mode)
         key, mode0 = self.tonic, self._mode
 
@@ -334,18 +371,21 @@ class Key:
         tonic_ef = tonic.equivalent_flat
 
         if match_acc:
-            # Select flat or sharp to match the current key name
+            # Select accidentals to match the current key name
+            # (haven't identified a case where a successful result is different than
+            # the default approach below though)
 
-            # TODO: PitchClass from value with acc option?
-            if "#" in key.name:
-                if tonic_es.acc == "#":  # single sharp used
-                    tonic_name = tonic_es.name
-            elif "b" in key.name:
-                if tonic_ef.acc == "b":  # single flat used
-                    tonic_name = tonic_ef.name
+            # Note = is allowed for explicit natural, but it wouldn't be added automatically
+            orig_acc = key.acc.replace("=", "")
+            for tonic_cand in [tonic_es, tonic_ef, tonic]:
+                if tonic_cand.acc == orig_acc:
+                    tonic_name = tonic_cand.name
+                    break
             else:
-                tonic_name = tonic.name
-
+                raise ValueError(
+                    f"unable to match accidentals ({key}{mode0} -> "
+                    f"{{{tonic_es}, {tonic_ef}, {tonic}}}{mode})"
+                )
         else:
             # Use the letter that it should be in the scale
             sd0 = MODE_SCALE_DEGREE[mode0]
@@ -360,8 +400,8 @@ class Key:
                     tonic_name = tonic_es.name
                 elif tonic_ef.nat == new_nat:
                     tonic_name = tonic_ef.name
-                else:
-                    raise Exception
+                else:  # pragma: no cover
+                    raise AssertionError
             else:
                 tonic_name = tonic.name
 

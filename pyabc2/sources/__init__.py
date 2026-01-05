@@ -35,8 +35,16 @@ d|edB GAB|~D3 GAB|~D3 cBA|AGE GBd|edB GAB|~D3 GAB|~D3 cBA|AGF G2:|
 
 
 def load_example_abc(title: Optional[str] = None) -> str:
-    """Load a random example ABC if `title` not provided.
+    """Load an example ABC string,
+    random if `title` not provided.
     Case ignored in the title.
+
+    See Also
+    --------
+    :func:`load_example`
+
+    :doc:`/examples/types`
+        Example notebook.
     """
     if title is None:
         import random
@@ -61,16 +69,26 @@ def load_example(title: Optional[str] = None) -> Tune:
     """Load an example tune,
     random if `title` not provided.
     Case ignored in the title.
+
+    See Also
+    --------
+    load_example_abc
     """
     return Tune(load_example_abc(title))
 
 
 def load_url(url: str) -> Tune:
-    """Load tune from ABC corresponding to `url`.
+    """Load tune from ABC found at the specified webpage.
 
     Currently these URL types are supported:
+
     - Norbeck (``norbeck.nu/abc/``)
     - The Session (``thesession.org``)
+
+    See Also
+    --------
+    norbeck.load_url
+    the_session.load_url
     """
     from urllib.parse import urlsplit
 
@@ -82,4 +100,4 @@ def load_url(url: str) -> Tune:
     elif res.netloc in the_session._URL_NETLOCS:
         return the_session.load_url(url)
     else:
-        raise NotImplementedError("loading URL from {res.netloc} not implemented.")
+        raise NotImplementedError(f"loading URL from {res.netloc} not implemented.")

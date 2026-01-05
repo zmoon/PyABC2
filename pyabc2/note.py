@@ -58,9 +58,45 @@ _DEFAULT_UNIT_DURATION = Fraction("1/8")
 
 
 class Note(Pitch):
-    """A note has a pitch and a duration."""
+    """A note has a pitch and a duration.
+
+    Parameters
+    ----------
+    value
+        Chromatic distance from C0 in semitones (half steps).
+        For example, C4 (middle C) is 48, A4 is 57.
+    duration
+        The duration of the note,
+        e.g. ``1/8`` (``Fraction('1/8')``) for an eighth note,
+        which is the default.
+
+    Examples
+    --------
+    >>> from pyabc2 import Note
+    >>> from fractions import Fraction
+    >>> Note(48)
+    Note(value=48, name='C4', duration=1/8)
+    >>> Note(48, Fraction('1/2'))
+    Note(value=48, name='C4', duration=1/2)
+
+    >>> Note.from_abc('C')
+    Note(value=48, name='C4', duration=1/8)
+    >>> Note.from_abc('C4')  # 4x unit duration
+    Note(value=48, name='C4', duration=1/2)
+
+    >>> Note.from_abc('D,3', octave_base=3)
+    Note(value=26, name='D2', duration=3/8)
+
+    >>> from pyabc2 import Pitch
+    >>> p = Pitch.from_name('E#3')
+    >>> Note.from_pitch(p)
+    Note(value=41, name='E#3', duration=1/8)
+    >>> Note(41)
+    Note(value=41, name='F3', duration=1/8)
+    """
 
     def __init__(self, value: int, duration: Fraction = _DEFAULT_UNIT_DURATION):
+        # TODO: accept string duration as well and convert to Fraction?
         super().__init__(value)
 
         self.duration = duration
@@ -70,7 +106,11 @@ class Note(Pitch):
         return f"{self.name}_{self.duration}"
 
     def __repr__(self):
-        return f"{type(self).__name__}(value={self.value}, duration={self.duration})"
+        return (
+            f"{type(self).__name__}("
+            f"value={self.value}, name={self.name!r}, duration={self.duration}"
+            ")"
+        )
 
     def _repr_html_(self):
         p = super()._repr_html_()
@@ -90,6 +130,10 @@ class Note(Pitch):
             # TODO: ties or adding multiples
             return f"{p}({nd1}{_DURATION_FRAC_TO_HTML[d1]})"
 
+    def unicode(self):
+        """*not implemented*"""
+        raise NotImplementedError
+
     def __eq__(self, other):
         if not isinstance(other, Note):
             return NotImplemented
@@ -104,7 +148,17 @@ class Note(Pitch):
         key: Key = _DEFAULT_KEY,
         octave_base: int = _DEFAULT_OCTAVE_BASE,
         unit_duration: Fraction = _DEFAULT_UNIT_DURATION,
-    ):
+    ) -> "Note":
+        """Parse ABC string to note.
+
+        The default context is:
+
+        * C major
+        * octave 4
+        * eighth note unit duration
+
+        but this can be adjusted using the keyword arguments.
+        """
         m = _RE_NOTE.match(abc)
         return cls._from_abc_match(m, key=key, octave_base=octave_base, unit_duration=unit_duration)
 
@@ -116,7 +170,7 @@ class Note(Pitch):
         key: Key = _DEFAULT_KEY,
         octave_base: int = _DEFAULT_OCTAVE_BASE,
         unit_duration: Fraction = _DEFAULT_UNIT_DURATION,
-    ):
+    ) -> "Note":
         # `re.Match[str]` seems to work only in 3.9+ ?
         # TODO: key could be a string or Key instance to make it simpler?
         if m is None:
@@ -195,9 +249,15 @@ class Note(Pitch):
         key: Key = _DEFAULT_KEY,
         octave_base: int = _DEFAULT_OCTAVE_BASE,
         unit_duration: Fraction = _DEFAULT_UNIT_DURATION,
-    ):
+    ) -> str:
+        """Convert to ABC notation string."""
         octave = self.octave
         note_name = self.class_name
+
+        # Mark natural if necessary in the key context
+        pc = self.to_pitch_class()
+        if not pc.acc and pc not in key.scale:
+            note_name += "="
 
         # Accidental(s). Hack for now
         if len(note_name) == 1:
@@ -241,6 +301,8 @@ class Note(Pitch):
 
     @classmethod
     def from_pitch(cls, p: Pitch, *, duration: Fraction = _DEFAULT_UNIT_DURATION) -> "Note":
+        """From pitch instance."""
+        # TODO: accept string pitch name as well?
         note = cls(p.value, duration)
         note._class_name = p._class_name
         note._octave = p._octave
@@ -248,27 +310,42 @@ class Note(Pitch):
         return note
 
     def to_pitch(self) -> Pitch:
+        """Convert to pitch, preserving the class name."""
         p = Pitch(self.value)
         p._class_name = self._class_name
 
         return p
 
-    @classmethod
-    def from_name(cls):
+    def to_note(self):
+        """*not implemented*"""
         raise NotImplementedError
 
     @classmethod
-    def from_etf(cls):
+    def from_name(cls, *args, **kwargs):
+        """*not implemented*"""
         raise NotImplementedError
 
     @classmethod
-    def from_pitch_class(cls):
+    def from_etf(cls, *args, **kwargs):
+        """*not implemented*"""
         raise NotImplementedError
 
     @classmethod
-    def from_class_name(cls):
+    def from_helmholtz(cls, *args, **kwargs):
+        """*not implemented*"""
         raise NotImplementedError
 
     @classmethod
-    def from_class_value(cls):
+    def from_pitch_class(cls, *args, **kwargs):
+        """*not implemented*"""
+        raise NotImplementedError
+
+    @classmethod
+    def from_class_name(cls, *args, **kwargs):
+        """*not implemented*"""
+        raise NotImplementedError
+
+    @classmethod
+    def from_class_value(cls, *args, **kwargs):
+        """*not implemented*"""
         raise NotImplementedError
