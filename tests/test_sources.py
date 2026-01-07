@@ -373,10 +373,27 @@ def test_eskin_abc_url_parsing():
     assert sum(line.startswith(r"%%") for line in abc_no_rm.splitlines()) > 0
 
 
-def test_eskin_abc_url_bad():
+def test_eskin_abc_url_missing_param():
     url = "https://michaeleskin.com/abctools/abctools.html?"
     with pytest.raises(ValueError, match="URL does not contain required 'lzw' parameter"):
         _ = eskin.abctools_url_to_abc(url)
+
+
+def test_eskin_abc_url_bad_param():
+    url = "https://michaeleskin.com/abctools/abctools.html?lzw=hi"
+    with pytest.raises(RuntimeError, match="Failed to decompress LZString data"):
+        _ = eskin.abctools_url_to_abc(url)
+
+
+def test_eskin_abc_url_bad(caplog):
+    url = "https://michaeleski.com/deftools/abctools.html?lzw=BoLgjAUApFAuCWsA2BTAZgewHawAQAUBDJQhLDXMADmigGcBXAIwWXWzyJLIrAGZa8LJkw4CxUkN4CYAB0IAnWHVGcJPSjLgoAtrIyrx3KZtqwUAD1iGuk8qYAqIBwAsUuAIJMmKAJ64IABlwAHoaAFkQABYQqIgARRAAJliAXgBOAAYIACUQHJQUJGg6AHchAHNcTIA6SABpEABxaEImAGMAKzoAfToMBiwAE0M0UiYMX1pwgEkAERncWQUMCoVCHWrp+cWmQjo6ZdWtmFmF3HaXDAUho6rs053cPYOANwwkXAA2OMfzy+uQ3enx+rSGQx6xCQPVkJF8e3aAGsekghIi6BAAEQeHSYzx8XAAIU8SVwTQAorgAD6eDxNDy4TFNPGE8HEmnY3G0jzEunkgBi1MZzLJTXpRLZ1KxOLxHlJPJJZMpNI8dIZTJZko5MsVCr5go5IrF4tZQyqVKp0q5KAqttwhFJeyFGtwFTaVUIFRQQ2dOptdodrsIzuZTDdaFd7iGpMtnLx-o9FTDIcxnuTnu9vutto9pLdKbDhAjXqG7IAukA&format=noten&ssp=10&name=The_Abbey&play=1"
+    with caplog.at_level("DEBUG"):
+        _ = eskin.abctools_url_to_abc(url)
+
+    assert caplog.messages == [
+        "Unexpected Eskin URL netloc: michaeleski.com",
+        "Unexpected Eskin URL path: /deftools/abctools.html",
+    ]
 
 
 def test_eskin_abc_url_creation():

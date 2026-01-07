@@ -14,10 +14,13 @@ from typing import TYPE_CHECKING, Literal, NamedTuple, Tuple, Union
 from urllib.parse import parse_qs, urlsplit
 
 from pyabc2 import Tune
+from pyabc2._util import get_logger as _get_logger
 from pyabc2.sources._lzstring import LZString
 
 if TYPE_CHECKING:  # pragma: no cover
     import pandas
+
+logger = _get_logger(__name__)
 
 HERE = Path(__file__).parent
 
@@ -90,8 +93,10 @@ def abctools_url_to_abc(
         remove_prefs = (remove_prefs,)
 
     res = urlsplit(url)
-    assert res.netloc in _URL_NETLOCS
-    assert res.path.startswith("/abctools/")
+    if res.netloc not in _URL_NETLOCS:
+        logger.debug(f"Unexpected Eskin URL netloc: {res.netloc}")
+    if not res.path.startswith("/abctools/"):
+        logger.debug(f"Unexpected Eskin URL path: {res.path}")
 
     query_params = parse_qs(res.query)
     try:
@@ -101,7 +106,10 @@ def abctools_url_to_abc(
     # Note `+` has been replaced with space by parse_qs
     # Note js LZString.compressToEncodedURIComponent() is used to compress/encode the ABC
 
-    abc = LZString.decompressFromEncodedURIComponent(lzw)
+    try:
+        abc = LZString.decompressFromEncodedURIComponent(lzw)
+    except Exception as e:
+        raise RuntimeError("Failed to decompress LZString data") from e
     if abc is None:
         raise RuntimeError("Failed to decompress LZString data")
 
@@ -188,9 +196,10 @@ def _download_data(key: str):
             raise
 
         for d in data:
-            assert d.keys() == {"Name", "URL"}
             d["name"] = d.pop("Name")
             d["abc"] = abctools_url_to_abc(d.pop("URL"))
+            if d:  # pragma: no cover
+                logger.debug(f"Extra fields in Eskin tune data: {sorted(d)}")
 
         all_data[type_] = data
 
