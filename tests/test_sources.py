@@ -339,6 +339,23 @@ def test_eskin_tunebook_data_load(key):
         assert df.group.unique().tolist() == ["tunes"]
 
 
+def test_eskin_abc_url_parsing():
+    url = "https://michaeleskin.com/abctools/abctools.html?lzw=BoLgjAUApFAuCWsA2BTAZgewHawAQAUBDJQhLDXMADmigGcBXAIwWXWzyJLIrAGZa8LJkw4CxUkN4CYAB0IAnWHVGcJPSjLgoAtrIyrx3KZtqwUAD1iGuk8qYAqIBwAsUuAIJMmKAJ64IABlwAHoaAFkQABYQqIgARRAAJliAXgBOAAYIACUQHJQUJGg6AHchAHNcTIA6SABpEABxaEImAGMAKzoAfToMBiwAE0M0UiYMX1pwgEkAERncWQUMCoVCHWrp+cWmQjo6ZdWtmFmF3HaXDAUho6rs053cPYOANwwkXAA2OMfzy+uQ3enx+rSGQx6xCQPVkJF8e3aAGsekghIi6BAAEQeHSYzx8XAAIU8SVwTQAorgAD6eDxNDy4TFNPGE8HEmnY3G0jzEunkgBi1MZzLJTXpRLZ1KxOLxHlJPJJZMpNI8dIZTJZko5MsVCr5go5IrF4tZQyqVKp0q5KAqttwhFJeyFGtwFTaVUIFRQQ2dOptdodrsIzuZTDdaFd7iGpMtnLx-o9FTDIcxnuTnu9vutto9pLdKbDhAjXqG7IAukA&format=noten&ssp=10&name=The_Abbey&play=1"
+
+    # default: explicit prefixes
+    abc = eskin.abctools_url_to_abc(url)
+
+    # any %
+    abc_rm_any_pct = eskin.abctools_url_to_abc(url, remove_prefs="%")
+
+    # no remove
+    abc_no_rm = eskin.abctools_url_to_abc(url, remove_prefs=False)
+
+    assert abc == abc_rm_any_pct
+    assert sum(line.startswith("%") for line in abc_no_rm.splitlines()) > 0
+    assert sum(line.startswith(r"%%") for line in abc_no_rm.splitlines()) > 0
+
+
 def test_eskin_abc_url_creation():
     import requests
 

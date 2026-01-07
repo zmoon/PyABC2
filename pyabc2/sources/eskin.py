@@ -67,6 +67,7 @@ def abctools_url_to_abc(
         r"%%textfont ",
         r"%%tempofont ",
         r"%irish_rolls_on",
+        r"%swing",
         r"%abcjs_",
         r"%%MIDI ",
         r"%add_all_playback_links",
