@@ -84,6 +84,7 @@ def load_url(url: str) -> Tune:
 
     - Norbeck (``norbeck.nu/abc/``)
     - The Session (``thesession.org``)
+    - Eskin ABC Tools (``michaeleskin.com/abctools/``)
 
     See Also
     --------
@@ -92,12 +93,14 @@ def load_url(url: str) -> Tune:
     """
     from urllib.parse import urlsplit
 
-    from . import norbeck, the_session
+    from . import eskin, norbeck, the_session
 
     res = urlsplit(url)
     if res.netloc in norbeck._URL_NETLOCS:
         return norbeck.load_url(url)
     elif res.netloc in the_session._URL_NETLOCS:
         return the_session.load_url(url)
+    elif res.netloc in eskin._URL_NETLOCS:
+        return eskin.load_url(url)
     else:
         raise NotImplementedError(f"loading URL from {res.netloc} not implemented.")
