@@ -305,9 +305,9 @@ def test_eskin_tunebook_url_current():
 
 @pytest.mark.parametrize("key", eskin._TUNEBOOK_KEY_TO_URL)
 def test_eskin_tunebook_data_load(key):
-    data = eskin.load_meta(key)
+    df = eskin.load_meta(key)
 
-    tune_type_keys = {
+    tune_group_keys = {
         "airs_songs",
         "hornpipes",
         "jigs",
@@ -324,7 +324,10 @@ def test_eskin_tunebook_data_load(key):
         "waltzes",
     }
 
-    assert data.keys() <= tune_type_keys or list(data) == ["tunes"]
+    if key in {"kss"}:
+        assert set(df.group.unique()) <= tune_group_keys
+    else:
+        assert df.group.unique().tolist() == ["tunes"]
 
 
 def test_eskin_abc_url_creation():

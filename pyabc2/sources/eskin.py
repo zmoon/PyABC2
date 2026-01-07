@@ -10,11 +10,14 @@ Requires:
 import json
 import re
 from pathlib import Path
-from typing import Literal, NamedTuple, Tuple, Union
+from typing import TYPE_CHECKING, Literal, NamedTuple, Tuple, Union
 from urllib.parse import parse_qs, urlsplit
 
 from pyabc2 import Tune
 from pyabc2.sources._lzstring import LZString
+
+if TYPE_CHECKING:  # pragma: no cover
+    import pandas
 
 HERE = Path(__file__).parent
 
@@ -60,9 +63,13 @@ def abctools_url_to_abc(
         r"%%titlefont ",
         r"%%subtitlefont ",
         r"%%infofont ",
+        r"%%partsfont ",
+        r"%%textfont ",
+        r"%%tempofont ",
         r"%irish_rolls_on",
         r"%abcjs_",
         r"%%MIDI ",
+        r"%add_all_playback_links",
     ),
 ) -> str:
     """Extract the ABC from an Eskin abctools (``michaeleskin.com/abctools/``) share URL.
@@ -195,7 +202,7 @@ def _load_data(key: str):
         return json.load(f)
 
 
-def load_meta(key: str, *, redownload: bool = False):
+def load_meta(key: str, *, redownload: bool = False) -> "pandas.DataFrame":
     """Load the tunebook data, no parsing.
 
     Parameters
@@ -228,7 +235,12 @@ def load_meta(key: str, *, redownload: bool = False):
 
         See https://michaeleskin.com/tunebooks.html
         for more information.
+
+    See Also
+    --------
+    :doc:`/examples/sources`
     """
+    import pandas as pd
 
     tb_info = get_tunebook_info(key)
 
@@ -238,7 +250,16 @@ def load_meta(key: str, *, redownload: bool = False):
         _download_data(key)
         print("done")
 
-    return _load_data(key)
+    data = _load_data(key)
+
+    dfs = []
+    for group, tunes in data.items():
+        df_ = pd.DataFrame(tunes)
+        df_["group"] = group
+        dfs.append(df_)
+    df = pd.concat(dfs, ignore_index=True)
+
+    return df
 
 
 def load_url(url: str) -> Tune:
