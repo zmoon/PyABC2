@@ -238,13 +238,13 @@ def test_int_downcast():
         assert s3.dtype == expected_dtype_ext
 
 
-@pytest.mark.parametrize("netloc", the_session._URL_NETLOCS)
+@pytest.mark.parametrize("netloc", sorted(the_session._URL_NETLOCS))
 def test_load_url_the_session(netloc):
     tune = load_url(f"https://{netloc}/tunes/10000")
     assert tune.title == "Brian Quinn's"
 
 
-@pytest.mark.parametrize("netloc", norbeck._URL_NETLOCS)
+@pytest.mark.parametrize("netloc", sorted(norbeck._URL_NETLOCS))
 def test_load_url_norbeck(netloc):
     import requests
 
@@ -257,7 +257,7 @@ def test_load_url_norbeck(netloc):
         assert tune.title == "For The Love Of Music"
 
 
-@pytest.mark.parametrize("netloc", eskin._URL_NETLOCS)
+@pytest.mark.parametrize("netloc", sorted(eskin._URL_NETLOCS))
 def test_load_url_eskin(netloc):
     url = f"https://{netloc}/abctools/abctools.html?lzw=BoLgUAKiBiD2BOACCALApogMrAbhg8gGaICyArgM4CWAxmAEogUA2VADogFZUDmYAwiExUAXon4BDePFjNmYEiACcAegAcYTCACM6sAGkQAcTBGAogBFEFs0cQBBIwCFEAHwdG7zgCaI0333dzKxs7Rxo3RCc0DCd7F3MzRBBXMB5-PxVCFR4EpxUaFUDEdN80HgAjRAkAJmJ3Uszs3Id8wuL-F28nMKdAtIy0LJy8gqLIxvKq2olIipimnIxankjOxG7e+zdUoA"
     tune = load_url(url)
