@@ -238,15 +238,17 @@ def test_int_downcast():
         assert s3.dtype == expected_dtype_ext
 
 
-def test_load_url_the_session():
-    tune = load_url("https://thesession.org/tunes/10000")
+@pytest.mark.parametrize("netloc", the_session._URL_NETLOCS)
+def test_load_url_the_session(netloc):
+    tune = load_url(f"https://{netloc}/tunes/10000")
     assert tune.title == "Brian Quinn's"
 
 
-def test_load_url_norbeck():
+@pytest.mark.parametrize("netloc", norbeck._URL_NETLOCS)
+def test_load_url_norbeck(netloc):
     import requests
 
-    url = "https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106"
+    url = f"https://{netloc}/abc/display.asp?rhythm=slip+jig&ref=106"
     try:
         tune = load_url(url)
     except requests.exceptions.ReadTimeout as e:
@@ -255,9 +257,9 @@ def test_load_url_norbeck():
         assert tune.title == "For The Love Of Music"
 
 
-def test_load_url_eskin():
-    url = "https://michaeleskin.com/abctools/abctools.html?lzw=BoLgUAKiBiD2BOACCALApogMrAbhg8gGaICyArgM4CWAxmAEogUA2VADogFZUDmYAwiExUAXon4BDePFjNmYEiACcAegAcYTCACM6sAGkQAcTBGAogBFEFs0cQBBIwCFEAHwdG7zgCaI0333dzKxs7Rxo3RCc0DCd7F3MzRBBXMB5-PxVCFR4EpxUaFUDEdN80HgAjRAkAJmJ3Uszs3Id8wuL-F28nMKdAtIy0LJy8gqLIxvKq2olIipimnIxankjOxG7e+zdUoA"
-
+@pytest.mark.parametrize("netloc", eskin._URL_NETLOCS)
+def test_load_url_eskin(netloc):
+    url = f"https://{netloc}/abctools/abctools.html?lzw=BoLgUAKiBiD2BOACCALApogMrAbhg8gGaICyArgM4CWAxmAEogUA2VADogFZUDmYAwiExUAXon4BDePFjNmYEiACcAegAcYTCACM6sAGkQAcTBGAogBFEFs0cQBBIwCFEAHwdG7zgCaI0333dzKxs7Rxo3RCc0DCd7F3MzRBBXMB5-PxVCFR4EpxUaFUDEdN80HgAjRAkAJmJ3Uszs3Id8wuL-F28nMKdAtIy0LJy8gqLIxvKq2olIipimnIxankjOxG7e+zdUoA"
     tune = load_url(url)
     assert tune.title == "For The Love Of Music"
 
