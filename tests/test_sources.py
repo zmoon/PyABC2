@@ -255,6 +255,13 @@ def test_load_url_norbeck():
         assert tune.title == "For The Love Of Music"
 
 
+def test_load_url_eskin():
+    url = "https://michaeleskin.com/abctools/abctools.html?lzw=BoLgUAKiBiD2BOACCALApogMrAbhg8gGaICyArgM4CWAxmAEogUA2VADogFZUDmYAwiExUAXon4BDePFjNmYEiACcAegAcYTCACM6sAGkQAcTBGAogBFEFs0cQBBIwCFEAHwdG7zgCaI0333dzKxs7Rxo3RCc0DCd7F3MzRBBXMB5-PxVCFR4EpxUaFUDEdN80HgAjRAkAJmJ3Uszs3Id8wuL-F28nMKdAtIy0LJy8gqLIxvKq2olIipimnIxankjOxG7e+zdUoA"
+
+    tune = load_url(url)
+    assert tune.title == "For The Love Of Music"
+
+
 def test_load_url_invalid_domain():
     with pytest.raises(NotImplementedError):
         _ = load_url("https://www.google.com")
