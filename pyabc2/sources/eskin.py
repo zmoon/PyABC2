@@ -192,8 +192,13 @@ def _download_data(key: str):
         try:
             data = json.loads(s_data)
         except json.JSONDecodeError as e:
-            print(s_data[e.pos], "context:", s_data[e.pos - 10 : e.pos + 10])
-            raise
+            w = 25
+            a = max(0, e.pos - w)
+            b = min(len(s_data), e.pos + w)
+            raise RuntimeError(
+                f"Error parsing JSON data for Eskin tunebook {key!r} group {type_!r}. "
+                f"Context ({a}:{b}): {s_data[a:b]!r}"
+            ) from e
 
         for d in data:
             d["name"] = d.pop("Name")
