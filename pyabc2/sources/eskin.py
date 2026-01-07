@@ -94,7 +94,10 @@ def abctools_url_to_abc(
     assert res.path.startswith("/abctools/")
 
     query_params = parse_qs(res.query)
-    (lzw,) = query_params["lzw"]
+    try:
+        (lzw,) = query_params["lzw"]
+    except Exception as e:
+        raise ValueError("URL does not contain required 'lzw' parameter") from e
     # Note `+` has been replaced with space by parse_qs
     # Note js LZString.compressToEncodedURIComponent() is used to compress/encode the ABC
 

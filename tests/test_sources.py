@@ -373,6 +373,12 @@ def test_eskin_abc_url_parsing():
     assert sum(line.startswith(r"%%") for line in abc_no_rm.splitlines()) > 0
 
 
+def test_eskin_abc_url_bad():
+    url = "https://michaeleskin.com/abctools/abctools.html?"
+    with pytest.raises(ValueError, match="URL does not contain required 'lzw' parameter"):
+        _ = eskin.abctools_url_to_abc(url)
+
+
 def test_eskin_abc_url_creation():
     import requests
 
