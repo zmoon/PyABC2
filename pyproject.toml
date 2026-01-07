@@ -58,3 +58,6 @@ markers = ["slow"]
 exclude = ["^venv"]
 install_types = true
 ignore_missing_imports = true
+
+[tool.pyright]
+ignore = ["pyabc2/sources/_lzstring.py"]
