@@ -133,3 +133,20 @@ Functions:
    the_session.load
    the_session.load_meta
    the_session.load_url
+
+Eskin ABC Tools
+---------------
+
+.. automodule:: pyabc2.sources.eskin
+
+Functions:
+
+.. currentmodule:: pyabc2.sources
+
+.. autosummary::
+   :toctree: api/
+
+   eskin.load_meta
+   eskin.load_url
+   eskin.abctools_url_to_abc
+   eskin.abc_to_abctools_url

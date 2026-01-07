@@ -277,6 +277,32 @@ def test_eskin_tunebook_url_exist(key):
         raise ValueError(f"{key!r} URL {url} redirects to homepage")
 
 
+def test_eskin_tunebook_url_current():
+    import requests
+
+    url = "https://michaeleskin.com/tunebooks.html"
+    r = requests.get(url, timeout=5)
+    r.raise_for_status()
+    if (
+        r.status_code == 302
+        and r.headers.get("Location", "").rstrip("/") == "https://michaeleskin.com"
+    ):
+        raise ValueError(f"URL {url} redirects to homepage")
+    html = r.text
+
+    old_keys = {
+        "cce_san_diego_jan2025",
+        "hardy_2024",
+    }
+    for key, tb_url in eskin._TUNEBOOK_KEY_TO_URL.items():
+        m = re.search(rf'href=["\']({tb_url})["\']', html)
+        if key in old_keys:
+            assert m is None
+        else:
+            if m is None:
+                raise ValueError(f"Could not find link for tunebook {key!r} in tunebooks page.")
+
+
 @pytest.mark.parametrize("key", eskin._TUNEBOOK_KEY_TO_URL)
 def test_eskin_tunebook_data_load(key):
     data = eskin.load_meta(key)

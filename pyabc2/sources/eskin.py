@@ -1,5 +1,10 @@
 """
-Load data from the Eskin tunebook websites.
+Load data from the Eskin ABC Transcription Tools tunebook websites
+(https://michaeleskin.com/tunebooks.html).
+
+Requires:
+
+* `requests <https://requests.readthedocs.io/>`__
 """
 
 import json
@@ -8,6 +13,7 @@ from pathlib import Path
 from typing import Literal, NamedTuple, Tuple, Union
 from urllib.parse import parse_qs, urlsplit
 
+from pyabc2 import Tune
 from pyabc2.sources._lzstring import LZString
 
 HERE = Path(__file__).parent
@@ -19,10 +25,13 @@ _CCE_SD = "https://michaeleskin.com/cce_sd"
 _TUNEBOOK_KEY_TO_URL = {
     # https://michaeleskin.com/tunebooks.html#websites_irish
     "kss": f"{_TBWS}/king_street_sessions_tunebook_17Jan2025.html",
+    "oflaherty_2025": f"{_TBWS}/oflahertys_2025_retreat_tunes_final.html",
     "carp": f"{_TBWS}/carp_celtic_jam_tunebook_17Jan2025.html",
-    "hardy": f"{_TBWS}/paul_hardy_2024_8feb2025.html",
+    "hardy_2024": f"{_TBWS}/paul_hardy_2024_8feb2025.html",
+    "hardy_2025": f"{_TBWS}/paul_hardy_2025_12aug2025.html",
     "cce_dublin_2001": f"{_CCE_SD}/cce_dublin_2001_tunebook_17Jan2025.html",
-    "cce_san_diego": f"{_CCE_SD}/cce_san_diego_tunes_31jan2025.html",
+    "cce_san_diego_jan2025": f"{_CCE_SD}/cce_san_diego_tunes_31jan2025.html",
+    "cce_san_diego_nov2025": f"{_CCE_SD}/cce_san_diego_tunes_10nov2025.html",
     # https://michaeleskin.com/tunebooks.html#websites_18th_century_collections
     "aird": f"{_TBWS}/james_aird_campin_18jan2025.html",
     "playford1": f"{_TBWS}/playford_1_partington_17jan2025.html",
@@ -33,6 +42,15 @@ _TUNEBOOK_KEY_TO_URL = {
 to tunebook website URLs, which come from this page:
 https://michaeleskin.com/tunebooks.html
 """
+
+# Definitive versions
+_TUNEBOOK_ALIAS = {
+    "cce_san_diego": "cce_san_diego_nov2025",
+}
+for _alias, _target in _TUNEBOOK_ALIAS.items():
+    _TUNEBOOK_KEY_TO_URL[_alias] = _TUNEBOOK_KEY_TO_URL[_target]
+
+_URL_NETLOCS = {"michaeleskin.com", "www.michaeleskin.com"}
 
 
 def abctools_url_to_abc(
@@ -47,7 +65,7 @@ def abctools_url_to_abc(
         r"%%MIDI ",
     ),
 ) -> str:
-    """Extract the ABC from an Eskin abctools share URL.
+    """Extract the ABC from an Eskin abctools (``michaeleskin.com/abctools/``) share URL.
 
     More info: https://michaeleskin.com/tools/generate_share_link.html
 
@@ -64,7 +82,7 @@ def abctools_url_to_abc(
         remove_prefs = (remove_prefs,)
 
     res = urlsplit(url)
-    assert res.netloc == "michaeleskin.com"
+    assert res.netloc in _URL_NETLOCS
     assert res.path.startswith("/abctools/")
 
     query_params = parse_qs(res.query)
@@ -84,7 +102,7 @@ def abctools_url_to_abc(
 
 
 def abc_to_abctools_url(abc: str) -> str:
-    """Create an Eskin abctools share URL for `abc`.
+    """Create an Eskin abctools (``michaeleskin.com/abctools/``) share URL for `abc`.
 
     More info: https://michaeleskin.com/tools/generate_share_link.html
     """
@@ -178,7 +196,39 @@ def _load_data(key: str):
 
 
 def load_meta(key: str, *, redownload: bool = False):
-    """Load the tunebook data, no parsing."""
+    """Load the tunebook data, no parsing.
+
+    Parameters
+    ----------
+    key
+        Tunebook key (ID), e.g. ``'kss'`` for King Street Sessions.
+
+        .. list-table::
+           :header-rows: 1
+           :widths: 15 85
+
+           * - Key
+             - Description
+           * - ``aird``
+             - James Aird's Airs by Jack Campin
+           * - ``carp``
+             - CARP Celtic Jam Tunebook
+           * - ``cce_dublin_2001``
+             - CCE Dublin 2001
+           * - ``cce_san_diego``
+             - CCE San Diego
+           * - ``hardy_{2024,2025}``
+             - Paul Hardy's Session Tunebook
+           * - ``kss``
+             - King Street Sessions Tunebook
+           * - ``oflaherty_2025``
+             - O'Flaherty's Retreat Tunes
+           * - ``playford{1,2,3}``
+             - Playford vols. 1--3
+
+        See https://michaeleskin.com/tunebooks.html
+        for more information.
+    """
 
     tb_info = get_tunebook_info(key)
 
@@ -189,6 +239,17 @@ def load_meta(key: str, *, redownload: bool = False):
         print("done")
 
     return _load_data(key)
+
+
+def load_url(url: str) -> Tune:
+    """Load tune from an Eskin abctools (``michaeleskin.com/abctools/``) share URL.
+
+    Notes
+    -----
+    The ABC is encoded in the URL, so we don't need to load the page.
+    """
+    abc = abctools_url_to_abc(url)
+    return Tune(abc)
 
 
 if __name__ == "__main__":
