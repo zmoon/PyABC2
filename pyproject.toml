@@ -61,3 +61,6 @@ ignore_missing_imports = true
 
 [tool.pyright]
 ignore = ["pyabc2/sources/_lzstring.py"]
+
+[tool.coverage.run]
+omit = ["pyabc2/sources/_lzstring.py"]

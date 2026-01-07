@@ -352,3 +352,8 @@ def test_eskin_abc_url_creation():
         and r.headers.get("Location", "").rstrip("/") == "https://michaeleskin.com"
     ):
         raise ValueError(f"URL {url} redirects to homepage")
+
+
+def test_eskin_invalid_tunebook_key():
+    with pytest.raises(ValueError, match="Unknown Eskin tunebook key: 'asdf'"):
+        _ = eskin.get_tunebook_info("asdf")

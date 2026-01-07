@@ -273,7 +273,7 @@ def load_url(url: str) -> Tune:
     return Tune(abc)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     from . import load_example_abc
 
     abc = load_example_abc("For the Love of Music")
