@@ -269,6 +269,22 @@ def test_load_url_invalid_domain():
         _ = load_url("https://www.google.com")
 
 
+def test_eskin_tunebook_bad_url_redirects():
+    import requests
+
+    # Bad URL (2025 -> 3025)
+    # Redirects to the home page.
+    # Nothing in `r.history`. `allow_redirects=False` has no impact.
+    url = "https://michaeleskin.com/cce_sd/cce_san_diego_tunes_10nov3025.html"
+    r = requests.head(url, timeout=5)
+    r.raise_for_status()
+
+    assert r.status_code == 302
+    assert r.headers.get("Location", "").rstrip("/") == "https://michaeleskin.com"
+    assert r.history == []
+    assert r.is_redirect
+
+
 @pytest.mark.parametrize("key", eskin._TUNEBOOK_KEY_TO_URL)
 def test_eskin_tunebook_url_exist(key):
     import requests
@@ -340,6 +356,7 @@ def test_eskin_tunebook_data_load(key):
 
 
 def test_eskin_abc_url_parsing():
+    # From https://michaeleskin.com/cce_sd/cce_san_diego_tunes_10nov2025.html
     url = "https://michaeleskin.com/abctools/abctools.html?lzw=BoLgjAUApFAuCWsA2BTAZgewHawAQAUBDJQhLDXMADmigGcBXAIwWXWzyJLIrAGZa8LJkw4CxUkN4CYAB0IAnWHVGcJPSjLgoAtrIyrx3KZtqwUAD1iGuk8qYAqIBwAsUuAIJMmKAJ64IABlwAHoaAFkQABYQqIgARRAAJliAXgBOAAYIACUQHJQUJGg6AHchAHNcTIA6SABpEABxaEImAGMAKzoAfToMBiwAE0M0UiYMX1pwgEkAERncWQUMCoVCHWrp+cWmQjo6ZdWtmFmF3HaXDAUho6rs053cPYOANwwkXAA2OMfzy+uQ3enx+rSGQx6xCQPVkJF8e3aAGsekghIi6BAAEQeHSYzx8XAAIU8SVwTQAorgAD6eDxNDy4TFNPGE8HEmnY3G0jzEunkgBi1MZzLJTXpRLZ1KxOLxHlJPJJZMpNI8dIZTJZko5MsVCr5go5IrF4tZQyqVKp0q5KAqttwhFJeyFGtwFTaVUIFRQQ2dOptdodrsIzuZTDdaFd7iGpMtnLx-o9FTDIcxnuTnu9vutto9pLdKbDhAjXqG7IAukA&format=noten&ssp=10&name=The_Abbey&play=1"
 
     # default: explicit prefixes
