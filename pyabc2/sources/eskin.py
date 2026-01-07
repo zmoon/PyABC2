@@ -254,6 +254,8 @@ def load_meta(key: str, *, redownload: bool = False) -> "pandas.DataFrame":
 
         See https://michaeleskin.com/tunebooks.html
         for more information.
+    redownload
+        Re-download the data file.
 
     See Also
     --------
