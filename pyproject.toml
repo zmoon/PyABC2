@@ -9,7 +9,7 @@ readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
-requires-python = "~=3.8"
+requires-python = ">=3.10,<4"
 dependencies = []
 
 [project.urls]
@@ -19,9 +19,9 @@ Documentation = "https://pyabc2.readthedocs.io"
 
 [project.optional-dependencies]
 sources = [
-    "numpy <2",
-    "pandas ~=1.4",
-    "requests ~=2.0",
+    "numpy ==2.*",
+    "pandas ==2.*",
+    "requests ==2.*",
 ]
 widget = [
     "anywidget",
@@ -34,7 +34,7 @@ sheet = [
 ]
 test = [
     "mypy",
-    "pandas-stubs",
+    "pandas-stubs ==2.*",
     "pytest",
     "pytest-cov",
     "pytest-xdist",

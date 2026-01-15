@@ -7,13 +7,13 @@ import functools
 import re
 import warnings
 from fractions import Fraction
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from .key import Key
 
 
-def _gen_pitch_values() -> Dict[str, int]:
+def _gen_pitch_values() -> dict[str, int]:
     pitch_values = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
     accidental_values = {"": 0, "#": 1, "b": -1}
     for n, v in list(pitch_values.items()):
@@ -94,7 +94,7 @@ def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
         val %= 12
 
     if not 0 <= val < 12:  # e.g., Cb, B##
-        warnings.warn("computed pitch class value outside 0--11")
+        warnings.warn("computed pitch class value outside 0--11", stacklevel=2)
 
     return val
 
@@ -178,7 +178,7 @@ class PitchClass:
         (integer chromatic distance from C in semitones (half steps)).
         """
 
-        self._name: Optional[str] = None
+        self._name: str | None = None
 
     @property
     def name(self) -> str:
@@ -508,8 +508,8 @@ class Pitch:
         (integer chromatic distance from C0 in semitones (half steps)).
         """
 
-        self._class_name: Optional[str] = None
-        self._octave: Optional[int] = None
+        self._class_name: str | None = None
+        self._octave: int | None = None
         # TODO: we should be able to determine octave from value and class name
         # in the case that _class_name is set
 
@@ -633,7 +633,8 @@ class Pitch:
             warnings.warn(
                 f"more than one cent off ({e * 100:.2f}). "
                 f"Rounding {'up' if e < 0 else 'down'} "
-                f"to the nearest integer piano key."
+                f"to the nearest integer piano key.",
+                stacklevel=2,
             )
 
         o, v = divmod(n + 8, 12)
@@ -694,7 +695,7 @@ class Pitch:
         else:
             return PitchClass(self.class_value)
 
-    def to_note(self, *, duration: Optional[Fraction] = None):
+    def to_note(self, *, duration: Fraction | None = None):
         """Convert to note (eighth note by default)."""
         from .note import _DEFAULT_UNIT_DURATION, Note
 
@@ -791,7 +792,8 @@ class SimpleInterval:
             else:
                 value_ = mod_abs_value
             warnings.warn(
-                f"input value {value} not between 0 and 12 " f"has been coerced to {value_}"
+                f"input value {value} not between 0 and 12 has been coerced to {value_}",
+                stacklevel=2,
             )
         self.value = value_
         """Number of semitones (half steps)."""
