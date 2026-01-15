@@ -7,13 +7,13 @@ import functools
 import re
 import warnings
 from fractions import Fraction
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from .key import Key
 
 
-def _gen_pitch_values() -> Dict[str, int]:
+def _gen_pitch_values() -> dict[str, int]:
     pitch_values = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
     accidental_values = {"": 0, "#": 1, "b": -1}
     for n, v in list(pitch_values.items()):
@@ -178,7 +178,7 @@ class PitchClass:
         (integer chromatic distance from C in semitones (half steps)).
         """
 
-        self._name: Optional[str] = None
+        self._name: str | None = None
 
     @property
     def name(self) -> str:
@@ -508,8 +508,8 @@ class Pitch:
         (integer chromatic distance from C0 in semitones (half steps)).
         """
 
-        self._class_name: Optional[str] = None
-        self._octave: Optional[int] = None
+        self._class_name: str | None = None
+        self._octave: int | None = None
         # TODO: we should be able to determine octave from value and class name
         # in the case that _class_name is set
 
@@ -694,7 +694,7 @@ class Pitch:
         else:
             return PitchClass(self.class_value)
 
-    def to_note(self, *, duration: Optional[Fraction] = None):
+    def to_note(self, *, duration: Fraction | None = None):
         """Convert to note (eighth note by default)."""
         from .note import _DEFAULT_UNIT_DURATION, Note
 

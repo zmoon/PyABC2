@@ -3,7 +3,8 @@ ABC parsing/info
 """
 
 import re
-from typing import Dict, Iterator, List, NamedTuple, Optional
+from collections.abc import Iterator
+from typing import NamedTuple
 
 from .key import Key
 from .note import _RE_NOTE, Note
@@ -34,7 +35,7 @@ def _bool_yn(s: str) -> bool:
     return s == "yes"
 
 
-def _gen_info_field_table() -> Dict[str, InfoField]:
+def _gen_info_field_table() -> dict[str, InfoField]:
     raw = """
 Field name          file header  tune header  tune body  inline  type
 A:area              yes          yes          no         no      string
@@ -163,7 +164,7 @@ def _load_abcjs_if_in_jupyter() -> None:
         print("abcjs loaded")
 
 
-def _find_first_chord(s: str) -> Optional[str]:
+def _find_first_chord(s: str) -> str | None:
     """Search for first chord spec in an ABC body portion.
 
     https://abcnotation.com/wiki/abc:standard:v2.1#chords_and_unisons
@@ -223,7 +224,7 @@ class Tune:
         self.abc: str = abc
         """Original ABC string."""
 
-        self.header: Dict[str, str]
+        self.header: dict[str, str]
         """Information contained in the tune header.
 
         Examples
@@ -239,10 +240,10 @@ class Tune:
         """
         # TODO: access key with 'key' or 'K:', e.g.
 
-        self.title: Optional[str]
+        self.title: str | None
         """Tune primary title (first in the ABC)."""
 
-        self.titles: List[str]
+        self.titles: list[str]
         """All tune titles."""
 
         self.type: str
@@ -256,10 +257,10 @@ class Tune:
         self.key: Key
         """Key object corresponding to the tune's key."""
 
-        self.url: Optional[str] = None
+        self.url: str | None = None
         """Revelant URL for this particular tune/setting."""
 
-        self.measures: List[List[Note]]
+        self.measures: list[list[Note]]
         """Notes from "playing" the tune.
 
         That is, expanding repeats and endings, etc.
@@ -298,8 +299,8 @@ class Tune:
         self._parse_abc_header_lines(header_lines)
         self._extract_measures(tune_lines)
 
-    def _parse_abc_header_lines(self, header_lines: List[str]) -> None:
-        h: Dict[str, str] = {}
+    def _parse_abc_header_lines(self, header_lines: list[str]) -> None:
+        h: dict[str, str] = {}
         for line in header_lines:
             key = line[0]
             data = line[2:].strip()
@@ -316,7 +317,7 @@ class Tune:
         self.type = h.get("rhythm", "?")  # TODO: guess from L/M ?
         self.key = Key(h.get("key", "C"))
 
-    def _extract_measures(self, tune_lines: List[str]) -> None:
+    def _extract_measures(self, tune_lines: list[str]) -> None:
         # 0. Lines
         i_measure = i_measure_repeat = i_ending = 0
         measures = []
@@ -444,7 +445,7 @@ class Tune:
         )
         display(js)
 
-    def print_measures(self, n: Optional[int] = None, *, note_format: str = "ABC"):
+    def print_measures(self, n: int | None = None, *, note_format: str = "ABC"):
         """Print measures to check parsing.
 
         Parameters

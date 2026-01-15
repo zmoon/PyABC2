@@ -10,7 +10,7 @@ Requires:
 import json
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, NamedTuple, Tuple, Union
+from typing import TYPE_CHECKING, Literal, NamedTuple
 from urllib.parse import parse_qs, urlsplit
 
 from pyabc2 import Tune
@@ -62,7 +62,7 @@ _URL_NETLOCS = {"michaeleskin.com", "www.michaeleskin.com"}
 def abctools_url_to_abc(
     url: str,
     *,
-    remove_prefs: Union[str, Tuple[str, ...], Literal[False]] = (
+    remove_prefs: str | tuple[str, ...] | Literal[False] = (
         r"%%titlefont ",
         r"%%subtitlefont ",
         r"%%infofont ",
