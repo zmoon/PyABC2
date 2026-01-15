@@ -15,7 +15,7 @@ import logging
 import os
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal
 
 from .._util import get_logger as _get_logger
 from ..parse import Tune
@@ -124,7 +124,7 @@ def load_url(url: str) -> Tune:
 
     res = urlsplit(url)
     assert res.netloc in _URL_NETLOCS
-    setting: Optional[int]
+    setting: int | None
     if res.fragment:
         setting_str = res.fragment
         if setting_str.startswith("setting"):
@@ -167,7 +167,7 @@ def load_url(url: str) -> Tune:
     return _api_data_to_tune(setting_data)
 
 
-def download(which: Union[str, List[str]] = "tunes") -> None:
+def download(which: str | list[str] = "tunes") -> None:
     import gzip
 
     import requests
@@ -192,7 +192,7 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
             f.write(r.content)
 
 
-def _maybe_load_one(d: dict) -> Optional[Tune]:
+def _maybe_load_one(d: dict) -> Tune | None:
     """Try to load tune from a The Session data entry, otherwise log debug messages
     and return None."""
     from textwrap import indent
@@ -224,11 +224,11 @@ def _older_than_30d(fp: Path) -> bool:
 
 def load(
     *,
-    n: Optional[int] = None,
-    redownload: Optional[bool] = None,
+    n: int | None = None,
+    redownload: bool | None = None,
     debug: bool = False,
     num_workers: int = 1,
-) -> List[Tune]:
+) -> list[Tune]:
     """Load tunes from The Session archive
     (https://github.com/adactio/TheSession-data).
 
@@ -410,7 +410,7 @@ def load_meta(
     if format == "json":
         df = pd.read_json(url)
     else:
-        parse_dates: Union[bool, List[str]]
+        parse_dates: bool | list[str]
         if which in {"sets", "sessions", "tunes"}:
             parse_dates = ["date"]
         elif which in {"events"}:

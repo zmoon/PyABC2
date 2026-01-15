@@ -54,7 +54,7 @@ def test_norbeck_x_unique():
     xs = []
     for typ in norbeck._TYPE_PREFIX:
         for p in norbeck._get_paths_type(typ):
-            with open(p, "r") as f:
+            with open(p) as f:
                 for line in f:
                     line = line.strip()
                     if line.startswith("X:"):
@@ -69,14 +69,14 @@ def test_norbeck_x_vals():
     norbeck._maybe_download()
     ntot = 0
     for p in norbeck.SAVE_TO.glob("*.abc"):
-        with open(p, "r") as f:
+        with open(p) as f:
             s = f.read()
             lines = s.splitlines()
             m = re.fullmatch(
                 r"This file contains ([0-9]{1,3}) .* \(#([0-9]+)\s*-\s*#([0-9]+)\).", lines[0]
             )
             assert m is not None
-            n, a, b = [int(x) for x in m.groups()]
+            n, a, b = (int(x) for x in m.groups())
             assert n >= 1
             assert b - a + 1 == n
             assert s.count("X:") == n
@@ -98,8 +98,8 @@ def test_norbeck_load():
     hps = norbeck.load("hornpipes")
 
     # One of the expected failures (has chords)
-    assert "Pride of Petravore, The" not in set([t.title for t in tunes])
-    assert "Pride of Petravore, The" not in set([t.title for t in hps])
+    assert "Pride of Petravore, The" not in {t.title for t in tunes}
+    assert "Pride of Petravore, The" not in {t.title for t in hps}
 
     n_exp_fail = sum(len(lst) for d in norbeck._EXPECTED_FAILURES.values() for lst in d.values())
     assert len(tunes) == NORBECK_IRISH_COUNT - n_exp_fail
