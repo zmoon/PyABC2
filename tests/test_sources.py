@@ -144,11 +144,8 @@ def test_the_session_url_check():
         the_session.load_url("https://www.google.com")
 
 
-def test_the_session_load_archive():
+def test_the_session_load_archive_threaded():
     # NOTE: downloads file if not already present
-
-    _ = the_session.load(n=5)  # TODO: all? (depending on time)
-
     with pytest.warns(UserWarning, match=r"The Session tune\(s\) failed to load"):
         tunes1 = the_session.load(n=200)
         tunes2 = the_session.load(n=200, num_workers=2)
