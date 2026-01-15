@@ -148,6 +148,7 @@ def test_the_session_load_archive_threaded():
     # NOTE: downloads file if not already present
     with pytest.warns(UserWarning, match=r"The Session tune\(s\) failed to load"):
         tunes1 = the_session.load(n=200)
+    with pytest.warns(UserWarning, match=r"The Session tune\(s\) failed to load"):
         tunes2 = the_session.load(n=200, num_workers=2)
     assert tunes1 == tunes2
 
