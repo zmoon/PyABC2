@@ -43,6 +43,7 @@ examples/types.ipynb
 examples/modes.ipynb
 examples/sources.ipynb
 examples/plots.ipynb
+examples/widget.ipynb
 ```
 
 ```{toctree}
