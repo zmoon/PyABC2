@@ -14,6 +14,7 @@ def test_version():
 
 
 def test_short_description_consistency():
+    assert pyabc2.__doc__ is not None
     module_descrip = pyabc2.__doc__.strip().split("\n")[0]
 
     assert module_descrip == pyabc2_metadata["summary"]

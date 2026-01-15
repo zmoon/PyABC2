@@ -1,7 +1,9 @@
 """
-Henrik Norbeck's ABC Tunes
+Load Henrik Norbeck's ABC Tunes (https://www.norbeck.nu/abc/).
 
-https://www.norbeck.nu/abc/
+Requires:
+
+* `requests <https://requests.readthedocs.io/>`__
 """
 
 import logging
@@ -52,7 +54,7 @@ _COMBINING_ACCENT_FROM_ASCII_SYM = {
     "'": "\u0301",  # acute
     "^": "\u0302",  # circumflex
     '"': "\u0308",  # umlaut
-    "r": "\u030A",  # ring above
+    "r": "\u030a",  # ring above
 }
 
 _URL_NETLOCS = {"norbeck.nu", "www.norbeck.nu"}
@@ -101,8 +103,9 @@ def download() -> None:
 
 def _maybe_download() -> None:
     if not list(SAVE_TO.glob("*.abc")):
-        print("downloading missing files...")
+        print("downloading...", end=" ", flush=True)
         download()
+        print("done")
 
 
 def _replace_escaped_diacritics(abc: str, *, ascii_only: bool = False) -> str:
@@ -213,7 +216,7 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
     for tune in tunes:
         # Example: https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=10
         ref = tune.header["reference number"]
-        rhy = tune.type
+        rhy = tune.type.replace(" ", "+")
         tune.url = f"https://www.norbeck.nu/abc/display.asp?rhythm={rhy}&ref={ref}"
 
     return tunes
@@ -223,9 +226,12 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
 
 
 def load(
-    which: Union[str, List[str]] = "all", *, ascii_only: bool = False, debug: bool = False
+    which: Union[str, List[str]] = "all",
+    *,
+    ascii_only: bool = False,
+    debug: bool = False,
 ) -> List[Tune]:
-    """
+    r"""
     Load a list of tunes, by type(s) or all of them.
 
     Parameters
@@ -233,8 +239,14 @@ def load(
     which
         reels, jigs, hornpipes,
     ascii_only
-        Whether to drop the implied diacritic symbols, e.g., `\'o` (`True`)
-        or add the corresponding unicode characters (`False`).
+        Whether to drop the implied diacritic symbols, e.g., ``\'o`` (``True``)
+        or add the corresponding unicode characters (``False``, default).
+    debug
+        Show debug messages.
+
+    See Also
+    --------
+    :doc:`/examples/sources`
     """
     # TODO: allow Norbeck ID as arg as well to load an individual tune? or URL?
     if isinstance(which, str):
@@ -272,11 +284,21 @@ def load(
 def load_url(url: str) -> Tune:
     """Load tune from a specified ``norbeck.nu/abc/`` URL.
 
-    For example:
-    - https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106
-    - https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=693
+    Examples
+    --------
+    >>> from pyabc2.sources import norbeck
+    >>> norbeck.load_url('https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106')
+    Tune(title='For The Love Of Music', key=Gmaj, type='slip jig')
+    >>> norbeck.load_url('https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=693')
+    Tune(title="Paddy Fahy's", key=Gmaj, type='reel')
 
+    Notes
+    -----
     Grabs the ABC from the HTML source.
+
+    See Also
+    --------
+    pyabc2.sources.load_url
     """
     import re
     from html import unescape
@@ -292,10 +314,13 @@ def load_url(url: str) -> Tune:
     r.raise_for_status()
 
     m = re.search(
-        r'<div id="abc" class="monospace">X:[0-9]+<br/>\s*(.*?)\s*</div>', r.text, flags=re.DOTALL
+        r'<div id="abc" class="monospace">X:[0-9]+<br/>\s*(.*?)\s*</div>',
+        r.text,
+        flags=re.DOTALL,
     )
     assert m is not None
     abc = unescape(m.group(1)).replace("<br/>", "")
+    abc = re.sub(r"<a href=\"(.*?)\">", "", abc).replace("</a>", "")  # link to tune type page
 
     return Tune(abc)
 

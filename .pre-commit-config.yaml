@@ -3,7 +3,7 @@ ci:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: 'v5.0.0'
+    rev: 'v6.0.0'
     hooks:
       - id: trailing-whitespace
         args: ['--markdown-linebreak-ext=md,markdown']
@@ -11,23 +11,24 @@ repos:
       - id: check-yaml
 
   - repo: https://github.com/PyCQA/isort
-    rev: '5.13.2'
+    rev: '7.0.0'
     hooks:
       - id: isort
+        exclude: ^pyabc2/sources/_lzstring.py
 
-  - repo: https://github.com/psf/black
-    rev: '24.10.0'
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: '25.12.0'
     hooks:
       - id: black
-        exclude: ^examples/
+        exclude: ^examples/|^pyabc2/sources/_lzstring.py
 
-  - repo: https://github.com/csachs/pyproject-flake8
-    rev: 'v7.0.0'
+  - repo: https://github.com/PyCQA/flake8
+    rev: '7.3.0'
     hooks:
-      - id: pyproject-flake8  # pflake8
+      - id: flake8
 
   - repo: https://github.com/kynan/nbstripout
-    rev: '0.8.0'
+    rev: '0.8.2'
     hooks:
       - id: nbstripout
         args: ['--extra-keys=metadata.language_info.version']

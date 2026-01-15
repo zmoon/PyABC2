@@ -1,5 +1,14 @@
 """
-Load data from The Session (https://thesession.org)
+Load data from The Session (https://thesession.org).
+
+Requires (to load tunes with :func:`load` or :func:`load_url`):
+
+* `requests <https://requests.readthedocs.io/>`__
+
+To load additional archive datasets with :func:`load_meta`, requires:
+
+* `numpy <https://numpy.org/>`__
+* `pandas <https://pandas.pydata.org/>`__
 """
 
 import logging
@@ -91,10 +100,23 @@ def load_url(url: str) -> Tune:
     """Load tune from a specified ``thesession.org`` URL.
 
     For example:
+
     - https://thesession.org/tunes/10000 (first setting assumed)
     - https://thesession.org/tunes/10000#setting31601 (specific setting)
 
-    Using the API: https://thesession.org/api
+    Examples
+    --------
+    >>> from pyabc2.sources import the_session
+    >>> the_session.load_url("https://thesession.org/tunes/1")
+    Tune(title="Cooley's", key=Edor, type='reel')
+
+    Notes
+    -----
+    Uses the API: https://thesession.org/api
+
+    See Also
+    --------
+    pyabc2.sources.load_url
     """
     from urllib.parse import urlsplit, urlunsplit
 
@@ -146,6 +168,8 @@ def load_url(url: str) -> Tune:
 
 
 def download(which: Union[str, List[str]] = "tunes") -> None:
+    import gzip
+
     import requests
 
     if isinstance(which, str):
@@ -164,7 +188,7 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
         url = base_url + fn
         r = requests.get(url, timeout=5)
         r.raise_for_status()
-        with open(SAVE_TO / fn, "wb") as f:
+        with gzip.open(SAVE_TO / (fn + ".gz"), "wb") as f:
             f.write(r.content)
 
 
@@ -188,19 +212,53 @@ def _maybe_load_one(d: dict) -> Optional[Tune]:
     return tune
 
 
-def load(
-    *, n: Optional[int] = None, redownload: bool = False, debug: bool = False, num_workers: int = 1
-) -> List[Tune]:
-    """Load tunes from https://github.com/adactio/TheSession-data
+def _older_than_30d(fp: Path) -> bool:
+    import datetime
 
-    Use ``redownload=True`` to force re-download. Otherwise the file will only
-    be downloaded if it hasn't already been.
+    now = datetime.datetime.now().timestamp()
+    ddays = (now - fp.stat().st_mtime) / (3600 * 24)
+    logger.debug(f"{fp.as_posix()} is {ddays:.2f} days old")
+
+    return ddays > 30
+
+
+def load(
+    *,
+    n: Optional[int] = None,
+    redownload: Optional[bool] = None,
+    debug: bool = False,
+    num_workers: int = 1,
+) -> List[Tune]:
+    """Load tunes from The Session archive
+    (https://github.com/adactio/TheSession-data).
+
+    .. note::
+       The file will be downloaded automatically if it hasn't already been
+       or if it's older than 30 days.
+       Use ``redownload=True`` to force re-download.
+
+    Parameters
+    ----------
+    n
+        Cap the number of tunes to process.
+        By default, all tunes are loaded.
+    redownload
+        Re-download the data file.
+    debug
+        Show debug messages.
+    num_workers
+        Number of worker processes to use when processing tunes.
+
+    Notes
+    -----
+    Specifically we load https://github.com/adactio/TheSession-data/raw/main/json/tunes.json
 
     @adactio (Jeremy) is the creator of The Session.
     """
+    import gzip
     import json
 
-    fp = SAVE_TO / "tunes.json"
+    fp = SAVE_TO / "tunes.json.gz"
     parallel = num_workers > 1
 
     if debug:  # pragma: no cover
@@ -208,10 +266,15 @@ def load(
     else:
         logger.setLevel(logging.NOTSET)
 
-    if not fp.is_file() or redownload:
-        download("tunes")
+    if redownload is None and fp.is_file():
+        redownload = _older_than_30d(fp)
 
-    with open(fp, encoding="utf-8") as f:
+    if not fp.is_file() or redownload:
+        print("downloading...", end=" ", flush=True)
+        download("tunes")
+        print("done")
+
+    with gzip.open(fp, "rt", encoding="utf-8") as f:
         data = json.load(f)
 
     if n is not None:
@@ -296,11 +359,21 @@ def load_meta(
     downcast_ints: bool = False,
     format: Literal["json", "csv"] = "json",
 ) -> "pandas.DataFrame":
-    """Load metadata file from The Session archive as dataframe (requires pandas).
+    """Load data from The Session archive
+    (https://github.com/adactio/TheSession-data)
+    as a dataframe (requires pandas).
 
     Parameters
     ----------
     which : {'aliases', 'events', 'recordings', 'sessions', 'sets', 'tune_popularity', 'tunes'}
+        Which dataset to load.
+    convert_dtypes
+        If ``True``, convert dtypes to pandas extension types
+        (e.g. nullable integers, categorical strings).
+        If ``False`` (default), keep the original dtypes.
+    downcast_ints
+        If ``True`` (not default),
+        downcast integer columns to the smallest possible integer dtype.
 
     Notes
     -----
@@ -310,10 +383,16 @@ def load_meta(
     and dtypes converted to nullable pandas extension types
     (:meth:`pandas.DataFrame.convert_dtypes` applied).
 
-    https://github.com/adactio/TheSession-data/tree/main/json
-    https://github.com/adactio/TheSession-data/tree/main/csv
+    Data locations:
+
+    - https://github.com/adactio/TheSession-data/tree/main/json
+    - https://github.com/adactio/TheSession-data/tree/main/csv
 
     @adactio (Jeremy) is the creator of The Session.
+
+    See Also
+    --------
+    :doc:`/examples/sources`
     """
     import numpy as np
     import pandas as pd
@@ -324,7 +403,7 @@ def load_meta(
     if format not in {"csv", "json"}:
         raise ValueError("`format` must be 'csv' or 'json'.")
 
-    base_url = f"https://raw.githubusercontent.com/adactio/TheSession-data/main/{format}/"
+    base_url = f"https://github.com/adactio/TheSession-data/raw/main/{format}/"
     fn = f"{which}.{format}"
     url = base_url + fn
 

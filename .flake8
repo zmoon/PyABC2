@@ -1,0 +1,5 @@
+[flake8]
+max-line-length = 100
+ignore = E203,E402,E501,W503,E226
+per-file-ignores =
+  pyabc2/sources/_lzstring.py: E111,E225,E261,E302,E303,E703
