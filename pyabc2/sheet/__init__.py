@@ -21,7 +21,7 @@ def build():
             "It is included with the pyabc2 'sheet' extra."
         ) from e
 
-    rc = npm(["install", HERE.as_posix()])
+    rc = npm(["install", "--prefix", HERE.as_posix()])
     if rc != 0:
         raise RuntimeError("Build failed")
 
@@ -29,8 +29,12 @@ def build():
 def _maybe_build():
     now = datetime.datetime.now().timestamp()
     package_lock = HERE / "package-lock.json"
-    if ALWAYS_BUILD or (
-        package_lock.exists() and now - package_lock.stat().st_mtime > 7 * 24 * 3600
+    node_modules = HERE / "node_modules"
+    if (
+        not package_lock.exists()
+        or not node_modules.exists()
+        or (package_lock.exists() and now - package_lock.stat().st_mtime > 7 * 24 * 3600)
+        or ALWAYS_BUILD
     ):
         build()
 
