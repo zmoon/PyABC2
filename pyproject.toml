@@ -19,13 +19,13 @@ Documentation = "https://pyabc2.readthedocs.io"
 
 [project.optional-dependencies]
 sources = [
-    "numpy <2",
-    "pandas ~=1.4",
-    "requests ~=2.0",
+    "numpy ==2.*",
+    "pandas ==2.*",
+    "requests ==2.*",
 ]
 test = [
     "mypy",
-    "pandas-stubs",
+    "pandas-stubs ==2.*",
     "pytest",
     "pytest-cov",
     "pytest-xdist",
