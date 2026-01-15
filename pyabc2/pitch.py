@@ -94,7 +94,7 @@ def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
         val %= 12
 
     if not 0 <= val < 12:  # e.g., Cb, B##
-        warnings.warn("computed pitch class value outside 0--11")
+        warnings.warn("computed pitch class value outside 0--11", stacklevel=2)
 
     return val
 
@@ -633,7 +633,8 @@ class Pitch:
             warnings.warn(
                 f"more than one cent off ({e * 100:.2f}). "
                 f"Rounding {'up' if e < 0 else 'down'} "
-                f"to the nearest integer piano key."
+                f"to the nearest integer piano key.",
+                stacklevel=2,
             )
 
         o, v = divmod(n + 8, 12)
@@ -791,7 +792,8 @@ class SimpleInterval:
             else:
                 value_ = mod_abs_value
             warnings.warn(
-                f"input value {value} not between 0 and 12 " f"has been coerced to {value_}"
+                f"input value {value} not between 0 and 12 has been coerced to {value_}",
+                stacklevel=2,
             )
         self.value = value_
         """Number of semitones (half steps)."""

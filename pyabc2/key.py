@@ -308,7 +308,7 @@ class Key:
             raise ValueError(f"Invalid key specification '{key}'")
         base, acc, mode, extra = m.groups()
         if extra != "":
-            warnings.warn(f"extra info {extra!r} in key spec {key!r} ignored")
+            warnings.warn(f"extra info {extra!r} in key spec {key!r} ignored", stacklevel=2)
 
         if acc is None:
             acc = ""

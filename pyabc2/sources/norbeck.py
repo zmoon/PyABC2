@@ -204,7 +204,7 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> list[Tune]:
         msg = f"{failed} out of {len(blocks)} Norbeck tune(s) in file {fp.name} failed to load."
         if logger.level == logging.NOTSET or logger.level > logging.DEBUG:
             msg += " Enable logging debug messages to see more info."
-        warnings.warn(msg)
+        warnings.warn(msg, stacklevel=3)
 
     if expected_failures:
         logger.debug(

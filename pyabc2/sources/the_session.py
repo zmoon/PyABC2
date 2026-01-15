@@ -284,7 +284,7 @@ def load(
         import multiprocessing
 
         if debug:  # pragma: no cover
-            warnings.warn("Multi-processing, detailed debug messages won't be shown.")
+            warnings.warn("Multi-processing, detailed debug messages won't be shown.", stacklevel=2)
 
         with multiprocessing.Pool(num_workers) as pool:
             maybe_tunes = pool.map(_maybe_load_one, data)
@@ -303,7 +303,7 @@ def load(
         msg = f"{failed} out of {len(data)} The Session tune(s) failed to load."
         if logger.level == logging.NOTSET or logger.level > logging.DEBUG:
             msg += " Enable logging debug messages to see more info."
-        warnings.warn(msg)
+        warnings.warn(msg, stacklevel=2)
 
     return tunes
 
