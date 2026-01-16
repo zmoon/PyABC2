@@ -48,7 +48,7 @@ doc = [
     "furo",
     "matplotlib",
     "myst-nb",
-    "sphinx",
+    "sphinx ==8.*",
     "sphinx-copybutton",
     "sphinx-inline-tabs",
 ]
