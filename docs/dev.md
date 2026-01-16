@@ -48,9 +48,13 @@ You can now make a branch on your fork, work on the code, push your branch to Gi
 Enable hot reloading by setting environment variable `ANYWIDGET_HMR` to `1`
 before starting Jupyter Lab.
 
+````{tab} Bash
 ```bash
 export ANYWIDGET_HMR=1
 ```
+````
+````{tab} PowerShell
 ```powershell
 $env:ANYWIDGET_HMR = "1"
 ```
+````
