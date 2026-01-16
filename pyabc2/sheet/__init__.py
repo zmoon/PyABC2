@@ -86,7 +86,7 @@ def svg(
         text=True,
     )
     if cp.returncode != 0:
-        info = indent(cp.stderr, "| ", lambda _: True)
+        info = indent(cp.stderr, "| ", lambda _: True)  # type: ignore[arg-type]
         raise RuntimeError(f"Failed to render sheet music:\n{info}")
 
     assert isinstance(cp.stdout, str)
@@ -158,5 +158,5 @@ if __name__ == "__main__":  # pragma: no cover
         f.write(svg_str)
 
     for fmt in ["png", "PDF"]:
-        with open(f"test.{fmt}", "wb") as f:
-            f.write(svg_to(svg_str, fmt, write_to="asdf"))
+        with open(f"test.{fmt}", "wb") as f_:
+            f_.write(svg_to(svg_str, fmt, write_to="asdf"))

@@ -26,7 +26,7 @@ class ABCJSWidget(anywidget.AnyWidget):
     abc = traitlets.Unicode("").tag(sync=True)
 
     # Output
-    svgs = traitlets.List(traitlets.Unicode, []).tag(sync=True)
+    svgs = traitlets.List(traitlets.Unicode(), []).tag(sync=True)
 
     # Options
     debug_box = traitlets.Bool(False).tag(sync=True)
