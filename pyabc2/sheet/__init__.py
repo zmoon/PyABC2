@@ -36,10 +36,13 @@ def _maybe_build():
     now = datetime.datetime.now().timestamp()
     package_lock = HERE / "package-lock.json"
     node_modules = HERE / "node_modules"
+    package_lock_exists = package_lock.exists()
+    node_modules_exists = node_modules.exists()
+    package_lock_old = package_lock_exists and now - package_lock.stat().st_mtime > 7 * 24 * 3600
     if (
-        not package_lock.exists()
-        or not node_modules.exists()
-        or (package_lock.exists() and now - package_lock.stat().st_mtime > 7 * 24 * 3600)
+        not package_lock_exists
+        or not node_modules_exists
+        or package_lock_old
         or ALWAYS_BUILD
     ):
         build()
@@ -104,7 +107,7 @@ def svg_to(svg: str, fmt: str, **kwargs) -> bytes:
     fmt
         The format to convert to, e.g., 'png', 'pdf', 'ps', 'svg'.
     **kwargs
-        Passed to the `cairgosvg function <https://cairosvg.org/documentation/#python>`__.
+        Passed to the `cairosvg function <https://cairosvg.org/documentation/#python>`__.
         Options include:
 
         - ``scale``

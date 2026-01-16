@@ -34,13 +34,13 @@ function initialize({ model }) {
 
 
 function getRandomString() {
-    // from a-z and 0-1
+    // from a-z and 0-9
     return Math.random().toString(36).substring(2, 9);
 }
 
 
 function render({ model, el }) {
-    console.log("render")
+    console.log("render");
 
     let abc = () => model.get('abc');
 
@@ -163,7 +163,7 @@ function render({ model, el }) {
         };
 
         // Remove callback
-        model.off("change:abc", on_change);
+        model.off("change", on_change);
     };
 }
 

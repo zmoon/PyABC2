@@ -11,8 +11,8 @@ process.argv.slice(2).forEach(arg => {
         const key = match[1];
         let value = match[2];
 
-        // Convert string value to number
-        if (!isNaN(value)) {
+        // Convert string value to number, but avoid treating empty strings as numbers
+        if (value.trim() !== '' && !isNaN(value)) {
             value = parseFloat(value);
         }
 

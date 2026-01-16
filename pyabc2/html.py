@@ -60,7 +60,7 @@ def html(
     abc_indented = "\n".join(" " * ind + line.lstrip() for line in abc.strip().splitlines())
 
     ind = 6
-    s_param_lines = "\n".join(" " * (ind + 2) + f"{k}: {v!r}," for k, v in sorted(params.items()))
+    s_param_lines = ",\n".join(" " * (ind + 2) + f"{k}: {v!r}" for k, v in sorted(params.items()))
     s_params = r"{" + "\n" + s_param_lines + "\n" + " " * ind + "}"
 
     s = FULLPAGE_TPL.format(

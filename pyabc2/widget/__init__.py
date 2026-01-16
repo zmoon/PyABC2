@@ -53,7 +53,7 @@ def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":
         style={"description_width": "125px"},
     )
     input_box = ipw.Textarea(
-        value=None,
+        value=abc,
         placeholder="Type something",
         layout={"width": "500px", "height": "5rem"},
     )
