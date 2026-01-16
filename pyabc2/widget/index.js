@@ -66,6 +66,8 @@ function render({ model, el }) {
         let logo = document.createElement('img');
         logo.src = ABCJS_LOGO_URL;
         logo.height = '24';
+        logo.width = '228';
+        logo.title = 'abcjs logo';
         container.appendChild(logo);
     }
 
