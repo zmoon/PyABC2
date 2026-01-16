@@ -1,5 +1,7 @@
 """
-abcjs widget for Jupyter and more.
+`abcjs <https://www.abcjs.net/>`__ widget for Jupyter and more.
+
+See examples in :doc:`/examples/widget`.
 """
 
 from pathlib import Path

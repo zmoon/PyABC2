@@ -1,4 +1,7 @@
-"""Render ABC notation to SVG sheet music using abcjs in the background."""
+"""Render ABC notation to SVG sheet music using `abcjs <https://www.abcjs.net/>`__ in the background.
+
+See examples in :doc:`/examples/widget`.
+"""
 
 import datetime
 import os
@@ -12,6 +15,9 @@ ALWAYS_BUILD = os.getenv("PYABC_ALWAYS_BUILD_NPM_PACKAGE", "0") == "1"
 
 
 def build():
+    """Download abcjs and build our interface.
+    (:func:`svg` should call this automatically as needed.)
+    """
     try:
         from nodejs_wheel import npm
     except ImportError as e:
