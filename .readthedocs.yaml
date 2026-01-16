@@ -1,9 +1,9 @@
 version: 2
 
 build:
-  os: ubuntu-24.04
+  os: ubuntu-lts-latest
   tools:
-    python: "3.11"
+    python: "3.14"
   pre_build:
     - python -c "from pyabc2.sheet import build; build()"
 
