@@ -4,8 +4,9 @@ build:
   os: ubuntu-lts-latest
   tools:
     python: "3.14"
-  pre_build:
-    - python -c "from pyabc2.sheet import build; build()"
+  jobs:
+    pre_build:
+      - python -c "from pyabc2.sheet import build; build()"
 
 python:
   install:
