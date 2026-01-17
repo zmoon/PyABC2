@@ -150,3 +150,27 @@ Functions:
    eskin.load_url
    eskin.abctools_url_to_abc
    eskin.abc_to_abctools_url
+
+Widget
+======
+
+.. automodule:: pyabc2.widget
+
+.. autosummary::
+   :toctree: api/
+
+   ABCJSWidget
+   interactive
+
+
+Headless rendering
+==================
+
+.. automodule:: pyabc2.sheet
+
+.. autosummary::
+   :toctree: api/
+
+   svg
+   svg_to
+   build

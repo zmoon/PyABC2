@@ -17,3 +17,14 @@ def get_logger(name: str) -> logging.Logger:
     logger.addHandler(sh)
 
     return logger
+
+
+def in_jupyter() -> bool:
+    # Reference: https://stackoverflow.com/a/47428575
+    try:
+        from IPython.core import getipython  # type: ignore
+    except (ImportError, ModuleNotFoundError):  # pragma: no cover
+        return False
+
+    # <class 'ipykernel.zmqshell.ZMQInteractiveShell'>
+    return "zmqshell" in str(type(getipython.get_ipython()))

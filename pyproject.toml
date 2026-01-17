@@ -23,6 +23,15 @@ sources = [
     "pandas ==2.*",
     "requests ==2.*",
 ]
+widget = [
+    "anywidget",
+    "ipywidgets",
+    "traitlets",
+]
+sheet = [
+    "cairosvg",
+    "nodejs-wheel-binaries",
+]
 test = [
     "mypy",
     "pandas-stubs ==2.*",
@@ -31,6 +40,7 @@ test = [
     "pytest-xdist",
 ]
 dev = [
+    "anywidget[dev]",
     "ipython",
     "jupyterlab",
 ]
@@ -38,7 +48,7 @@ doc = [
     "furo",
     "matplotlib",
     "myst-nb",
-    "sphinx",
+    "sphinx ==8.*",
     "sphinx-copybutton",
     "sphinx-inline-tabs",
 ]

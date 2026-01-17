@@ -5,7 +5,12 @@ pyabc2/sources/_*
 poetry.lock
 venv*/
 docs/api/
+docs/examples/music*.svg
+pyabc2/sheet/test.*
 
+# node
+node_modules
+package-lock.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
