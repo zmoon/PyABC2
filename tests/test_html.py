@@ -1,3 +1,4 @@
+import atexit
 from pathlib import Path
 from tempfile import tempdir
 
@@ -28,3 +29,6 @@ def test_open_html(monkeypatch):
     url = called["url"]
     assert url.startswith(tempdir)
     assert Path(url).exists(), "haven't exited yet"
+
+    atexit._run_exitfuncs()
+    assert not Path(url).exists(), "should be cleaned up after exit"

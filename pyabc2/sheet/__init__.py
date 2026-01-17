@@ -87,7 +87,7 @@ def svg(
         capture_output=True,
         text=True,
     )
-    if cp.returncode != 0:
+    if cp.returncode != 0:  # pragma: no cover
         info = indent(cp.stderr, "| ", lambda _: True)  # type: ignore[arg-type]
         raise RuntimeError(f"Failed to render sheet music:\n{info}")
 
@@ -116,7 +116,7 @@ def svg_to(svg: str, fmt: str, **kwargs) -> bytes:
     """
     try:
         import cairosvg
-    except (ImportError, OSError) as e:
+    except (ImportError, OSError) as e:  # pragma: no cover
         # OSError raised if cairosvg is installed but fails to find the cairo library
         raise RuntimeError(
             "The 'cairosvg' package is required to convert SVG to other formats."

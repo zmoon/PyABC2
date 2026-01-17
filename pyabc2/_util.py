@@ -23,7 +23,7 @@ def in_jupyter() -> bool:
     # Reference: https://stackoverflow.com/a/47428575
     try:
         from IPython.core import getipython  # type: ignore
-    except (ImportError, ModuleNotFoundError):
+    except (ImportError, ModuleNotFoundError):  # pragma: no cover
         return False
 
     # <class 'ipykernel.zmqshell.ZMQInteractiveShell'>

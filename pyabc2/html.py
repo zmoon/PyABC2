@@ -106,7 +106,7 @@ def open_html(
         try:
             input("Press Enter or Ctrl+C to close the temporary file and exit...")
             break
-        except KeyboardInterrupt:
+        except KeyboardInterrupt:  # pragma: no cover
             break
 
 
