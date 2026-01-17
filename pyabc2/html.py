@@ -78,6 +78,8 @@ def open_html(
 ) -> None:
     """Generate an HTML page to render ABC with abcjs
     and open it in a new tab with the default web browser."""
+    import atexit
+    import os
     from tempfile import NamedTemporaryFile
     from webbrowser import open_new_tab
 
@@ -86,7 +88,22 @@ def open_html(
         f.write(s)
         path = f.name
 
+    def cleanup():
+        try:
+            os.remove(path)
+        except Exception:
+            pass
+
+    atexit.register(cleanup)
+
     open_new_tab(path)
+
+    while True:
+        try:
+            input("Press Enter or Ctrl+C to close the temporary file and exit...")
+            break
+        except KeyboardInterrupt:
+            break
 
 
 if __name__ == "__main__":  # pragma: no cover
