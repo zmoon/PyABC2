@@ -94,10 +94,11 @@ function render({ model, el }) {
             music.innerHTML = '';
         };
 
+        head.innerHTML = '';
         if (showDebugInput() && !hide()) {
-            head.innerHTML = `<code>${abc()}</code>`;
-        } else {
-            head.innerHTML = '';
+            let code = document.createElement('code');
+            code.textContent = abc();
+            head.appendChild(code);
         }
         if (showDebugBox() && !hide()) {
             music.classList.add('debug');
