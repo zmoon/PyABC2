@@ -89,8 +89,12 @@ def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":  # pragma: no c
     """Return a Jupyter widget for interactive use, using ipywidgets."""
     import ipywidgets as ipw
 
+    if "foreground" not in kwargs:
+        # Explicitly set default foreground color to black
+        # so it shows up in the color picker
+        kwargs["foreground"] = "black"
+
     w = ABCJSWidget(abc=abc, **kwargs)
-    w.foreground = "black"
 
     slider_kws = dict(
         layout={"width": "500px"},
