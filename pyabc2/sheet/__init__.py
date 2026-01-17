@@ -116,7 +116,8 @@ def svg_to(svg: str, fmt: str, **kwargs) -> bytes:
     """
     try:
         import cairosvg
-    except ImportError as e:
+    except (ImportError, OSError) as e:
+        # OSError raised if cairosvg is installed but fails to find the cairo library
         raise RuntimeError(
             "The 'cairosvg' package is required to convert SVG to other formats."
         ) from e

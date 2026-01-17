@@ -10,8 +10,7 @@ except (ImportError, OSError):
     HAVE_CAIROSVG = False
 
 
-@pytest.mark.skipif(not HAVE_CAIROSVG, reason="cairosvg is not available")
-def test_svg_to_ignored_args():
+def test_svg_to():
     abc = """\
     ABCD
     """
@@ -26,10 +25,24 @@ def test_svg_to_ignored_args():
     )
     assert isinstance(svg_str, str)
 
-    with pytest.warns(
-        UserWarning,
-        match="Keyword 'write_to' is not supported and will be ignored.",
-    ):
-        png_bytes = svg_to(svg_str, "PNG", write_to="asdf")
+    if HAVE_CAIROSVG:
+        with pytest.warns(
+            UserWarning,
+            match="Keyword 'write_to' is not supported and will be ignored.",
+        ):
+            png_bytes = svg_to(svg_str, "PNG", write_to="asdf")
 
-    assert isinstance(png_bytes, bytes)
+        assert isinstance(png_bytes, bytes)
+
+        with pytest.raises(
+            ValueError,
+            match="Unsupported format: 'asdf'",
+        ):
+            _ = svg_to(svg_str, "asdf")
+
+    else:
+        with pytest.raises(
+            RuntimeError,
+            match="The 'cairosvg' package is required to convert SVG to other formats.",
+        ):
+            _ = svg_to(svg_str, "PNG")
