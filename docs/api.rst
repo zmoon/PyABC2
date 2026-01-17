@@ -87,7 +87,7 @@ These methods/properties result from tune body parsing and repeat/ending expansi
 Tune sources
 ============
 
-.. currentmodule:: pyabc2.sources
+.. module:: pyabc2.sources
 
 The :mod:`pyabc2.sources` namespace contains a few general tools.
 
@@ -153,6 +153,8 @@ Functions:
 
 abcjs tools
 ===========
+
+.. module:: pyabc2.abcjs
 
 Widget
 ------
