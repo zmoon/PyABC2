@@ -17,28 +17,72 @@ HERE = Path(__file__).parent
 
 
 class ABCJSWidget(anywidget.AnyWidget):
-    """Display SVG sheet music rendered from ABC notation by abcjs."""
+    """Display SVG sheet music rendered from ABC notation by abcjs.
+
+    Examples
+    --------
+    >>> from pyabc2.widget import ABCJSWidget
+    >>> w = ABCJSWidget(abc="ABCD", staff_width=250)
+    """
 
     _esm = HERE / "index.js"
     _css = HERE / "index.css"
 
     # Input
-    abc = traitlets.Unicode("").tag(sync=True)
+    abc = traitlets.Unicode(
+        "",
+        help="The ABC notation to render.",
+    ).tag(sync=True)
 
     # Output
-    svgs = traitlets.List(traitlets.Unicode(), []).tag(sync=True)
+    svgs = traitlets.List(
+        traitlets.Unicode(),
+        [],
+        help="List of stored rendered SVG strings.",
+    ).tag(sync=True)
 
     # Options
-    debug_box = traitlets.Bool(False).tag(sync=True)
-    debug_grid = traitlets.Bool(False).tag(sync=True)
-    debug_input = traitlets.Bool(False).tag(sync=True)
-    foreground = traitlets.Unicode(None, allow_none=True).tag(sync=True)
-    hide = traitlets.Bool(False).tag(sync=True)
-    line_thickness_increase = traitlets.Float(0.0).tag(sync=True)
-    logo = traitlets.Bool(False).tag(sync=True)
-    scale = traitlets.Float(1.0).tag(sync=True)
-    staff_width = traitlets.Integer(740).tag(sync=True)
-    transpose = traitlets.Integer(0).tag(sync=True)
+    debug_box = traitlets.Bool(
+        False,
+        help="Add box outline around the widget.",
+    ).tag(sync=True)
+    debug_grid = traitlets.Bool(
+        False,
+        help="Show grid lines.",
+    ).tag(sync=True)
+    debug_input = traitlets.Bool(
+        False,
+        help="Show the ABC input as part of the widget.",
+    ).tag(sync=True)
+    foreground = traitlets.Unicode(
+        None,
+        allow_none=True,
+        help="Color of the music rendering.",
+    ).tag(sync=True)
+    hide = traitlets.Bool(
+        False,
+        help="Hide the widget.",
+    ).tag(sync=True)
+    line_thickness_increase = traitlets.Float(
+        0.0,
+        help="Increase in line thickness.",
+    ).tag(sync=True)
+    logo = traitlets.Bool(
+        False,
+        help="Show the abcjs logo at the top left.",
+    ).tag(sync=True)
+    scale = traitlets.Float(
+        1.0,
+        help="Scaling factor for the music rendering.",
+    ).tag(sync=True)
+    staff_width = traitlets.Integer(
+        740,
+        help="Width of the staff in pixels.",
+    ).tag(sync=True)
+    transpose = traitlets.Integer(
+        0,
+        help="Visual transpose in half steps.",
+    ).tag(sync=True)
 
 
 def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":
