@@ -99,6 +99,7 @@ def open_html(
             pass
 
     atexit.register(cleanup)
+    open_html.cleanup = cleanup  # type: ignore[attr-defined]
 
     open_new_tab(path)
 
