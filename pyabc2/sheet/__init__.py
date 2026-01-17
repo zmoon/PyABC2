@@ -39,15 +39,6 @@ def _maybe_build():
     package_lock_exists = package_lock.exists()
     node_modules_exists = node_modules.exists()
     package_lock_old = package_lock_exists and now - package_lock.stat().st_mtime > 7 * 24 * 3600
-    print("package_lock_exists:", package_lock_exists)
-    print("node_modules_exists:", node_modules_exists)
-    print("package_lock_old:", package_lock_old)
-    print(
-        "now:",
-        now,
-        "package_lock mtime:",
-        package_lock.stat().st_mtime if package_lock_exists else "N/A",
-    )
     if not package_lock_exists or not node_modules_exists or package_lock_old or ALWAYS_BUILD:
         build()
 
