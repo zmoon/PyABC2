@@ -52,7 +52,7 @@ def html(
     **kwargs
         Additional abcjs options that haven't been explicitly defined here
         in the signature.
-        https://paulrosen.github.io/abcjs/visual/render-abc-options.html
+        https://docs.abcjs.net/visual/render-abc-options.html
     """
     params = {
         **kwargs,
