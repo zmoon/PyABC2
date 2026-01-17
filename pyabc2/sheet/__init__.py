@@ -156,5 +156,5 @@ if __name__ == "__main__":  # pragma: no cover
         f.write(svg_str)
 
     for fmt in ["png", "PDF"]:
-        with open(f"test.{fmt}", "wb") as f_:
-            f_.write(svg_to(svg_str, fmt, write_to="asdf"))
+        with open(f"test.{fmt}", "wb") as fb:
+            fb.write(svg_to(svg_str, fmt))
