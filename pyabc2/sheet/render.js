@@ -14,7 +14,7 @@ import { JSDOM } from 'jsdom';
 export function render(abc, params = {}) {
     const dom = new JSDOM(`<!DOCTYPE html><html><body></body></html>`);
 
-    // We make `document` globally accessibly since abcjs uses it to create the SVG
+    // We make `document` globally accessible since abcjs uses it to create the SVG
     global.document = dom.window.document;
 
     const XMLSerializer = dom.window.XMLSerializer;
