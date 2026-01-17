@@ -1,8 +1,10 @@
 import atexit
 from pathlib import Path
-from tempfile import tempdir
+from tempfile import gettempdir
 
 from pyabc2.html import html, open_html
+
+TMP = gettempdir()
 
 
 def test_html_basic():
@@ -27,7 +29,7 @@ def test_open_html(monkeypatch):
     open_html(abc)
 
     url = called["url"]
-    assert url.startswith(tempdir)
+    assert url.startswith(TMP)
     assert Path(url).exists(), "haven't exited yet"
 
     atexit._run_exitfuncs()
