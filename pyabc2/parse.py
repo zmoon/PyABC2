@@ -3,6 +3,7 @@ ABC parsing/info
 """
 
 import re
+import warnings
 from collections.abc import Iterator
 from typing import NamedTuple
 
@@ -350,11 +351,16 @@ class Tune:
         return hash(self.abc)
 
     def _repr_html_(self):  # pragma: no cover
-        from IPython.display import display
+        try:
+            from IPython.display import display
 
-        from .widget import ABCJSWidget
-
-        display(ABCJSWidget(abc=self.abc))
+            from .widget import ABCJSWidget
+        except ImportError:
+            warnings.warn(
+                "The 'widget' extra is required for HTML representation of tunes via abcjs."
+            )
+        else:
+            display(ABCJSWidget(abc=self.abc))
 
     def print_measures(self, n: int | None = None, *, note_format: str = "ABC"):
         """Print measures to check parsing.
