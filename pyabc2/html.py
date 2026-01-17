@@ -102,12 +102,10 @@ def open_html(
 
     open_new_tab(path)
 
-    while True:
-        try:
-            input("Press Enter or Ctrl+C to close the temporary file and exit...")
-            break
-        except KeyboardInterrupt:  # pragma: no cover
-            break
+    try:
+        input("Press Enter or Ctrl+C to close the temporary file and exit...")
+    except KeyboardInterrupt:  # pragma: no cover
+        pass
 
 
 if __name__ == "__main__":  # pragma: no cover
