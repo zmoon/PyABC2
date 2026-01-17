@@ -95,7 +95,7 @@ def open_html(
     def cleanup():
         try:
             os.remove(path)
-        except Exception:
+        except Exception:  # pragma: no cover
             pass
 
     atexit.register(cleanup)
