@@ -85,7 +85,7 @@ class ABCJSWidget(anywidget.AnyWidget):
     ).tag(sync=True)
 
 
-def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":
+def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":  # pragma: no cover
     """Return a Jupyter widget for interactive use, using ipywidgets."""
     import ipywidgets as ipw
 
