@@ -57,6 +57,10 @@ def svg(
     ----------
     abc
         The ABC notation to render.
+    scale
+        Scaling factor for the music rendering.
+    staff_width
+        Width of the staff in pixels.
     **kwargs
         Additional abcjs options that haven't been explicitly defined here
         in the signature.
