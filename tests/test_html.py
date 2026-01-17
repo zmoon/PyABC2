@@ -1,7 +1,7 @@
 from pathlib import Path
 from tempfile import gettempdir
 
-from pyabc2.html import html, open_html
+from pyabc2.abcjs.html import html, open_html
 
 TMP = gettempdir()
 

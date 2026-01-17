@@ -23,12 +23,12 @@ sources = [
     "pandas ==2.*",
     "requests ==2.*",
 ]
-widget = [
+abcjs-widget = [
     "anywidget",
     "ipywidgets",
     "traitlets",
 ]
-sheet = [
+abcjs-headless = [
     "cairosvg",
     "nodejs-wheel-binaries",
 ]

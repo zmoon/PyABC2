@@ -6,7 +6,7 @@ poetry.lock
 venv*/
 docs/api/
 docs/examples/music*.svg
-pyabc2/sheet/test.*
+pyabc2/abcjs/headless/test.*
 
 # node
 node_modules

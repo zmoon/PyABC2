@@ -1,6 +1,6 @@
 import pytest
 
-from pyabc2.sheet import svg, svg_to
+from pyabc2.abcjs.headless import svg, svg_to
 
 HAVE_CAIROSVG = True
 try:
