@@ -354,7 +354,7 @@ class Tune:
         try:
             from IPython.display import display
 
-            from .widget import ABCJSWidget
+            from .abcjs.widget import ABCJSWidget
         except ImportError:
             warnings.warn(
                 "The 'widget' extra is required for HTML representation of tunes via abcjs."
