@@ -20,7 +20,7 @@ def build():
     """
     try:
         from nodejs_wheel import npm
-    except ImportError as e:
+    except ImportError as e:  # pragma: no cover
         raise RuntimeError(
             "The 'nodejs-wheel-binaries' package is required "
             "to render sheet music in the background with abcjs via Node.js. "
@@ -28,7 +28,7 @@ def build():
         ) from e
 
     rc = npm(["install", "--prefix", HERE.as_posix()])
-    if rc != 0:
+    if rc != 0:  # pragma: no cover
         raise RuntimeError("Build failed")
 
 
