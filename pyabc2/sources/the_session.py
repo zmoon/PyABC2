@@ -564,9 +564,9 @@ def get_tune_collections(tune_id: int) -> "pandas.DataFrame":
     import pandas as pd
 
     endpoint = f"/tunes/{tune_id}/collections"
-    (result,) = _consume(endpoint)
+    (data,) = _consume(endpoint)
 
-    return pd.DataFrame(result["collections"]).rename(
+    return pd.DataFrame(data["collections"]).rename(
         columns={
             "id": "collection_id",
             "name": "collection_name",
@@ -579,12 +579,8 @@ def get_tune_collections(tune_id: int) -> "pandas.DataFrame":
 
 
 def get_member_set(member_id: int, set_id: int) -> list[dict]:
-    import requests
-
-    url = f"https://thesession.org/members/{member_id}/sets/{set_id}?format=json"
-    r = requests.get(url)
-    r.raise_for_status()
-    data = r.json()
+    endpoint = f"/members/{member_id}/sets/{set_id}"
+    (data,) = _consume(endpoint)
 
     results = []
     for setting in data["settings"]:
@@ -604,12 +600,8 @@ def get_member_set(member_id: int, set_id: int) -> list[dict]:
 
 
 def get_member_sets(member_id: int) -> list[list[dict]]:
-    import requests
-
-    url = f"https://thesession.org/members/{member_id}/sets?format=json"
-    r = requests.get(url)
-    r.raise_for_status()
-    data = r.json()
+    endpoint = f"/members/{member_id}/sets"
+    (data,) = _consume(endpoint)
 
     sets = []
     for set in data["sets"]:
