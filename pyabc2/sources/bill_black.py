@@ -107,7 +107,7 @@ def load_meta(*, redownload: bool = False, debug: bool = False) -> list[str]:
 
             # Find the start of the first tune, in order to skip header info
             start = text.find("X:")
-            if start == -1:
+            if start == -1:  # pragma: no cover
                 raise RuntimeError(f"Unable to find first tune in Bill Black file {fn!r}")
 
             text = text[start:]
@@ -130,7 +130,7 @@ def load_meta(*, redownload: bool = False, debug: bool = False) -> list[str]:
             this_abcs = []
             for block in blocks:
                 block = block.strip()
-                if not block:
+                if not block:  # pragma: no cover
                     continue
 
                 if block.startswith(":313\nT:GRAVEL WALK (reel) (1), The"):
@@ -147,13 +147,13 @@ def load_meta(*, redownload: bool = False, debug: bool = False) -> list[str]:
                         logger.info(f"skipping non-tune block in {fn!r}:\n{indent(block, '| ')}")
                         continue
 
-                if block.count("X:") > 1:
+                if block.count("X:") > 1:  # pragma: no cover
                     logger.warning(f"multiple X: lines in block in {fn!r}:\n{indent(block, '| ')}")
 
                 this_abcs.append(block)
 
             actual_num = len(this_abcs)
-            if actual_num != expected_num:
+            if actual_num != expected_num:  # pragma: no cover
                 logger.warning(f"expected {expected_num} tunes in {fn!r}, but found {actual_num}")
 
             # Drop fully duplicate tune blocks while preserving order

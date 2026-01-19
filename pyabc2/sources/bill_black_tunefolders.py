@@ -164,25 +164,24 @@ def get_collection(key: str) -> Collection:
         ) from e
 
 
-def download(key: str | Iterable[str] | None = None, *, verbose: bool = False) -> None:
+def download(key: str | Iterable[str] | None = None) -> None:
     import gzip
 
     import requests
 
     SAVE_TO.mkdir(exist_ok=True)
 
-    if key is None:
+    if key is None:  # pragma: no cover
         collections = COLLECTIONS
     elif isinstance(key, str):
         collections = [get_collection(key)]
-    else:
+    else:  # pragma: no cover
         collections = [get_collection(k) for k in key]
 
     for collection in collections:
         for url in collection.abc_urls:
             p = collection.url_to_file(url)
-            if verbose:
-                print(f"Downloading {url} to {p.relative_to(HERE).as_posix()}")
+            logger.info(f"Downloading {url} to {p.relative_to(HERE).as_posix()}")
             r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
             r.raise_for_status()
 
@@ -204,7 +203,7 @@ def load_meta(key: str, *, redownload: bool = False, debug: bool = False) -> lis
     collection = get_collection(key)
     if redownload or any(not p.is_file() for p in collection.files):
         print("downloading...", end=" ", flush=True)
-        download(key=collection.key, verbose=False)
+        download(key=collection.key)
         print("done")
 
     abcs = []
@@ -224,12 +223,12 @@ def load_meta(key: str, *, redownload: bool = False, debug: bool = False) -> lis
 
         # Find the start of the first tune, in order to skip header info
         start = text.find("X:")
-        if start == -1:
+        if start == -1:  # pragma: no cover
             raise RuntimeError(f"Could not find start of tune in {p.name}")
 
         # Split on 3 or more %
         blocks = re.split(r"\s*%{3,}\s*", text[start:])
-        if not blocks:
+        if not blocks:  # pragma: no cover
             raise RuntimeError(f"Splitting blocks failed for {p.name}")
 
         good_blocks = []

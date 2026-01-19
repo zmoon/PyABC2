@@ -450,6 +450,11 @@ def test_bill_black_tunefolders(key):
     assert len(lst) > 0
 
 
+def test_bill_black_tunefolders_invalid_key():
+    with pytest.raises(ValueError, match="Unknown collection key: 'asdf'"):
+        _ = bill_black_tunefolders.get_collection("asdf")
+
+
 def test_bill_black_text_fns():
     import requests
 
