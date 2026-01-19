@@ -73,7 +73,15 @@ def download() -> None:
 
 
 def load_meta(*, redownload: bool = False, debug: bool = False) -> list[str]:
-    """Load all data, splitting into tune blocks and removing ``%`` lines."""
+    """Load all data, splitting into ABC tune blocks and removing lines that start with ``%``.
+
+    Parameters
+    ----------
+    redownload
+        Re-download the data file.
+    debug
+        Show debug messages.
+    """
     import zipfile
     from collections import Counter
     from textwrap import indent

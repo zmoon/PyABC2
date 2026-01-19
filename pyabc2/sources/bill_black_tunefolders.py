@@ -191,7 +191,15 @@ def download(key: str | Iterable[str] | None = None) -> None:
 
 
 def load_meta(key: str, *, redownload: bool = False, debug: bool = False) -> list[str]:
-    """Load the tunebook data, no parsing."""
+    """Load the tunebook data, no parsing.
+
+    Parameters
+    ----------
+    redownload
+        Re-download the data file.
+    debug
+        Show debug messages.
+    """
     import gzip
     import re
 
