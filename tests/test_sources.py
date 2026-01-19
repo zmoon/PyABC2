@@ -6,6 +6,7 @@ import pytest
 from pyabc2 import Key
 from pyabc2.parse import Tune
 from pyabc2.sources import (
+    bill_black,
     bill_black_tunefolders,
     eskin,
     examples,
@@ -447,3 +448,24 @@ def test_bill_black_tunefolders(key):
         lst = bill_black_tunefolders.load_meta(key)
 
     assert len(lst) > 0
+
+
+def test_bill_black_text_fns():
+    import requests
+
+    url = "http://www.capeirish.com/ittl/alltunes/text/"
+    r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r.raise_for_status()
+
+    fns_web = sorted(re.findall(r'href=["\']([a-z0-9\-]+\.txt)["\']', r.text))
+    if "s-tunes-1.txt" in fns_web:
+        # We're using s-tunes-2, not both
+        fns_web.remove("s-tunes-1.txt")
+
+    assert bill_black.TXT_FNS == fns_web
+
+
+def test_bill_black_load():
+    lst = bill_black.load_meta()
+    assert len(lst) > 0
+    assert lst[0].startswith("X:")
