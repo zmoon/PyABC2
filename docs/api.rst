@@ -183,7 +183,7 @@ Headless rendering
 HTML page generation
 --------------------
 
-.. automodule:: pyabc2.abcjs.html
+.. automodule:: pyabc2.abcjs.htmlgen
 
 .. autosummary::
    :toctree: api/
