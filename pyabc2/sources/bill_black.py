@@ -68,7 +68,7 @@ def download() -> None:
 
 
 def load_meta(*, redownload: bool = False) -> list[str]:
-    """Load the tunebook data, splitting into tune blocks and removing ``%`` lines."""
+    """Load all data, splitting into tune blocks and removing ``%`` lines."""
     import zipfile
     from collections import Counter
     from textwrap import indent
