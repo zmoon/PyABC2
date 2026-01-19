@@ -2,6 +2,11 @@
 Bill Black's Irish Traditional Tune Library
 
 http://www.capeirish.com/ittl/
+
+As of the 2025-06-14 update, the "tunefolders" method is deprecated.
+Bill Black is now using the Eskin ABC Tools (http://www.capeirish.com/ittl/alltunes/html/),
+while also posting ABC text files (http://www.capeirish.com/ittl/alltunes/text/),
+both split up alphabetically by tune name.
 """
 
 import logging
@@ -14,7 +19,7 @@ logger = logging.getLogger(__name__)
 HERE = Path(__file__).parent
 
 ITTL = "http://www.capeirish.com/ittl/"
-SAVE_TO = HERE / "_bill-black"
+SAVE_TO = HERE / "_bill-black_tunefolders"
 
 
 @dataclass
@@ -22,7 +27,7 @@ class Collection:
     key: str
     title: str
     folder: str
-    volumes: list[str] = field(default_factory=list)
+    subfolders: list[str] = field(default_factory=list)
     urls: list[str] = field(default_factory=list)
 
     @property
@@ -31,8 +36,11 @@ class Collection:
             return self.urls
         else:
             num = self.folder
-            if self.volumes:
-                return [f"{ITTL}tunefolders/{num}/{vol}/{vol}-ABC.rtf" for vol in self.volumes]
+            if self.subfolders:
+                return [
+                    f"{ITTL}tunefolders/{num}/{subfolder}/{subfolder}-ABC.rtf"
+                    for subfolder in self.subfolders
+                ]
             else:
                 return [f"{ITTL}tunefolders/{num}/{num}-ABC.rtf"]
 
@@ -55,93 +63,88 @@ COLLECTIONS: list[Collection] = [
         key="bbmg",
         title="BB's Mostly Gems",
         folder="12",
-        urls=[
-            f"{ITTL}bbmg/{char}-tunes-ABC.rtf"
-            for char in [
-                "A",
-                "B",
-                "C",
-                "D",
-                "E",
-                "F",
-                "G",
-                "H",
-                "I-J",
-                "K",
-                "L",
-                "M",
-                "N",
-                "O",
-                "P-Q",
-                "R",
-                "S",
-                "T",
-                "U-Y",
-            ]
-        ],
+        subfolders=["12-AE", "12-FJ", "12-KQ", "12-RST", "12-UY"],
     ),
     Collection(
         key="bs",
         title="Bulmer & Sharpley",
         folder="13",
-        volumes=["131", "132", "133", "134"],
+        subfolders=["13-hps", "13-jigs", "13-misc", "13-p&s", "13-reels", "13-sjigs"],
     ),
     Collection(
         key="car",
         title="Carolan Tunes",
         folder="14",
     ),
-    # http://www.capeirish.com/ittl/tunefolders/18/181/181-ABC.rtf
     Collection(
         key="cre",
         title="Ceol Rince na hÉireann",
         folder="18",
-        volumes=["181", "182", "183", "184", "185"],
+        subfolders=["18-hornpipes", "18-jigs", "18-polkas_slides", "18-reels", "18-slipjigs"],
     ),
     Collection(
         key="dmi",
         title="Dance Music of Ireland",
         folder="21",
+        subfolders=["hps", "jigs", "reels", "slipjigs"],
     ),
     Collection(
         key="dmwc",
         title="Dance Music of Willie Clancy",
         folder="22",
+        subfolders=["22-hps", "22-jigs", "22-misc", "22-reels", "22-sjigs"],
     ),
     Collection(
         key="foinn",
         title="Foinn Seisiún",
         folder="25",
-        volumes=["251", "252", "253"],
+        subfolders=["hps", "jigs", "misc", "p&s", "reels"],
     ),
     Collection(
         key="jol",
         title="Johnny O'Leary of Sliabh Luachra",
         folder="31",
+        subfolders=["31-hps", "31-jigs", "31-misc", "31-polkas", "31-reels", "31-slides"],
     ),
     Collection(
         key="levey",
         title="Levey Collection",
         folder="33",
-        volumes=["331", "332"],
+        subfolders=["33-hps", "33-jigs", "33-marches", "33-reels", "33-sjigs"],
     ),
     Collection(
         key="ofpc",
         title="O'Farrell's Pocket Companion",
         folder="48",
-        volumes=["481", "482", "483", "484"],
+        subfolders=[
+            "48-hps",
+            "48-jigs",
+            "48-marches",
+            "48-misc",
+            "48-polkas",
+            "48-reels",
+            "48-sjigs",
+        ],
     ),
     Collection(
         key="moi",
         title="Music of Ireland",
         folder="49",
-        volumes=["491", "492", "493", "494", "495", "496", "497"],
+        subfolders=[
+            "491-airs",
+            "492-hps",
+            "493-jigs",
+            "494-misc",
+            "495-reels",
+            "496-sjigs",
+            "497-arr",
+        ],
     ),
     Collection(
         key="roche",
         title="Roche Collection",
         folder="53",
-        volumes=["531", "532", "533", "534"],  # TODO: 535 is missing
+        subfolders=["53-hps", "53-jigs", "53-misc", "53-polkas", "53-reels", "53-sjigs"],
     ),
 ]
 
@@ -178,7 +181,7 @@ def download(key: str | Iterable[str] | None = None, *, verbose: bool = False) -
             p = collection.url_to_file(url)
             if verbose:
                 print(f"Downloading {url} to {p.relative_to(HERE).as_posix()}")
-            r = requests.get(url, timeout=5)
+            r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
             r.raise_for_status()
 
             # Extract filename from URL and append .gz
@@ -260,4 +263,4 @@ if __name__ == "__main__":
         format="%(levelname)s:%(message)s",
     )
 
-    abcs = load_meta("cre")
+    abcs = load_meta("aif")
