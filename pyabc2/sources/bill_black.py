@@ -106,10 +106,22 @@ def load_meta(*, redownload: bool = False) -> list[str]:
                 block = block.strip()
                 if not block:
                     continue
-                elif not block.startswith("X:"):
-                    print(f"skipping non-tune block in {zi.filename!r}:\n{indent(block, '| ')}")
-                    continue
+
+                if block.startswith(":313\nT:GRAVEL WALK (reel) (1), The"):
+                    block = "X" + block
+
+                if not block.startswith("X:"):
+                    # First look for tune later in the block
+                    # Some blocks start with comment text, sometimes including other settings but without `X:`
+                    start = block.find("X:")
+                    if start != -1:
+                        block = block[start:]
+                    else:
+                        print(f"skipping non-tune block in {zi.filename!r}:\n{indent(block, '| ')}")
+                        continue
+
                 tunes.append(block)
+
     return tunes
 
 
