@@ -82,6 +82,7 @@ def load_meta(*, redownload: bool = False) -> list[str]:
     tunes = []
     with zipfile.ZipFile(zip_path, "r") as zf:
         for zi in zf.filelist:
+            fn = zi.filename
             with zf.open(zi, "r") as f:
                 text = f.read().decode("utf-8")
 
@@ -97,11 +98,26 @@ def load_meta(*, redownload: bool = False) -> list[str]:
             # Find the start of the first tune, in order to skip header info
             start = text.find("X:")
             if start == -1:
-                raise RuntimeError(f"Unable to find first tune in Bill Black file {zi.filename!r}")
+                raise RuntimeError(f"Unable to find first tune in Bill Black file {fn!r}")
 
             text = text[start:]
 
+            # Separate some blocks that are missing empty lines
+            if fn.startswith("c-tunes"):
+                to_sep = [253, 666]
+            elif fn.startswith("d-tunes"):
+                to_sep = [223]
+            elif fn.startswith("e-tunes"):
+                to_sep = [34]
+            else:
+                to_sep = []
+            for n in to_sep:
+                text = text.replace(f"X:{n}", f"\nX:{n}")
+
+            expected_num = text.count("X:")
+
             blocks = re.split(r"\n{2,}", text.rstrip())
+            this_tunes = []
             for block in blocks:
                 block = block.strip()
                 if not block:
@@ -109,6 +125,7 @@ def load_meta(*, redownload: bool = False) -> list[str]:
 
                 if block.startswith(":313\nT:GRAVEL WALK (reel) (1), The"):
                     block = "X" + block
+                    expected_num += 1
 
                 if not block.startswith("X:"):
                     # First look for tune later in the block
@@ -117,10 +134,19 @@ def load_meta(*, redownload: bool = False) -> list[str]:
                     if start != -1:
                         block = block[start:]
                     else:
-                        print(f"skipping non-tune block in {zi.filename!r}:\n{indent(block, '| ')}")
+                        print(f"note: skipping non-tune block in {fn!r}:\n{indent(block, '| ')}")
                         continue
 
-                tunes.append(block)
+                if block.count("X:") > 1:
+                    print(f"warning: multiple X: lines in block in {fn!r}:\n{indent(block, '| ')}")
+
+                this_tunes.append(block)
+
+            actual_num = len(this_tunes)
+            if actual_num != expected_num:
+                print(f"warning: expected {expected_num} tunes in {fn!r}, but found {actual_num}")
+
+            tunes.extend(this_tunes)
 
     return tunes
 
