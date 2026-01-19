@@ -1,13 +1,13 @@
 """
 Bill Black's Irish Traditional Tune Library
 
-http://www.capeirish.com/ittl/tunefolders/
+http://www.capeirish.com/ittl/
 """
 
 import logging
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, List, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +22,11 @@ class Collection:
     key: str
     title: str
     folder: str
-    volumes: List[str] = field(default_factory=list)
-    urls: List[str] = field(default_factory=list)
+    volumes: list[str] = field(default_factory=list)
+    urls: list[str] = field(default_factory=list)
 
     @property
-    def abc_urls(self) -> List[str]:
+    def abc_urls(self) -> list[str]:
         if self.urls:
             return self.urls
         else:
@@ -37,7 +37,7 @@ class Collection:
                 return [f"{ITTL}tunefolders/{num}/{num}-ABC.rtf"]
 
     @property
-    def files(self) -> List[Path]:
+    def files(self) -> list[Path]:
         return [self.url_to_file(url) for url in self.abc_urls]
 
     def url_to_file(self, url: str) -> Path:
@@ -45,7 +45,7 @@ class Collection:
         return SAVE_TO / f"{url.split('/')[-1]}.gz"
 
 
-COLLECTIONS: List[Collection] = [
+COLLECTIONS: list[Collection] = [
     Collection(
         key="aif",
         title="Allan's Irish Fiddler",
@@ -159,7 +159,7 @@ def get_collection(key: str) -> Collection:
         ) from e
 
 
-def download(key: Optional[Union[str, Iterable[str]]] = None, *, verbose: bool = False) -> None:
+def download(key: str | Iterable[str] | None = None, *, verbose: bool = False) -> None:
     import gzip
 
     import requests
@@ -186,7 +186,7 @@ def download(key: Optional[Union[str, Iterable[str]]] = None, *, verbose: bool =
                 f.write(r.content)
 
 
-def load_meta(key: str, *, redownload: bool = False) -> List[str]:
+def load_meta(key: str, *, redownload: bool = False) -> list[str]:
     """Load the tunebook data, no parsing."""
 
     import gzip
