@@ -442,7 +442,7 @@ def test_bill_black_tunefolders(key):
         # 49 -- has subsubfolders
         with pytest.raises(requests.exceptions.HTTPError) as e:
             lst = bill_black_tunefolders.load_meta(key)
-            assert e.response.status_code == 404
+        assert e.value.response.status_code == 404
         return
     else:
         lst = bill_black_tunefolders.load_meta(key)
