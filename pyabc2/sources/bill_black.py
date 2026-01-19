@@ -71,6 +71,7 @@ def download() -> None:
 def load_meta(*, redownload: bool = False) -> list[str]:
     """Load the tunebook data, splitting into tune blocks and removing ``%`` lines."""
     import zipfile
+    from collections import Counter
     from textwrap import indent
 
     zip_path = SAVE_TO / "bill_black_alltunes_text.zip"
@@ -145,6 +146,26 @@ def load_meta(*, redownload: bool = False) -> list[str]:
             actual_num = len(this_tunes)
             if actual_num != expected_num:
                 print(f"warning: expected {expected_num} tunes in {fn!r}, but found {actual_num}")
+
+            # Drop fully duplicate tune blocks while preserving order
+            seen = set()
+            this_tunes_unique = []
+            for block in this_tunes:
+                if block not in seen:
+                    seen.add(block)
+                    this_tunes_unique.append(block)
+            if len(this_tunes_unique) < len(this_tunes):
+                print(
+                    f"note: removed {len(this_tunes) - len(this_tunes_unique)}/{len(this_tunes)} fully duplicate "
+                    f"tune blocks in {fn!r}"
+                )
+            this_tunes = this_tunes_unique
+
+            x_counts = Counter(block.splitlines()[0] for block in this_tunes)
+            x_count_counts = Counter(x_counts.values())
+            if set(x_count_counts) != {1}:
+                s_counts = ", ".join(f"{m} ({n})" for m, n in sorted(x_count_counts.items()))
+                print(f"note: non-unique X vals in {fn!r}: {s_counts}")
 
             tunes.extend(this_tunes)
 
