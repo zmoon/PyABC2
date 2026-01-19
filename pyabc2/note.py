@@ -16,7 +16,7 @@ _S_RE_NOTE = (
     r"(?P<slash>/+)?"
     r"(?P<den>[0-9]+)?"
 )
-_RE_NOTE = re.compile(_S_RE_NOTE)
+RE_NOTE = re.compile(_S_RE_NOTE)
 
 
 _ACCIDENTAL_ASCII_TO_ABC = {"#": "^", "b": "_", "=": "="}
@@ -158,7 +158,7 @@ class Note(Pitch):
 
         but this can be adjusted using the keyword arguments.
         """
-        m = _RE_NOTE.match(abc)
+        m = RE_NOTE.match(abc)
         return cls._from_abc_match(m, key=key, octave_base=octave_base, unit_duration=unit_duration)
 
     @classmethod
