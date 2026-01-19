@@ -9,12 +9,13 @@ while also posting ABC text files (http://www.capeirish.com/ittl/alltunes/text/)
 both split up alphabetically by tune name.
 """
 
-import logging
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
+from pyabc2._util import get_logger as _get_logger
+
+logger = _get_logger(__name__)
 
 HERE = Path(__file__).parent
 
@@ -255,12 +256,7 @@ def load_meta(key: str, *, redownload: bool = False) -> list[str]:
     return abcs
 
 
-if __name__ == "__main__":
-    # download(verbose=True)
-
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(levelname)s:%(message)s",
-    )
+if __name__ == "__main__":  # pragma: no cover
+    logger.setLevel("DEBUG")
 
     abcs = load_meta("aif")
