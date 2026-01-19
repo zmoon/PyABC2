@@ -3,7 +3,9 @@ ABC parsing/info
 """
 
 import re
-from typing import Dict, Iterator, List, NamedTuple, Optional
+import warnings
+from collections.abc import Iterator
+from typing import NamedTuple
 
 from .key import Key
 from .note import _RE_NOTE, Note
@@ -34,7 +36,7 @@ def _bool_yn(s: str) -> bool:
     return s == "yes"
 
 
-def _gen_info_field_table() -> Dict[str, InfoField]:
+def _gen_info_field_table() -> dict[str, InfoField]:
     raw = """
 Field name          file header  tune header  tune body  inline  type
 A:area              yes          yes          no         no      string
@@ -97,75 +99,7 @@ TUNE_BODY_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_b
 TUNE_INLINE_FIELD_KEYS = {k for k, v in INFO_FIELDS.items() if v.allowed_in_tune_inline}
 
 
-_ABCJS_VERSION = "6.0.0-beta.33"
-
-_FMT_ABCJS_COMPLETE_PAGE_HTML = """\
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>{title:s}</title>
-    <script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
-  </head>
-  <body>
-    <div id="notation"></div>
-
-    <script>
-      const tune = "{abc:s}";
-      const params = {{}};
-      ABCJS.renderAbc("notation", tune, params);
-    </script>
-  </body>
-</html>
-"""
-
-_FMT_ABCJS_LOAD_HTML = """\
-<script src="https://cdn.jsdelivr.net/npm/abcjs@{abcjs_version:s}/dist/abcjs-basic-min.js"></script>
-"""
-
-_FMT_ABCJS_BODY_HTML = """\
-<div id="notation-{notation_id:s}">hi</div>
-
-<script>
-  const tune = "{abc:s}";
-  const params = {{}};
-  ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
-</script>
-"""
-
-_FMT_ABCJS_RENDER_JS = """\
-const tune = "{abc:s}";
-const params = {{}};
-ABCJS.renderAbc("notation-{notation_id:s}", tune, params);
-"""
-
-
-def load_abcjs() -> None:
-    """Load abcjs into Jupyter from CDN using IPython display."""
-    from IPython.display import HTML, display  # type: ignore
-
-    html = HTML(_FMT_ABCJS_LOAD_HTML.format(abcjs_version=_ABCJS_VERSION))
-    display(html)
-
-
-def _in_jupyter() -> bool:
-    # Reference: https://stackoverflow.com/a/47428575
-    try:
-        from IPython.core import getipython  # type: ignore
-    except (ImportError, ModuleNotFoundError):
-        return False
-
-    # <class 'ipykernel.zmqshell.ZMQInteractiveShell'>
-    return "zmqshell" in str(type(getipython.get_ipython()))
-
-
-def _load_abcjs_if_in_jupyter() -> None:
-    if _in_jupyter():
-        load_abcjs()
-        print("abcjs loaded")
-
-
-def _find_first_chord(s: str) -> Optional[str]:
+def _find_first_chord(s: str) -> str | None:
     """Search for first chord spec in an ABC body portion.
 
     https://abcnotation.com/wiki/abc:standard:v2.1#chords_and_unisons
@@ -191,37 +125,89 @@ def _find_first_chord(s: str) -> Optional[str]:
 
 # TODO: maybe should go in a tune module
 class Tune:
-    """Tune."""
+    '''Tune.
+
+    Parameters
+    ----------
+    abc
+        String of a single ABC tune.
+
+    Examples
+    --------
+    >>> from pyabc2 import Tune
+    >>> Tune("""\\
+    ... T: G major scale
+    ... K: G
+    ... GABc defg | fedc BAG2 ||
+    ... """)
+    Tune(title='G major scale', key=Gmaj, type='?')
+
+    .. note::
+
+       You must include the ``K:``
+       `info field <https://abcnotation.com/wiki/abc:standard:v2.1#kkey>`__
+       as the last header line
+       for the tune header and body to be properly recognized
+       (:attr:`title` and :attr:`measures` to be populated, etc.).
+
+    >>> from pyabc2.sources import load_example_abc
+    >>> Tune(load_example_abc("Tell Her I am"))
+    Tune(title='Tell Her I Am', key=Gmaj, type='jig')
+    '''
 
     def __init__(self, abc: str):
-        """
-        Parameters
-        ----------
-        abc
-            String of a single ABC tune.
-        """
-        self.abc = abc
+        self.abc: str = abc
         """Original ABC string."""
 
-        self.header: Dict[str, str]
-        """Information contained in the tune header."""
+        self.header: dict[str, str]
+        """Information contained in the tune header.
 
-        self.title: Optional[str]
+        Examples
+        --------
+        >>> from pyabc2.sources import load_example
+        >>> load_example("For the Love of Music").header
+        {'tune title': 'For The Love Of Music',
+         'rhythm': 'slip jig',
+         'composer': 'Liz Carroll',
+         'meter': '9/8',
+         'unit note length': '1/8',
+         'key': 'G'}
+        """
+        # TODO: access key with 'key' or 'K:', e.g.
+
+        self.title: str | None
         """Tune primary title (first in the ABC)."""
 
-        self.titles: List[str]
+        self.titles: list[str]
         """All tune titles."""
 
         self.type: str
-        """Tune type/rhythm."""
+        """Tune type/rhythm, e.g. 'jig'.
+
+        .. note::
+           This is just the ``R:`` field value.
+           Currently no validation or coercion is done.
+        """
 
         self.key: Key
         """Key object corresponding to the tune's key."""
 
-        self.url: Optional[str] = None
+        self.url: str | None = None
         """Revelant URL for this particular tune/setting."""
 
-        self.measures: List[List[Note]]
+        self.measures: list[list[Note]]
+        """Notes from "playing" the tune.
+
+        That is, expanding repeats and endings, etc.
+
+        .. note::
+           Currently this is computed during class initialization,
+           but this may change in the future.
+
+        See Also
+        --------
+        iter_notes
+        """
 
         self._parse_abc()
 
@@ -248,8 +234,8 @@ class Tune:
         self._parse_abc_header_lines(header_lines)
         self._extract_measures(tune_lines)
 
-    def _parse_abc_header_lines(self, header_lines: List[str]) -> None:
-        h: Dict[str, str] = {}
+    def _parse_abc_header_lines(self, header_lines: list[str]) -> None:
+        h: dict[str, str] = {}
         for line in header_lines:
             key = line[0]
             data = line[2:].strip()
@@ -266,7 +252,7 @@ class Tune:
         self.type = h.get("rhythm", "?")  # TODO: guess from L/M ?
         self.key = Key(h.get("key", "C"))
 
-    def _extract_measures(self, tune_lines: List[str]) -> None:
+    def _extract_measures(self, tune_lines: list[str]) -> None:
         # 0. Lines
         i_measure = i_measure_repeat = i_ending = 0
         measures = []
@@ -350,9 +336,7 @@ class Tune:
         self.measures = measures
 
     def __repr__(self):
-        return (
-            f"{self.__class__.__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
-        )
+        return f"{type(self).__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -364,29 +348,31 @@ class Tune:
     def __hash__(self):
         return hash(self.abc)
 
-    def _repr_html_(self):
-        import uuid
+    def _repr_html_(self):  # pragma: no cover
+        try:
+            from IPython.display import display
 
-        notation_id = str(uuid.uuid4())
-        abc = "\\n".join(line for line in self.abc.strip().splitlines())
+            from .abcjs.widget import ABCJSWidget
+        except ImportError:
+            warnings.warn(
+                "The 'abcjs-widget' extra is required for HTML representation of tunes via abcjs."
+            )
+        else:
+            display(ABCJSWidget(abc=self.abc))
 
-        # return _fmt_abcjs.format(abc=abc, notation_id=notation_id, abcjs_version=_ABCJS_VERSION)
+    def print_measures(self, n: int | None = None, *, note_format: str = "ABC"):
+        """Print measures to check parsing.
 
-        # It seems that if I just return <script> within the HTML,
-        # it is never loaded.
-        # https://discourse.jupyter.org/t/running-javascript-in-a-html-cell-fails-on-first-load/6707/3
-        # But we can use IPython display to make it work.
-
-        from IPython.display import HTML, Javascript, display
-
-        html = HTML(f"<div id=notation-{notation_id}>hi</div>")
-        display(html)
-
-        js = Javascript(_FMT_ABCJS_RENDER_JS.format(abc=abc, notation_id=notation_id))
-        display(js)
-
-    def print_measures(self, n: Optional[int] = None, *, note_format: str = "ABC"):
-        """Print measures to check parsing."""
+        Parameters
+        ----------
+        n
+            Number of measures to print.
+            If ``None`` (default), all measures are printed.
+        note_format
+            Format for printing notes.
+            Currently only ``'ABC'`` is supported,
+            which prints the notes in ABC notation (ASCII).
+        """
         nd = len(str(len(self.measures)))
         for i, measure in enumerate(self.measures[:n], start=1):
             if note_format == "ABC":
@@ -395,5 +381,9 @@ class Tune:
                 raise ValueError(f"invalid note format {note_format!r}")
 
     def iter_notes(self) -> Iterator[Note]:
-        """Iterator (generator) for `Note`s of the tune."""
+        r"""Iterator (generator) for :class:`Note`\ s of the tune.
+
+        This is a stream of the notes from "playing" the tune
+        (:attr:`measures`).
+        """
         return (n for m in self.measures for n in m)

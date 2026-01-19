@@ -5,7 +5,15 @@ import pytest
 
 from pyabc2 import Key
 from pyabc2.parse import Tune
-from pyabc2.sources import examples, load_example, load_example_abc, load_url, norbeck, the_session
+from pyabc2.sources import (
+    eskin,
+    examples,
+    load_example,
+    load_example_abc,
+    load_url,
+    norbeck,
+    the_session,
+)
 
 NORBECK_IRISH_COUNT = 2733
 
@@ -46,7 +54,7 @@ def test_norbeck_x_unique():
     xs = []
     for typ in norbeck._TYPE_PREFIX:
         for p in norbeck._get_paths_type(typ):
-            with open(p, "r") as f:
+            with open(p) as f:
                 for line in f:
                     line = line.strip()
                     if line.startswith("X:"):
@@ -61,14 +69,14 @@ def test_norbeck_x_vals():
     norbeck._maybe_download()
     ntot = 0
     for p in norbeck.SAVE_TO.glob("*.abc"):
-        with open(p, "r") as f:
+        with open(p) as f:
             s = f.read()
             lines = s.splitlines()
             m = re.fullmatch(
                 r"This file contains ([0-9]{1,3}) .* \(#([0-9]+)\s*-\s*#([0-9]+)\).", lines[0]
             )
             assert m is not None
-            n, a, b = [int(x) for x in m.groups()]
+            n, a, b = (int(x) for x in m.groups())
             assert n >= 1
             assert b - a + 1 == n
             assert s.count("X:") == n
@@ -90,8 +98,8 @@ def test_norbeck_load():
     hps = norbeck.load("hornpipes")
 
     # One of the expected failures (has chords)
-    assert "Pride of Petravore, The" not in set([t.title for t in tunes])
-    assert "Pride of Petravore, The" not in set([t.title for t in hps])
+    assert "Pride of Petravore, The" not in {t.title for t in tunes}
+    assert "Pride of Petravore, The" not in {t.title for t in hps}
 
     n_exp_fail = sum(len(lst) for d in norbeck._EXPECTED_FAILURES.values() for lst in d.values())
     assert len(tunes) == NORBECK_IRISH_COUNT - n_exp_fail
@@ -136,13 +144,11 @@ def test_the_session_url_check():
         the_session.load_url("https://www.google.com")
 
 
-def test_the_session_load_archive():
+def test_the_session_load_archive_threaded():
     # NOTE: downloads file if not already present
-
-    _ = the_session.load(n=5)  # TODO: all? (depending on time)
-
     with pytest.warns(UserWarning, match=r"The Session tune\(s\) failed to load"):
         tunes1 = the_session.load(n=200)
+    with pytest.warns(UserWarning, match=r"The Session tune\(s\) failed to load"):
         tunes2 = the_session.load(n=200, num_workers=2)
     assert tunes1 == tunes2
 
@@ -198,6 +204,7 @@ def test_the_session_load_meta_invalid():
 def test_the_session_load_meta_doc_consistency():
     s_options = ", ".join(repr(x) for x in sorted(the_session._META_ALLOWED))
     expected_line = f"which : {{{s_options}}}"
+    assert the_session.load_meta.__doc__ is not None
     assert expected_line in the_session.load_meta.__doc__
 
 
@@ -229,15 +236,17 @@ def test_int_downcast():
         assert s3.dtype == expected_dtype_ext
 
 
-def test_load_url_the_session():
-    tune = load_url("https://thesession.org/tunes/10000")
+@pytest.mark.parametrize("netloc", sorted(the_session._URL_NETLOCS))
+def test_load_url_the_session(netloc):
+    tune = load_url(f"https://{netloc}/tunes/10000")
     assert tune.title == "Brian Quinn's"
 
 
-def test_load_url_norbeck():
+@pytest.mark.parametrize("netloc", sorted(norbeck._URL_NETLOCS))
+def test_load_url_norbeck(netloc):
     import requests
 
-    url = "https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106"
+    url = f"https://{netloc}/abc/display.asp?rhythm=slip+jig&ref=106"
     try:
         tune = load_url(url)
     except requests.exceptions.ReadTimeout as e:
@@ -246,9 +255,163 @@ def test_load_url_norbeck():
         assert tune.title == "For The Love Of Music"
 
 
+@pytest.mark.parametrize("netloc", sorted(eskin._URL_NETLOCS))
+def test_load_url_eskin(netloc):
+    url = f"https://{netloc}/abctools/abctools.html?lzw=BoLgUAKiBiD2BOACCALApogMrAbhg8gGaICyArgM4CWAxmAEogUA2VADogFZUDmYAwiExUAXon4BDePFjNmYEiACcAegAcYTCACM6sAGkQAcTBGAogBFEFs0cQBBIwCFEAHwdG7zgCaI0333dzKxs7Rxo3RCc0DCd7F3MzRBBXMB5-PxVCFR4EpxUaFUDEdN80HgAjRAkAJmJ3Uszs3Id8wuL-F28nMKdAtIy0LJy8gqLIxvKq2olIipimnIxankjOxG7e+zdUoA"
+    tune = load_url(url)
+    assert tune.title == "For The Love Of Music"
+
+
 def test_load_url_invalid_domain():
     with pytest.raises(NotImplementedError):
         _ = load_url("https://www.google.com")
+
+
+def test_eskin_tunebook_bad_url_redirects():
+    import requests
+
+    # Bad URL (2025 -> 3025)
+    # Redirects to the home page.
+    # Nothing in `r.history`. `allow_redirects=False` has no impact.
+    url = "https://michaeleskin.com/cce_sd/cce_san_diego_tunes_10nov3025.html"
+    r = requests.head(url, timeout=5)
+    r.raise_for_status()
+
+    assert r.status_code == 302
+    assert r.headers.get("Location", "").rstrip("/") == "https://michaeleskin.com"
+    assert r.history == []
+    assert r.is_redirect
+
+
+@pytest.mark.parametrize("key", eskin._TUNEBOOK_KEY_TO_URL)
+def test_eskin_tunebook_url_exist(key):
+    import requests
+
+    url = eskin._TUNEBOOK_KEY_TO_URL[key]
+    r = requests.head(url, timeout=5)
+    r.raise_for_status()
+    # Bad URLs seem to just redirect to his homepage,
+    # so we need to check the final URL
+    # TODO: maybe move this to the module
+    if (
+        r.status_code == 302
+        and r.headers.get("Location", "").rstrip("/") == "https://michaeleskin.com"
+    ):
+        raise ValueError(f"{key!r} URL {url} redirects to homepage")
+
+
+def test_eskin_tunebook_url_current():
+    import requests
+
+    url = "https://michaeleskin.com/tunebooks.html"
+    r = requests.get(url, timeout=5)
+    r.raise_for_status()
+    if (
+        r.status_code == 302
+        and r.headers.get("Location", "").rstrip("/") == "https://michaeleskin.com"
+    ):
+        raise ValueError(f"URL {url} redirects to homepage")
+    html = r.text
+
+    old_keys = {
+        "cce_san_diego_jan2025",
+        "hardy_2024",
+    }
+    for key, tb_url in eskin._TUNEBOOK_KEY_TO_URL.items():
+        m = re.search(rf'href=["\']({tb_url})["\']', html)
+        if key in old_keys:
+            assert m is None
+        else:
+            if m is None:
+                raise ValueError(f"Could not find link for tunebook {key!r} in tunebooks page.")
+
+
+@pytest.mark.parametrize("key", eskin._TUNEBOOK_KEY_TO_URL)
+def test_eskin_tunebook_data_load(key):
+    df = eskin.load_meta(key)
+
+    tune_group_keys = {
+        "airs_songs",
+        "hornpipes",
+        "jigs",
+        "long_dances",
+        "marches",
+        "misc_tunes",
+        "ocarolan",
+        "polkas",
+        "reels",
+        "scotchreels",
+        "slides",
+        "slipjigs",
+        "strathspeys",
+        "waltzes",
+    }
+
+    if key in {"kss"}:
+        assert set(df.group.unique()) <= tune_group_keys
+    else:
+        assert df.group.unique().tolist() == ["tunes"]
+
+
+def test_eskin_abc_url_parsing():
+    # From https://michaeleskin.com/cce_sd/cce_san_diego_tunes_10nov2025.html
+    url = "https://michaeleskin.com/abctools/abctools.html?lzw=BoLgjAUApFAuCWsA2BTAZgewHawAQAUBDJQhLDXMADmigGcBXAIwWXWzyJLIrAGZa8LJkw4CxUkN4CYAB0IAnWHVGcJPSjLgoAtrIyrx3KZtqwUAD1iGuk8qYAqIBwAsUuAIJMmKAJ64IABlwAHoaAFkQABYQqIgARRAAJliAXgBOAAYIACUQHJQUJGg6AHchAHNcTIA6SABpEABxaEImAGMAKzoAfToMBiwAE0M0UiYMX1pwgEkAERncWQUMCoVCHWrp+cWmQjo6ZdWtmFmF3HaXDAUho6rs053cPYOANwwkXAA2OMfzy+uQ3enx+rSGQx6xCQPVkJF8e3aAGsekghIi6BAAEQeHSYzx8XAAIU8SVwTQAorgAD6eDxNDy4TFNPGE8HEmnY3G0jzEunkgBi1MZzLJTXpRLZ1KxOLxHlJPJJZMpNI8dIZTJZko5MsVCr5go5IrF4tZQyqVKp0q5KAqttwhFJeyFGtwFTaVUIFRQQ2dOptdodrsIzuZTDdaFd7iGpMtnLx-o9FTDIcxnuTnu9vutto9pLdKbDhAjXqG7IAukA&format=noten&ssp=10&name=The_Abbey&play=1"
+
+    # default: explicit prefixes
+    abc = eskin.abctools_url_to_abc(url)
+
+    # any %
+    abc_rm_any_pct = eskin.abctools_url_to_abc(url, remove_prefs="%")
+
+    # no remove
+    abc_no_rm = eskin.abctools_url_to_abc(url, remove_prefs=False)
+
+    assert abc == abc_rm_any_pct
+    assert sum(line.startswith("%") for line in abc_no_rm.splitlines()) > 0
+    assert sum(line.startswith(r"%%") for line in abc_no_rm.splitlines()) > 0
+
+
+def test_eskin_abc_url_missing_param():
+    url = "https://michaeleskin.com/abctools/abctools.html?"
+    with pytest.raises(ValueError, match="URL does not contain required 'lzw' parameter"):
+        _ = eskin.abctools_url_to_abc(url)
+
+
+def test_eskin_abc_url_bad_param():
+    url = "https://michaeleskin.com/abctools/abctools.html?lzw=hi"
+    with pytest.raises(RuntimeError, match="Failed to decompress LZString data"):
+        _ = eskin.abctools_url_to_abc(url)
+
+
+def test_eskin_abc_url_bad(caplog):
+    url = "https://michaeleski.com/deftools/abctools.html?lzw=BoLgjAUApFAuCWsA2BTAZgewHawAQAUBDJQhLDXMADmigGcBXAIwWXWzyJLIrAGZa8LJkw4CxUkN4CYAB0IAnWHVGcJPSjLgoAtrIyrx3KZtqwUAD1iGuk8qYAqIBwAsUuAIJMmKAJ64IABlwAHoaAFkQABYQqIgARRAAJliAXgBOAAYIACUQHJQUJGg6AHchAHNcTIA6SABpEABxaEImAGMAKzoAfToMBiwAE0M0UiYMX1pwgEkAERncWQUMCoVCHWrp+cWmQjo6ZdWtmFmF3HaXDAUho6rs053cPYOANwwkXAA2OMfzy+uQ3enx+rSGQx6xCQPVkJF8e3aAGsekghIi6BAAEQeHSYzx8XAAIU8SVwTQAorgAD6eDxNDy4TFNPGE8HEmnY3G0jzEunkgBi1MZzLJTXpRLZ1KxOLxHlJPJJZMpNI8dIZTJZko5MsVCr5go5IrF4tZQyqVKp0q5KAqttwhFJeyFGtwFTaVUIFRQQ2dOptdodrsIzuZTDdaFd7iGpMtnLx-o9FTDIcxnuTnu9vutto9pLdKbDhAjXqG7IAukA&format=noten&ssp=10&name=The_Abbey&play=1"
+    with caplog.at_level("DEBUG"):
+        _ = eskin.abctools_url_to_abc(url)
+
+    assert caplog.messages == [
+        "Unexpected Eskin URL netloc: michaeleski.com",
+        "Unexpected Eskin URL path: /deftools/abctools.html",
+    ]
+
+
+def test_eskin_abc_url_creation():
+    import requests
+
+    abc = load_example_abc("For the Love of Music")
+
+    url = eskin.abc_to_abctools_url(abc)
+    r = requests.head(url, timeout=5)
+    r.raise_for_status()
+    if (
+        r.status_code == 302
+        and r.headers.get("Location", "").rstrip("/") == "https://michaeleskin.com"
+    ):
+        raise ValueError(f"URL {url} redirects to homepage")
+
+
+def test_eskin_invalid_tunebook_key():
+    with pytest.raises(ValueError, match="Unknown Eskin tunebook key: 'asdf'"):
+        _ = eskin.get_tunebook_info("asdf")
 
 
 def test_bill_black_no_https():

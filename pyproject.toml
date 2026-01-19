@@ -9,45 +9,53 @@ readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
-requires-python = "~=3.8"
+requires-python = ">=3.10,<4"
 dependencies = []
 
 [project.urls]
 Home = "https://github.com/zmoon/PyABC2"
 Source = "https://github.com/zmoon/PyABC2"
-# Documentation = ""
+Documentation = "https://pyabc2.readthedocs.io"
 
 [project.optional-dependencies]
 sources = [
-    "numpy <2",
-    "pandas ~=1.4",
-    "requests ~=2.0",
+    "numpy ==2.*",
+    "pandas ==2.*",
+    "requests ==2.*",
+]
+abcjs-widget = [
+    "anywidget",
+    "ipywidgets",
+    "traitlets",
+]
+abcjs-headless = [
+    "cairosvg",
+    "nodejs-wheel-binaries",
 ]
 test = [
     "mypy",
-    "pandas-stubs",
+    "pandas-stubs ==2.*",
     "pytest",
     "pytest-cov",
     "pytest-xdist",
 ]
 dev = [
+    "anywidget[dev]",
     "ipython",
     "jupyterlab",
+]
+doc = [
+    "furo",
+    "matplotlib",
+    "myst-nb",
+    "sphinx ==8.*",
+    "sphinx-copybutton",
+    "sphinx-inline-tabs",
 ]
 
 
 [tool.black]
 line-length = 100
-
-[tool.flake8]  # pyproject-flake8
-max-line-length = 100
-ignore = [
-  "E203", # whitespace before ':' - doesn't work well with black
-  "E402", # module level import not at top of file
-  "E501", # line too long - let black worry about that
-  "W503", # line break before binary operator
-  "E226", # missing whitespace around arithmetic operator - not always more readable imho
-]
 
 [tool.isort]
 profile = "black"
@@ -60,3 +68,9 @@ markers = ["slow"]
 exclude = ["^venv"]
 install_types = true
 ignore_missing_imports = true
+
+[tool.pyright]
+ignore = ["pyabc2/sources/_lzstring.py"]
+
+[tool.coverage.run]
+omit = ["pyabc2/sources/_lzstring.py"]
