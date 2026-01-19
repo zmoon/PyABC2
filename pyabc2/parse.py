@@ -336,9 +336,7 @@ class Tune:
         self.measures = measures
 
     def __repr__(self):
-        return (
-            f"{self.__class__.__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
-        )
+        return f"{type(self).__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
