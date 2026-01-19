@@ -6,6 +6,8 @@ import pytest
 from pyabc2 import Key
 from pyabc2.parse import Tune
 from pyabc2.sources import (
+    bill_black,
+    bill_black_tunefolders,
     eskin,
     examples,
     load_example,
@@ -412,3 +414,63 @@ def test_eskin_abc_url_creation():
 def test_eskin_invalid_tunebook_key():
     with pytest.raises(ValueError, match="Unknown Eskin tunebook key: 'asdf'"):
         _ = eskin.get_tunebook_info("asdf")
+
+
+def test_bill_black_no_https():
+    # If the site does get HTTPS, we'd like to know
+    import requests
+
+    url = "http://www.capeirish.com/ittl/tunefolders/"
+    url_https = url.replace("http://", "https://")
+
+    r = requests.head(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r.raise_for_status()
+
+    with pytest.raises(requests.exceptions.SSLError):
+        r = requests.head(url_https, headers={"User-Agent": "pyabc2"}, timeout=5)
+        r.raise_for_status()
+
+
+@pytest.mark.parametrize("key", list(bill_black_tunefolders._KEY_TO_COLLECTION))
+def test_bill_black_tunefolders(key):
+    import requests
+
+    col = bill_black_tunefolders.get_collection(key)
+    if int(col.folder) in {14, 18, 21, 25, 49}:
+        # 14, 18, 25 -- These only have .txt now, not .rtf
+        # 21 -- some subfolder names don't match the file names
+        # 49 -- has subsubfolders
+        with pytest.raises(requests.exceptions.HTTPError) as e:
+            lst = bill_black_tunefolders.load_meta(key)
+        assert e.value.response.status_code == 404
+        return
+    else:
+        lst = bill_black_tunefolders.load_meta(key)
+
+    assert len(lst) > 0
+
+
+def test_bill_black_tunefolders_invalid_key():
+    with pytest.raises(ValueError, match="Unknown collection key: 'asdf'"):
+        _ = bill_black_tunefolders.get_collection("asdf")
+
+
+def test_bill_black_text_fns():
+    import requests
+
+    url = "http://www.capeirish.com/ittl/alltunes/text/"
+    r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r.raise_for_status()
+
+    fns_web = sorted(re.findall(r'href=["\']([a-z0-9\-]+\.txt)["\']', r.text))
+    if "s-tunes-1.txt" in fns_web:
+        # We're using s-tunes-2, not both
+        fns_web.remove("s-tunes-1.txt")
+
+    assert bill_black.TXT_FNS == fns_web
+
+
+def test_bill_black_load():
+    lst = bill_black.load_meta()
+    assert len(lst) > 0
+    assert lst[0].startswith("X:")

@@ -151,6 +151,20 @@ Functions:
    eskin.abctools_url_to_abc
    eskin.abc_to_abctools_url
 
+Bill Black
+----------
+
+.. automodule:: pyabc2.sources.bill_black
+
+Functions:
+
+.. currentmodule:: pyabc2.sources
+
+.. autosummary::
+   :toctree: api/
+
+   bill_black.load_meta
+
 abcjs tools
 ===========
 
