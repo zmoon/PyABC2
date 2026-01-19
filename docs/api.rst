@@ -87,7 +87,7 @@ These methods/properties result from tune body parsing and repeat/ending expansi
 Tune sources
 ============
 
-.. currentmodule:: pyabc2.sources
+.. module:: pyabc2.sources
 
 The :mod:`pyabc2.sources` namespace contains a few general tools.
 
@@ -151,10 +151,15 @@ Functions:
    eskin.abctools_url_to_abc
    eskin.abc_to_abctools_url
 
-Widget
-======
+abcjs tools
+===========
 
-.. automodule:: pyabc2.widget
+.. module:: pyabc2.abcjs
+
+Widget
+------
+
+.. automodule:: pyabc2.abcjs.widget
 
 .. autosummary::
    :toctree: api/
@@ -164,9 +169,9 @@ Widget
 
 
 Headless rendering
-==================
+------------------
 
-.. automodule:: pyabc2.sheet
+.. automodule:: pyabc2.abcjs.headless
 
 .. autosummary::
    :toctree: api/
@@ -174,3 +179,14 @@ Headless rendering
    svg
    svg_to
    build
+
+HTML page generation
+--------------------
+
+.. automodule:: pyabc2.abcjs.htmlgen
+
+.. autosummary::
+   :toctree: api/
+
+   html
+   open_html

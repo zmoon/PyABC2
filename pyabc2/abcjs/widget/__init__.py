@@ -19,10 +19,13 @@ HERE = Path(__file__).parent
 class ABCJSWidget(anywidget.AnyWidget):
     """Display SVG sheet music rendered from ABC notation by abcjs.
 
+    Many of the `render options <https://docs.abcjs.net/visual/render-abc-options.html>`__
+    are supported, though some names have been modified to fit the Python style.
+
     Examples
     --------
-    >>> from pyabc2.widget import ABCJSWidget
-    >>> w = ABCJSWidget(abc="ABCD", staff_width=250)
+    >>> from pyabc2.abcjs.widget import ABCJSWidget
+    >>> w = ABCJSWidget(abc='ABCD', staff_width=250)
     """
 
     _esm = HERE / "index.js"

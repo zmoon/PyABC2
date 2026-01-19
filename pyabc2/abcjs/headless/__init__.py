@@ -24,7 +24,7 @@ def build():
         raise RuntimeError(
             "The 'nodejs-wheel-binaries' package is required "
             "to render sheet music in the background with abcjs via Node.js. "
-            "It is included with the pyabc2 'sheet' extra."
+            "It is included with the pyabc2 'abcjs-headless' extra."
         ) from e
 
     rc = npm(["install", "--prefix", HERE.as_posix()])
@@ -64,7 +64,7 @@ def svg(
     **kwargs
         Additional abcjs options that haven't been explicitly defined here
         in the signature.
-        https://paulrosen.github.io/abcjs/visual/render-abc-options.html
+        https://docs.abcjs.net/visual/render-abc-options.html
     """
     from nodejs_wheel import node
 

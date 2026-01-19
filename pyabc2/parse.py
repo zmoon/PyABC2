@@ -336,9 +336,7 @@ class Tune:
         self.measures = measures
 
     def __repr__(self):
-        return (
-            f"{self.__class__.__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
-        )
+        return f"{type(self).__name__}(title={self.title!r}, key={self.key}, type={self.type!r})"
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
@@ -354,10 +352,10 @@ class Tune:
         try:
             from IPython.display import display
 
-            from .widget import ABCJSWidget
+            from .abcjs.widget import ABCJSWidget
         except ImportError:
             warnings.warn(
-                "The 'widget' extra is required for HTML representation of tunes via abcjs."
+                "The 'abcjs-widget' extra is required for HTML representation of tunes via abcjs."
             )
         else:
             display(ABCJSWidget(abc=self.abc))
