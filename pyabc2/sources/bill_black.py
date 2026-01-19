@@ -93,6 +93,7 @@ def load_meta(*, redownload: bool = False, debug: bool = False) -> list[str]:
     with zipfile.ZipFile(zip_path, "r") as zf:
         for zi in zf.filelist:
             fn = zi.filename
+            logger.debug(f"Loading {fn!r}")
             with zf.open(zi, "r") as f:
                 text = f.read().decode("utf-8")
 

@@ -208,7 +208,7 @@ def load_meta(key: str, *, redownload: bool = False, debug: bool = False) -> lis
 
     abcs = []
     for p in collection.files:
-        print(p)
+        logger.debug(f"Loading {p.name}")
         with gzip.open(p, "rt") as f:
             text = f.read()
 
