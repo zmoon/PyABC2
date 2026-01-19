@@ -610,17 +610,24 @@ def test_abc_doctave_calc(note, oct, expected):
     ],
 )
 class TestHelmholtz:
+    def maybe_warns(self, fun, arg):
+        if arg[:2].lower() in {"cb", "b#"}:
+            with pytest.warns(UserWarning, match="computed pitch class value outside 0--11"):
+                return fun(arg)
+        else:
+            return fun(arg)
+
     def test_helmholtz_from_pitch(self, scientific, helmholtz):
-        pitch = Pitch.from_name(scientific)
+        pitch = self.maybe_warns(Pitch.from_name, scientific)
         assert pitch.helmholtz == helmholtz
 
     def test_pitch_from_helmholtz(self, scientific, helmholtz):
-        pitch = Pitch.from_helmholtz(helmholtz)
+        pitch = self.maybe_warns(Pitch.from_helmholtz, helmholtz)
         assert pitch.name == scientific
 
     def test_helmholtz_name_and_octave(self, scientific, helmholtz):
-        from_helmholtz = Pitch.from_helmholtz(helmholtz)
-        from_name = Pitch.from_name(scientific)
+        from_helmholtz = self.maybe_warns(Pitch.from_helmholtz, helmholtz)
+        from_name = self.maybe_warns(Pitch.from_name, scientific)
         assert from_helmholtz.name == from_name.name
         assert from_helmholtz.class_name == from_name.class_name
         assert from_helmholtz.octave == from_name.octave

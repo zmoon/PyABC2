@@ -87,7 +87,7 @@ These methods/properties result from tune body parsing and repeat/ending expansi
 Tune sources
 ============
 
-.. currentmodule:: pyabc2.sources
+.. module:: pyabc2.sources
 
 The :mod:`pyabc2.sources` namespace contains a few general tools.
 
@@ -133,3 +133,74 @@ Functions:
    the_session.load
    the_session.load_meta
    the_session.load_url
+
+Eskin ABC Tools
+---------------
+
+.. automodule:: pyabc2.sources.eskin
+
+Functions:
+
+.. currentmodule:: pyabc2.sources
+
+.. autosummary::
+   :toctree: api/
+
+   eskin.load_meta
+   eskin.load_url
+   eskin.abctools_url_to_abc
+   eskin.abc_to_abctools_url
+
+Bill Black
+----------
+
+.. automodule:: pyabc2.sources.bill_black
+
+Functions:
+
+.. currentmodule:: pyabc2.sources
+
+.. autosummary::
+   :toctree: api/
+
+   bill_black.load_meta
+
+abcjs tools
+===========
+
+.. module:: pyabc2.abcjs
+
+Widget
+------
+
+.. automodule:: pyabc2.abcjs.widget
+
+.. autosummary::
+   :toctree: api/
+
+   ABCJSWidget
+   interactive
+
+
+Headless rendering
+------------------
+
+.. automodule:: pyabc2.abcjs.headless
+
+.. autosummary::
+   :toctree: api/
+
+   svg
+   svg_to
+   build
+
+HTML page generation
+--------------------
+
+.. automodule:: pyabc2.abcjs.htmlgen
+
+.. autosummary::
+   :toctree: api/
+
+   html
+   open_html

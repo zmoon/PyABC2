@@ -4,7 +4,6 @@ Note class (pitch + duration)
 
 import re
 from fractions import Fraction
-from typing import Optional
 
 from .key import Key
 from .pitch import ACCIDENTAL_DVALUES, Pitch, pitch_class_value
@@ -17,7 +16,7 @@ _S_RE_NOTE = (
     r"(?P<slash>/+)?"
     r"(?P<den>[0-9]+)?"
 )
-_RE_NOTE = re.compile(_S_RE_NOTE)
+RE_NOTE = re.compile(_S_RE_NOTE)
 
 
 _ACCIDENTAL_ASCII_TO_ABC = {"#": "^", "b": "_", "=": "="}
@@ -35,7 +34,7 @@ _DURATION_FRAC_TO_HTML = {
 }
 
 
-def _octave_from_abc_parts(note: str, oct: Optional[str] = None, *, base: int = 4):
+def _octave_from_abc_parts(note: str, oct: str | None = None, *, base: int = 4):
     """
     Parameters
     ----------
@@ -159,13 +158,13 @@ class Note(Pitch):
 
         but this can be adjusted using the keyword arguments.
         """
-        m = _RE_NOTE.match(abc)
+        m = RE_NOTE.match(abc)
         return cls._from_abc_match(m, key=key, octave_base=octave_base, unit_duration=unit_duration)
 
     @classmethod
     def _from_abc_match(
         cls,
-        m: Optional[re.Match],
+        m: re.Match | None,
         *,
         key: Key = _DEFAULT_KEY,
         octave_base: int = _DEFAULT_OCTAVE_BASE,

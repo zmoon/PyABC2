@@ -34,6 +34,18 @@ exclude_patterns = ["_build"]
 html_theme = "furo"
 html_static_path = ["_static"]
 html_css_files = ["custom.css"]
+html_js_files = [
+    # TODO: just the pages that need it (example notebooks) instead of every page, using `app.add_js_file`
+    (
+        "https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js",
+        {
+            "crossorigin": "anonymous",
+            # We need it to load before the widget instances
+            # which seem to be in the extensions group (default priority 500)
+            "priority": 499,
+        },
+    )
+]
 
 napoleon_google_docstring = False
 napoleon_numpy_docstring = True

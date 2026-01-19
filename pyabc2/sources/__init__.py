@@ -2,8 +2,6 @@
 Sources of ABC
 """
 
-from typing import Optional
-
 from ..parse import Tune
 
 examples = {
@@ -34,7 +32,7 @@ d|edB GAB|~D3 GAB|~D3 cBA|AGE GBd|edB GAB|~D3 GAB|~D3 cBA|AGF G2:|
 }
 
 
-def load_example_abc(title: Optional[str] = None) -> str:
+def load_example_abc(title: str | None = None) -> str:
     """Load an example ABC string,
     random if `title` not provided.
     Case ignored in the title.
@@ -65,7 +63,7 @@ def load_example_abc(title: Optional[str] = None) -> str:
     return abc
 
 
-def load_example(title: Optional[str] = None) -> Tune:
+def load_example(title: str | None = None) -> Tune:
     """Load an example tune,
     random if `title` not provided.
     Case ignored in the title.
@@ -84,6 +82,7 @@ def load_url(url: str) -> Tune:
 
     - Norbeck (``norbeck.nu/abc/``)
     - The Session (``thesession.org``)
+    - Eskin ABC Tools (``michaeleskin.com/abctools/``)
 
     See Also
     --------
@@ -92,12 +91,14 @@ def load_url(url: str) -> Tune:
     """
     from urllib.parse import urlsplit
 
-    from . import norbeck, the_session
+    from . import eskin, norbeck, the_session
 
     res = urlsplit(url)
     if res.netloc in norbeck._URL_NETLOCS:
         return norbeck.load_url(url)
     elif res.netloc in the_session._URL_NETLOCS:
         return the_session.load_url(url)
+    elif res.netloc in eskin._URL_NETLOCS:
+        return eskin.load_url(url)
     else:
         raise NotImplementedError(f"loading URL from {res.netloc} not implemented.")

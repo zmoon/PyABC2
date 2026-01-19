@@ -15,7 +15,7 @@ import logging
 import os
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List, Literal, Optional, Union
+from typing import TYPE_CHECKING, Literal
 
 from .._util import get_logger as _get_logger
 from ..parse import Tune
@@ -124,7 +124,7 @@ def load_url(url: str) -> Tune:
 
     res = urlsplit(url)
     assert res.netloc in _URL_NETLOCS
-    setting: Optional[int]
+    setting: int | None
     if res.fragment:
         setting_str = res.fragment
         if setting_str.startswith("setting"):
@@ -167,7 +167,7 @@ def load_url(url: str) -> Tune:
     return _api_data_to_tune(setting_data)
 
 
-def download(which: Union[str, List[str]] = "tunes") -> None:
+def download(which: str | list[str] = "tunes") -> None:
     import gzip
 
     import requests
@@ -192,7 +192,7 @@ def download(which: Union[str, List[str]] = "tunes") -> None:
             f.write(r.content)
 
 
-def _maybe_load_one(d: dict) -> Optional[Tune]:
+def _maybe_load_one(d: dict) -> Tune | None:
     """Try to load tune from a The Session data entry, otherwise log debug messages
     and return None."""
     from textwrap import indent
@@ -224,11 +224,11 @@ def _older_than_30d(fp: Path) -> bool:
 
 def load(
     *,
-    n: Optional[int] = None,
-    redownload: Optional[bool] = None,
+    n: int | None = None,
+    redownload: bool | None = None,
     debug: bool = False,
     num_workers: int = 1,
-) -> List[Tune]:
+) -> list[Tune]:
     """Load tunes from The Session archive
     (https://github.com/adactio/TheSession-data).
 
@@ -284,7 +284,7 @@ def load(
         import multiprocessing
 
         if debug:  # pragma: no cover
-            warnings.warn("Multi-processing, detailed debug messages won't be shown.")
+            warnings.warn("Multi-processing, detailed debug messages won't be shown.", stacklevel=2)
 
         with multiprocessing.Pool(num_workers) as pool:
             maybe_tunes = pool.map(_maybe_load_one, data)
@@ -303,7 +303,7 @@ def load(
         msg = f"{failed} out of {len(data)} The Session tune(s) failed to load."
         if logger.level == logging.NOTSET or logger.level > logging.DEBUG:
             msg += " Enable logging debug messages to see more info."
-        warnings.warn(msg)
+        warnings.warn(msg, stacklevel=2)
 
     return tunes
 
@@ -410,7 +410,7 @@ def load_meta(
     if format == "json":
         df = pd.read_json(url)
     else:
-        parse_dates: Union[bool, List[str]]
+        parse_dates: bool | list[str]
         if which in {"sets", "sessions", "tunes"}:
             parse_dates = ["date"]
         elif which in {"events"}:
@@ -480,11 +480,11 @@ def load_meta(
 def _consume(
     endpoint: str,
     *,
-    pages: Optional[int] = None,
+    pages: int | None = None,
     size: int = 50,
     max_threads: int = 1,
     **params,
-) -> List[Dict]:
+) -> list[dict]:
     """Consume paginated The Session API endpoint, returning a list of entries.
 
     Parameters
@@ -578,7 +578,7 @@ def get_tune_collections(tune_id: int) -> "pandas.DataFrame":
     )
 
 
-def get_member_set(member_id: int, set_id: int) -> List[Result]:
+def get_member_set(member_id: int, set_id: int) -> list[dict]:
     import requests
 
     url = f"https://thesession.org/members/{member_id}/sets/{set_id}?format=json"
@@ -590,13 +590,12 @@ def get_member_set(member_id: int, set_id: int) -> List[Result]:
     for setting in data["settings"]:
         url = setting["url"]
         tune_id = int(url.split("/")[-1].split("#")[0])
-        d: Result = {
+        d = {
             "name": setting["name"],
             "tune_id": tune_id,
             "setting_id": setting["id"],
             "type": setting["type"],
             "key": setting["key"],
-            "starts": starts(setting["abc"].replace("! ", "")),
             "name_input": setting["name"],
         }
         results.append(d)
@@ -604,7 +603,7 @@ def get_member_set(member_id: int, set_id: int) -> List[Result]:
     return results
 
 
-def get_member_sets(member_id: int) -> list[list[Result]]:
+def get_member_sets(member_id: int) -> list[list[dict]]:
     import requests
 
     url = f"https://thesession.org/members/{member_id}/sets?format=json"

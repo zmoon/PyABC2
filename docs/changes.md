@@ -4,6 +4,8 @@
 
 * Fix loading The Session sets data ({pull}`77`)
 * Fix HTML display of pitch classes with double accidentals ({pull}`76`)
+* Fix Norbeck URL gen for multi-word tune types (e.g., slip jig, set dance)
+* Add initial support for loading Eskin ABC Transcription Tools tunebooks ({pull}`86`)
 
 ## v0.1.0 (2025-07-02)
 
