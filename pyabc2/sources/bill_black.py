@@ -4,6 +4,7 @@ Bill Black's Irish Traditional Tune Library
 http://www.capeirish.com/ittl/
 """
 
+import re
 from pathlib import Path
 
 HERE = Path(__file__).parent
@@ -67,5 +68,50 @@ def download() -> None:
             zf.writestr(fn, text)
 
 
+def load_meta(*, redownload: bool = False) -> list[str]:
+    """Load the tunebook data, splitting into tune blocks and removing ``%`` lines."""
+    import zipfile
+    from textwrap import indent
+
+    zip_path = SAVE_TO / "bill_black_alltunes_text.zip"
+    if redownload or not zip_path.is_file():
+        print("downloading...", end=" ", flush=True)
+        download()
+        print("done")
+
+    tunes = []
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        for zi in zf.filelist:
+            with zf.open(zi, "r") as f:
+                text = f.read().decode("utf-8")
+
+            # A tune block starts with the X: line and ends with a blank line
+            # or the end of the file.
+            # Unlike the RTF files, %%% is not _necessarily_ present as a tune separator.
+
+            # Remove all lines that start with %
+            text = "\n".join(
+                line.strip() for line in text.splitlines() if not line.lstrip().startswith("%")
+            )
+
+            # Find the start of the first tune, in order to skip header info
+            start = text.find("X:")
+            if start == -1:
+                raise RuntimeError(f"Unable to find first tune in Bill Black file {zi.filename!r}")
+
+            text = text[start:]
+
+            blocks = re.split(r"\n{2,}", text.rstrip())
+            for block in blocks:
+                block = block.strip()
+                if not block:
+                    continue
+                elif not block.startswith("X:"):
+                    print(f"skipping non-tune block in {zi.filename!r}:\n{indent(block, '| ')}")
+                    continue
+                tunes.append(block)
+    return tunes
+
+
 if __name__ == "__main__":  # pragma: no cover
-    download()
+    tunes = load_meta()
