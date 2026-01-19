@@ -113,7 +113,8 @@ def load_meta(*, redownload: bool = False, debug: bool = False) -> list[str]:
 
             text = text[start:]
 
-            # Separate some blocks that are missing empty lines
+            # Separate some two-tune blocks
+            # These X vals have a tune above them without an empty line in between
             if fn.startswith("c-tunes"):
                 to_sep = [253, 666]
             elif fn.startswith("d-tunes"):
