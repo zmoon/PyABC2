@@ -4,8 +4,13 @@ Bill Black's Irish Traditional Tune Library
 http://www.capeirish.com/ittl/
 """
 
+import logging
 import re
 from pathlib import Path
+
+from pyabc2._util import get_logger as _get_logger
+
+logger = _get_logger(__name__)
 
 HERE = Path(__file__).parent
 
@@ -67,11 +72,16 @@ def download() -> None:
             zf.writestr(fn, text)
 
 
-def load_meta(*, redownload: bool = False) -> list[str]:
+def load_meta(*, redownload: bool = False, debug: bool = False) -> list[str]:
     """Load all data, splitting into tune blocks and removing ``%`` lines."""
     import zipfile
     from collections import Counter
     from textwrap import indent
+
+    if debug:  # pragma: no cover
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.NOTSET)
 
     zip_path = SAVE_TO / "bill_black_alltunes_text.zip"
     if redownload or not zip_path.is_file():
@@ -79,7 +89,7 @@ def load_meta(*, redownload: bool = False) -> list[str]:
         download()
         print("done")
 
-    tunes = []
+    abcs = []
     with zipfile.ZipFile(zip_path, "r") as zf:
         for zi in zf.filelist:
             fn = zi.filename
@@ -117,7 +127,7 @@ def load_meta(*, redownload: bool = False) -> list[str]:
             expected_num = text.count("X:")
 
             blocks = re.split(r"\n{2,}", text.rstrip())
-            this_tunes = []
+            this_abcs = []
             for block in blocks:
                 block = block.strip()
                 if not block:
@@ -134,42 +144,44 @@ def load_meta(*, redownload: bool = False) -> list[str]:
                     if start != -1:
                         block = block[start:]
                     else:
-                        print(f"note: skipping non-tune block in {fn!r}:\n{indent(block, '| ')}")
+                        logger.info(f"skipping non-tune block in {fn!r}:\n{indent(block, '| ')}")
                         continue
 
                 if block.count("X:") > 1:
-                    print(f"warning: multiple X: lines in block in {fn!r}:\n{indent(block, '| ')}")
+                    logger.warning(f"multiple X: lines in block in {fn!r}:\n{indent(block, '| ')}")
 
-                this_tunes.append(block)
+                this_abcs.append(block)
 
-            actual_num = len(this_tunes)
+            actual_num = len(this_abcs)
             if actual_num != expected_num:
-                print(f"warning: expected {expected_num} tunes in {fn!r}, but found {actual_num}")
+                logger.warning(f"expected {expected_num} tunes in {fn!r}, but found {actual_num}")
 
             # Drop fully duplicate tune blocks while preserving order
             seen = set()
-            this_tunes_unique = []
-            for block in this_tunes:
+            this_abcs_unique = []
+            for block in this_abcs:
                 if block not in seen:
                     seen.add(block)
-                    this_tunes_unique.append(block)
-            if len(this_tunes_unique) < len(this_tunes):
-                print(
-                    f"note: removed {len(this_tunes) - len(this_tunes_unique)}/{len(this_tunes)} fully duplicate "
+                    this_abcs_unique.append(block)
+            if len(this_abcs_unique) < len(this_abcs):
+                logger.info(
+                    f"removed {len(this_abcs) - len(this_abcs_unique)}/{len(this_abcs)} fully duplicate "
                     f"tune blocks in {fn!r}"
                 )
-            this_tunes = this_tunes_unique
+            this_abcs = this_abcs_unique
 
-            x_counts = Counter(block.splitlines()[0] for block in this_tunes)
+            x_counts = Counter(block.splitlines()[0] for block in this_abcs)
             x_count_counts = Counter(x_counts.values())
             if set(x_count_counts) != {1}:
                 s_counts = ", ".join(f"{m} ({n})" for m, n in sorted(x_count_counts.items()))
-                print(f"note: non-unique X vals in {fn!r}: {s_counts}")
+                logger.info(f"non-unique X vals in {fn!r}: {s_counts}")
 
-            tunes.extend(this_tunes)
+            abcs.extend(this_abcs)
 
-    return tunes
+    return abcs
 
 
 if __name__ == "__main__":  # pragma: no cover
-    tunes = load_meta()
+    tunes = load_meta(debug=True)
+    print()
+    print(tunes[0])

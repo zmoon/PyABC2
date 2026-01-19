@@ -9,6 +9,7 @@ while also posting ABC text files (http://www.capeirish.com/ittl/alltunes/text/)
 both split up alphabetically by tune name.
 """
 
+import logging
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -190,11 +191,15 @@ def download(key: str | Iterable[str] | None = None, *, verbose: bool = False) -
                 f.write(r.content)
 
 
-def load_meta(key: str, *, redownload: bool = False) -> list[str]:
+def load_meta(key: str, *, redownload: bool = False, debug: bool = False) -> list[str]:
     """Load the tunebook data, no parsing."""
-
     import gzip
     import re
+
+    if debug:  # pragma: no cover
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.NOTSET)
 
     collection = get_collection(key)
     if redownload or any(not p.is_file() for p in collection.files):
@@ -257,6 +262,6 @@ def load_meta(key: str, *, redownload: bool = False) -> list[str]:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    logger.setLevel("DEBUG")
-
-    abcs = load_meta("aif")
+    abcs = load_meta("aif", debug=True)
+    print()
+    print(abcs[0])
