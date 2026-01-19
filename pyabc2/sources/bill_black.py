@@ -28,7 +28,6 @@ TXT_FNS = [
     "o-tunes-1.txt",
     "pq-tunes-1.txt",
     "r-tunes-1.txt",
-    "s-tunes-1.txt",
     "s-tunes-2.txt",
     "t-tunes-1.txt",
     "uv-tunes-1.txt",
