@@ -518,3 +518,8 @@ def test_the_session_consume_validation():
 
     with pytest.raises(ValueError):
         _ = f(1, max_threads=0)
+
+
+def test_the_session_consume_auto_leading_slash():
+    (d,) = the_session._consume("tunes/22878")
+    assert d["name"] == "Jack Farrell's"
