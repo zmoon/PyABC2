@@ -1,7 +1,7 @@
 import pyabc2
 
 project = "PyABC2"
-copyright = "2021\u20132025 zmoon"
+copyright = "2021\u20132026 zmoon"
 author = "zmoon"
 
 version = pyabc2.__version__.split("+")[0]
