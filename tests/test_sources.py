@@ -474,3 +474,26 @@ def test_bill_black_load():
     lst = bill_black.load_meta()
     assert len(lst) > 0
     assert lst[0].startswith("X:")
+
+
+def test_the_session_get_tune_collections():
+    df = the_session.get_tune_collections(1)  # Cooley's
+    assert not df.empty
+
+
+def test_the_session_get_member_set():
+    tunes = the_session.get_member_set(65013, 106212)
+    assert len(tunes) == 3
+    d = tunes[0]
+    assert d["name"] == "Garech's Wedding"
+    assert d["tune_id"] == 2620
+    assert d["setting_id"] == 31341
+
+
+def test_the_session_get_member_sets():
+    sets = the_session.get_member_sets(65013)
+    assert len(sets) >= 1
+    d = sets[0][0]
+    assert d["name"] == "Garech's Wedding"
+    assert d["tune_id"] == 2620
+    assert d["setting_id"] == 31341
