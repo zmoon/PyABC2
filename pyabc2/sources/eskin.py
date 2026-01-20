@@ -302,4 +302,4 @@ if __name__ == "__main__":  # pragma: no cover
     print(url)
 
     kss = load_meta("kss")
-    print(kss.keys())
+    print(kss)
