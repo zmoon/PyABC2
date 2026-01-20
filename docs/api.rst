@@ -103,6 +103,8 @@ For example::
 
    from pyabc2.sources import norbeck
 
+See examples in :doc:`/examples/sources`.
+
 Norbeck
 -------
 
@@ -169,6 +171,8 @@ abcjs tools
 ===========
 
 .. module:: pyabc2.abcjs
+
+See examples in :doc:`/examples/widget`.
 
 Widget
 ------

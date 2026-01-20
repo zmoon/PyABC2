@@ -81,6 +81,10 @@ def load_meta(*, redownload: bool = False, debug: bool = False) -> list[str]:
         Re-download the data file.
     debug
         Show debug messages.
+
+    See Also
+    --------
+    :doc:`/examples/sources`
     """
     import zipfile
     from collections import Counter

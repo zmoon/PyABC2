@@ -6,6 +6,12 @@
 * Fix HTML display of pitch classes with double accidentals ({pull}`76`)
 * Fix Norbeck URL gen for multi-word tune types (e.g., slip jig, set dance)
 * Add initial support for loading Eskin ABC Transcription Tools tunebooks ({pull}`86`)
+* Update NumPy/pandas pins to v2 and min Python to 3.10 ({pull}`87`)
+* Use [anywidget](https://anywidget.dev/) for abcjs tune display in notebooks
+  and add additional abcjs-based tools ({mod}`pyabc2.abcjs`; {pull}`89`, {pull}`91`)
+* Add initial support for loading tunes from Bill Black ({pull}`92`)
+* Mark the note regexes as non-private, towards less awkward usage ({pull}`93`)
+* Add a few more The Session web API capabilities, including loading sets ({pull}`94`)
 
 ## v0.1.0 (2025-07-02)
 
