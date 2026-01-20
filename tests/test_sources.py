@@ -510,13 +510,13 @@ def test_the_session_get_member_sets_multipage():
 def test_the_session_consume_validation():
     f = the_session.get_member_sets
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="`size`"):
         _ = f(1, size=1000)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="`pages`"):
         _ = f(1, pages=0)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="`max_threads`"):
         _ = f(1, max_threads=0)
 
 
