@@ -1,10 +1,9 @@
 """
 Basic ABC notation parser using pyparsing, supporting the core features:
+
 - Notes and rests
 - Bar lines and repeat signs, including endings
 """
-
-from typing import Optional
 
 import pyparsing as pp
 
@@ -89,14 +88,14 @@ MEASURE = pp.Group(MEASURE_CONTENT + (FIRST_ENDING | SECOND_ENDING | BAR_LINE)).
 
 # Full tune body
 TUNE_BODY = pp.Forward()
-TUNE_BODY << pp.Group(pp.Optional(BAR_LINE) + pp.OneOrMore(MEASURE + WHITESPACE)).set_results_name(
+TUNE_BODY <<= pp.Group(pp.Optional(BAR_LINE) + pp.OneOrMore(MEASURE + WHITESPACE)).set_results_name(
     "tune_body"
 )
 
 
 def parse_abc(abc: str) -> pp.ParseResults:
     """Parse an ABC notation tune body."""
-    res: Optional[pp.ParseResults] = None
+    res: pp.ParseResults | None = None
     try:
         res = TUNE_BODY.parse_string(abc, parse_all=True)
     except pp.ParseException as e:
