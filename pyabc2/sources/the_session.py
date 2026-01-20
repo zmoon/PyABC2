@@ -587,6 +587,17 @@ def _tune_id_from_url(url: str) -> int:
 
 
 def get_member_set(member_id: int, set_id: int) -> list[dict]:
+    """Get information about the tunes in a specific member's set.
+
+    Parameters
+    ----------
+    member_id
+        Numeric identifier of the member on The Session.
+        For example, Jeremy is ``1`` (https://thesession.org/members/1).
+    set_id
+        Numeric identifier of the set belonging to ``member_id``.
+    """
+
     endpoint = f"/members/{member_id}/sets/{set_id}"
     (res,) = _consume(endpoint)
 
@@ -605,6 +616,22 @@ def get_member_set(member_id: int, set_id: int) -> list[dict]:
 
 
 def get_member_sets(member_id: int, **kwargs) -> list[list[dict]]:
+    """Get information about all sets belonging to a specific member.
+
+    Parameters
+    ----------
+    member_id
+        Numeric identifier of the member on The Session.
+        For example, Jeremy is ``1`` (https://thesession.org/members/1).
+    **kwargs
+        Additional parameters passed to :func:`_consume`,
+        e.g. ``pages``, ``size``, ``max_threads``.
+
+    See Also
+    --------
+    get_member_set
+    """
+
     endpoint = f"/members/{member_id}/sets"
 
     if "max_threads" not in kwargs:
