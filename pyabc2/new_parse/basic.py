@@ -79,15 +79,14 @@ MEASURE_CONTENT = pp.Group(
 ).set_results_name("measure_content")
 
 # Define measure with either a regular bar line or an ending
-MEASURE = pp.Group(MEASURE_CONTENT + (FIRST_ENDING | NON_FIRST_ENDING | BAR_LINE)).set_results_name(
-    "measure"
-)
+# We also need optional starting bar line, e.g. for left repeat
+MEASURE = pp.Group(
+    pp.Optional(BAR_LINE) + MEASURE_CONTENT + (FIRST_ENDING | NON_FIRST_ENDING | BAR_LINE)
+).set_results_name("measure")
 
 # Full tune body
 TUNE_BODY = pp.Forward()
-TUNE_BODY <<= pp.Group(pp.Optional(BAR_LINE) + pp.OneOrMore(MEASURE + WHITESPACE)).set_results_name(
-    "tune_body"
-)
+TUNE_BODY <<= pp.Group(pp.OneOrMore(MEASURE + WHITESPACE)).set_results_name("tune_body")
 
 
 def parse_abc(abc: str) -> pp.ParseResults:
