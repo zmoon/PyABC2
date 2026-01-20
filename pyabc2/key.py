@@ -5,7 +5,6 @@ Key (e.g., G, Em, Ador)
 # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L94
 import re
 import warnings
-from typing import Dict, List, Optional, Tuple
 
 from .pitch import PitchClass
 
@@ -106,7 +105,7 @@ we get A minor.
 """
 
 
-def _scale_chromatic_values(mode: str) -> List[int]:
+def _scale_chromatic_values(mode: str) -> list[int]:
     """The 7 integer chromatic values that make of the scale."""
     mode = _validate_and_normalize_mode_name(mode)
     i = MODE_SCALE_DEGREE[mode]
@@ -118,7 +117,7 @@ def _scale_chromatic_values(mode: str) -> List[int]:
     return [(v + dv) % 12 for v in vs_wrt_major]
 
 
-def _mode_chromatic_scale_degrees(mode: str, *, acc_fmt: str = "#") -> List[str]:
+def _mode_chromatic_scale_degrees(mode: str, *, acc_fmt: str = "#") -> list[str]:
     """For a given mode, scale degree representations for all 12 chromatic values."""
     valid_acc_formats = ["#", "b", "#/b", "b/#"]
     if acc_fmt not in valid_acc_formats:
@@ -158,7 +157,7 @@ def _mode_chromatic_scale_degrees(mode: str, *, acc_fmt: str = "#") -> List[str]
     return csds
 
 
-def _mode_scale_degrees_wrt_major(mode: str) -> List[str]:
+def _mode_scale_degrees_wrt_major(mode: str) -> list[str]:
     """ASCII scale degrees for a certain mode,
     referenced to major using #/b.
     """
@@ -172,10 +171,10 @@ def _mode_scale_degrees_wrt_major(mode: str) -> List[str]:
 
 
 def _scale_intervals(
-    values: List[int],
+    values: list[int],
     *,
     include_upper: bool = True,
-) -> List[str]:
+) -> list[str]:
     """Return list of intervals ('W' or 'H').
 
     Parameters
@@ -186,7 +185,12 @@ def _scale_intervals(
         Whether to return 7 intervals by computing the interval from scale degree 7 to 8,
         by default True.
     """
-    assert len(values) == 7
+    if len(values) != 7:
+        raise ValueError(f"expected 7 values, got {len(values)}")
+    if values[0] != 0:
+        raise ValueError(f"first value should be 0, not {values[0]}")
+    if not values[-1] < 12:
+        raise ValueError(f"last value should be < 12, not {values[-1]}")
 
     if include_upper:
         values.append(12)
@@ -199,7 +203,7 @@ def _scale_intervals(
         elif dv == 1:
             interval = "H"
         else:
-            raise ValueError("strange interval (not W/H)")
+            raise ValueError(f"strange interval {dv} (not W/H)")
         intervals.append(interval)
     # TODO: should make a class for interval!
 
@@ -230,50 +234,81 @@ FLAT_ORDER = list("BEADGCF")
 
 
 class Key:
-    """Key, including mode."""
+    """Key, including mode.
+
+    Pass either `name` (key spec with tonic and mode combined, used in ABC notation)
+    or `tonic` and `mode`.
+
+    Parameters
+    ---------
+    name
+        Key name (e.g., ``D``, ``Amaj``, ``Em``, ``Ador``, ``Bbmin``, ...).
+        (Major assumed if mode not specified.)
+    tonic
+        Tonic of the key (e.g., ``C``, ``D``, ...).
+    mode
+        Mode specification, (e.g., ``maj``, ``min``, ``dor``, ...).
+
+    Examples
+    --------
+    >>> from pyabc2 import Key
+    >>> Key('C')
+    Key(tonic=C, mode='Major')
+
+    >>> Key('Ador')
+    Key(tonic=A, mode='Dorian')
+    >>> Key('Em')
+    Key(tonic=E, mode='Minor')
+
+    >>> Key(tonic='Bb', mode='Locrian')
+    Key(tonic=Bb, mode='Locrian')
+    """
 
     # TODO: maybe should move name to a .from_name for consistency with Pitch(Class)
     def __init__(
         self,
-        name: Optional[str] = None,
+        name: str | None = None,
         *,
-        tonic: Optional[str] = None,
-        mode: Optional[str] = None,
+        tonic: str | None = None,
+        mode: str | None = None,
     ):
-        """
-        Parameters
-        ---------
-        name
-            Key name, e.g., `D`, `Ador`, `Bbmin`, ...
-        tonic
-            Tonic of the key, e.g., `C`, `D`, ...
-        mode
-            Mode specification, e.g., `m`, `min`, `dor`.
-            (Major assumed if mode not specified.)
-        """
+        self.tonic: PitchClass
+        """The tonic of the key."""
+
+        msg = "pass either just `name` or both `tonic` and `mode`"
         if name is not None:
-            assert tonic is None and mode is None, "pass either `name` or `tonic`+`mode`"
+            if not (tonic is None and mode is None):
+                raise ValueError(msg)
             # Handle occasional `K:` line used to indicate default key (C) and tune start
             if name == "":
                 name = "C"
             self.tonic, self._mode = Key.parse_key(name)
         else:
-            assert tonic is not None and mode is not None, "pass either `name` or `tonic`+`mode`"
+            # TODO: default mode to major for consistency?
+            # TODO: allow passing tonic as PitchClass
+            if not (tonic is not None and mode is not None):
+                raise ValueError(msg)
             self.tonic = PitchClass.from_name(tonic)
             self._mode = _validate_and_normalize_mode_name(mode)
 
     @property
     def mode(self) -> str:
+        """Full mode name (e.g., ``Major``)."""
         return _MODE_ABBR_TO_FULL[self._mode].capitalize()
 
     @staticmethod
-    def parse_key(key: str) -> Tuple[PitchClass, str]:
+    def parse_key(key: str) -> tuple[PitchClass, str]:
+        """Parse a key spec string (e.g., ``D``, ``Amin``)
+        and return the tonic and mode (3-char abbreviation).
+
+        Used when you pass ``name`` to the constructor.
+        """
         m = re.match(r"([A-G])(\#|b)?\s*(\w+)?(.*)", key)
         if m is None:
             raise ValueError(f"Invalid key specification '{key}'")
         base, acc, mode, extra = m.groups()
         if extra != "":
-            warnings.warn(f"extra info {extra!r} in key spec {key!r} ignored")
+            warnings.warn(f"extra info {extra!r} in key spec {key!r} ignored", stacklevel=2)
 
         if acc is None:
             acc = ""
@@ -288,14 +323,14 @@ class Key:
 
         try:
             mode = _validate_and_normalize_mode_name(mode)
-        except ValueError:
-            raise ValueError("Unrecognized mode specification '{mode}' from key '{key}'")
+        except ValueError as e:
+            raise ValueError(f"Unrecognized mode specification '{mode}' from key '{key}'") from e
 
         return PitchClass.from_name(base + acc), mode
         # TODO: probably should either return a Key or be private / maybe outside class
 
     @property
-    def key_signature(self) -> List[str]:  # TODO: maybe change name
+    def key_signature(self) -> list[str]:  # TODO: maybe change name
         """
         List of accidentals that should be displayed in the key
         signature for the given key description.
@@ -317,13 +352,14 @@ class Key:
         return sig
 
     @property
-    def accidentals(self) -> Dict[str, str]:
+    def accidentals(self) -> dict[str, str]:
         """A dictionary of accidentals in the key signature,
         mapping natural note names to the accidental applied.
         """
         return {p: a for p, a in self.key_signature}  # type: ignore[misc, has-type]
 
     def relative(self, mode: str, *, match_acc: bool = False) -> "Key":
+        """Compute a relative key by specifying the target mode."""
         mode = _validate_and_normalize_mode_name(mode)
         key, mode0 = self.tonic, self._mode
 
@@ -334,18 +370,21 @@ class Key:
         tonic_ef = tonic.equivalent_flat
 
         if match_acc:
-            # Select flat or sharp to match the current key name
+            # Select accidentals to match the current key name
+            # (haven't identified a case where a successful result is different than
+            # the default approach below though)
 
-            # TODO: PitchClass from value with acc option?
-            if "#" in key.name:
-                if tonic_es.acc == "#":  # single sharp used
-                    tonic_name = tonic_es.name
-            elif "b" in key.name:
-                if tonic_ef.acc == "b":  # single flat used
-                    tonic_name = tonic_ef.name
+            # Note = is allowed for explicit natural, but it wouldn't be added automatically
+            orig_acc = key.acc.replace("=", "")
+            for tonic_cand in [tonic_es, tonic_ef, tonic]:
+                if tonic_cand.acc == orig_acc:
+                    tonic_name = tonic_cand.name
+                    break
             else:
-                tonic_name = tonic.name
-
+                raise ValueError(
+                    f"unable to match accidentals ({key}{mode0} -> "
+                    f"{{{tonic_es}, {tonic_ef}, {tonic}}}{mode})"
+                )
         else:
             # Use the letter that it should be in the scale
             sd0 = MODE_SCALE_DEGREE[mode0]
@@ -360,8 +399,8 @@ class Key:
                     tonic_name = tonic_es.name
                 elif tonic_ef.nat == new_nat:
                     tonic_name = tonic_ef.name
-                else:
-                    raise Exception
+                else:  # pragma: no cover
+                    raise AssertionError
             else:
                 tonic_name = tonic.name
 
@@ -376,7 +415,7 @@ class Key:
         return self.relative("minor")
 
     @property
-    def _letters(self) -> List[str]:
+    def _letters(self) -> list[str]:
         """Letters (natural note names) of the scale.
         Only depends on tonic.
         """
@@ -384,7 +423,7 @@ class Key:
         return CMAJ_LETTERS[ir:] + CMAJ_LETTERS[:ir]
 
     @property
-    def scale(self) -> List[PitchClass]:
+    def scale(self) -> list[PitchClass]:
         """Notes (pitch classes) of the scale."""
         nats = self._letters
         notes = [n + self.accidentals.get(n, "") for n in nats]
@@ -394,7 +433,7 @@ class Key:
         print(" ".join(f"{str(pc):2}" for pc in self.scale))
 
     @property
-    def scale_degrees_wrt_major(self) -> List[str]:
+    def scale_degrees_wrt_major(self) -> list[str]:
         """Scale degrees of the mode's scale, with #/b
         as compared to the major scale with the same tonic.
         """
@@ -409,7 +448,7 @@ class Key:
         print(" ".join(f"{s:{wmax}}" for s in csds))
 
     @property
-    def scale_chromatic_values(self) -> List[int]:
+    def scale_chromatic_values(self) -> list[int]:
         """Integer chromatic values that make up the scale,
         relative to the tonic.
         Only depends on mode.
@@ -420,7 +459,7 @@ class Key:
         print(" ".join(f"{str(i):2}" for i in self.scale_chromatic_values))
 
     @property
-    def intervals(self) -> List[str]:
+    def intervals(self) -> list[str]:
         """List of the intervals that compose the scale.
         Only depends on mode."""
         return _scale_intervals(self.scale_chromatic_values)

@@ -1,0 +1,12 @@
+div.container.debug {
+    color: forestgreen;
+    border: 1px solid forestgreen;
+}
+
+div.music.debug {
+    border: 1px dashed grey;
+}
+
+div.container code {
+    white-space: pre-wrap;
+}

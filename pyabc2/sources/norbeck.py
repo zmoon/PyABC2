@@ -1,7 +1,9 @@
 """
-Henrik Norbeck's ABC Tunes
+Load Henrik Norbeck's ABC Tunes (https://www.norbeck.nu/abc/).
 
-https://www.norbeck.nu/abc/
+Requires:
+
+* `requests <https://requests.readthedocs.io/>`__
 """
 
 import logging
@@ -10,7 +12,6 @@ import string
 import warnings
 from pathlib import Path
 from textwrap import indent
-from typing import List, Union
 
 from .._util import get_logger as _get_logger
 from ..parse import Tune
@@ -62,7 +63,7 @@ _EXPECTED_FAILURES = {
 }
 
 
-def _get_paths_type(typ: str) -> List[Path]:
+def _get_paths_type(typ: str) -> list[Path]:
     # Can't just glob since `sl*` also matches `slow`
     import re
 
@@ -145,11 +146,11 @@ def _replace_escaped_diacritics(abc: str, *, ascii_only: bool = False) -> str:
     return abc2
 
 
-def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
+def _load_one_file(fp: Path, *, ascii_only: bool = False) -> list[Tune]:
     """Load one of the Norbeck archive files, which contain multiple tunes."""
 
     blocks = []
-    with open(fp, "r") as f:
+    with open(fp) as f:
         block = None
         add = False
 
@@ -176,9 +177,9 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
         if block is not None:
             blocks.append(block.strip())
 
-    tunes: List[Tune] = []
+    tunes: list[Tune] = []
     failed: int = 0
-    expected_failures: List[int] = []
+    expected_failures: list[int] = []
     for abc0 in blocks:
         assert abc0.startswith("X:")
         try:
@@ -199,11 +200,11 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
         else:
             tunes.append(tune)
 
-    if failed:
+    if failed:  # pragma: no cover
         msg = f"{failed} out of {len(blocks)} Norbeck tune(s) in file {fp.name} failed to load."
         if logger.level == logging.NOTSET or logger.level > logging.DEBUG:
             msg += " Enable logging debug messages to see more info."
-        warnings.warn(msg)
+        warnings.warn(msg, stacklevel=3)  # to caller of load()
 
     if expected_failures:
         logger.debug(
@@ -214,7 +215,7 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
     for tune in tunes:
         # Example: https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=10
         ref = tune.header["reference number"]
-        rhy = tune.type
+        rhy = tune.type.replace(" ", "+")
         tune.url = f"https://www.norbeck.nu/abc/display.asp?rhythm={rhy}&ref={ref}"
 
     return tunes
@@ -224,9 +225,12 @@ def _load_one_file(fp: Path, *, ascii_only: bool = False) -> List[Tune]:
 
 
 def load(
-    which: Union[str, List[str]] = "all", *, ascii_only: bool = False, debug: bool = False
-) -> List[Tune]:
-    """
+    which: str | list[str] = "all",
+    *,
+    ascii_only: bool = False,
+    debug: bool = False,
+) -> list[Tune]:
+    r"""
     Load a list of tunes, by type(s) or all of them.
 
     Parameters
@@ -234,8 +238,14 @@ def load(
     which
         reels, jigs, hornpipes,
     ascii_only
-        Whether to drop the implied diacritic symbols, e.g., `\'o` (`True`)
-        or add the corresponding unicode characters (`False`).
+        Whether to drop the implied diacritic symbols, e.g., ``\'o`` (``True``)
+        or add the corresponding unicode characters (``False``, default).
+    debug
+        Show debug messages.
+
+    See Also
+    --------
+    :doc:`/examples/sources`
     """
     # TODO: allow Norbeck ID as arg as well to load an individual tune? or URL?
     if isinstance(which, str):
@@ -248,7 +258,7 @@ def load(
 
     _maybe_download()
 
-    fps: List[Path]
+    fps: list[Path]
     if which == ["all"]:
         fps = list(SAVE_TO.glob("*.abc"))
 
@@ -273,11 +283,21 @@ def load(
 def load_url(url: str) -> Tune:
     """Load tune from a specified ``norbeck.nu/abc/`` URL.
 
-    For example:
-    - https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106
-    - https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=693
+    Examples
+    --------
+    >>> from pyabc2.sources import norbeck
+    >>> norbeck.load_url('https://norbeck.nu/abc/display.asp?rhythm=slip+jig&ref=106')
+    Tune(title='For The Love Of Music', key=Gmaj, type='slip jig')
+    >>> norbeck.load_url('https://www.norbeck.nu/abc/display.asp?rhythm=reel&ref=693')
+    Tune(title="Paddy Fahy's", key=Gmaj, type='reel')
 
+    Notes
+    -----
     Grabs the ABC from the HTML source.
+
+    See Also
+    --------
+    pyabc2.sources.load_url
     """
     import re
     from html import unescape
@@ -293,10 +313,13 @@ def load_url(url: str) -> Tune:
     r.raise_for_status()
 
     m = re.search(
-        r'<div id="abc" class="monospace">X:[0-9]+<br/>\s*(.*?)\s*</div>', r.text, flags=re.DOTALL
+        r'<div id="abc" class="monospace">X:[0-9]+<br/>\s*(.*?)\s*</div>',
+        r.text,
+        flags=re.DOTALL,
     )
     assert m is not None
     abc = unescape(m.group(1)).replace("<br/>", "")
+    abc = re.sub(r"<a href=\"(.*?)\">", "", abc).replace("</a>", "")  # link to tune type page
 
     return Tune(abc)
 

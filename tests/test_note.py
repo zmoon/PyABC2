@@ -3,6 +3,7 @@ Test the pitch and note modules
 """
 
 import warnings
+from fractions import Fraction
 from functools import partial
 
 import pytest
@@ -169,8 +170,8 @@ def test_eq():
 
 
 def test_nice_names_from_values():
-    ps = [PitchClass(i) for i in range(6)]
-    assert [p.name for p in ps] == ["C", "C#", "D", "Eb", "E", "F"]
+    ps = [PitchClass(i) for i in range(12)]
+    assert [p.name for p in ps] == ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"]
 
 
 @pytest.mark.parametrize(("note", "octave", "expected_freq"), [("C", 4, 261.6256), ("A", 4, 440.0)])
@@ -180,7 +181,7 @@ def test_etf(note, octave, expected_freq):
 
 
 def test_pitch_from_etf():
-    Pitch.from_etf(440) == Pitch.from_name("A4")
+    assert Pitch.from_etf(440) == Pitch.from_name("A4")
 
 
 def test_pitch_class_to_pitch():
@@ -212,6 +213,21 @@ def test_pitch_to_pitch_class():
 )
 def test_pitch_class_unicode(s, expected):
     assert PitchClass.from_name(s).unicode() == expected
+
+
+@pytest.mark.parametrize(
+    "s, expected",
+    [
+        ("A", "A"),
+        ("Ab", "A&flat;"),
+        ("Abb", "A&#119083;"),
+        ("A#", "A&sharp;"),
+        ("A##", "A&#119082;"),
+        ("A=", "A&natural;"),
+    ],
+)
+def test_pitch_class_html(s, expected):
+    assert PitchClass.from_name(s)._repr_html_() == expected
 
 
 @pytest.mark.parametrize(
@@ -260,7 +276,7 @@ def test_note_from_abc_key():
 
 
 def test_note_to_from_abc_consistency():
-    n = Note(49, duration=2)
+    n = Note(49, duration=Fraction("1/4"))
     assert Note.from_abc(n.to_abc()) == n
 
     assert Note.from_abc(n.to_abc(key=Key("C#")), key=Key("C#")) == n
@@ -305,6 +321,15 @@ def test_note_issue27():
         == str(pc)
         == "C#"
     )
+
+
+def test_to_abc_nat():
+    pc = Key("Ador").scale[-1]
+    assert pc.name == "G"
+    n = pc.to_pitch(octave=4).to_note()
+    assert n.name == "G4"
+    assert n.to_abc(key=Key("Amaj")) == "=G", "explicit natural needed"
+    assert n.to_abc(key=Key("C")) == "G", "implicit natural okay"
 
 
 @pytest.mark.parametrize(
@@ -526,12 +551,25 @@ def test_note_name_preservation():
 
 
 @pytest.mark.parametrize(
-    "meth", ["from_name", "from_etf", "from_pitch_class", "from_class_name", "from_class_value"]
+    "meth",
+    [
+        "from_name",
+        "from_etf",
+        "from_pitch_class",
+        "from_class_name",
+        "from_class_value",
+        "to_note",
+        "unicode",
+    ],
 )
 def test_note_to_from_nonimpl(meth):
     assert hasattr(Note, meth)
+    if meth.startswith("from_"):
+        args = ()
+    else:
+        args = (None,)  # self
     with pytest.raises(NotImplementedError):
-        getattr(Note, meth)()
+        getattr(Note, meth)(*args)
 
 
 @pytest.mark.parametrize(
@@ -572,17 +610,24 @@ def test_abc_doctave_calc(note, oct, expected):
     ],
 )
 class TestHelmholtz:
+    def maybe_warns(self, fun, arg):
+        if arg[:2].lower() in {"cb", "b#"}:
+            with pytest.warns(UserWarning, match="computed pitch class value outside 0--11"):
+                return fun(arg)
+        else:
+            return fun(arg)
+
     def test_helmholtz_from_pitch(self, scientific, helmholtz):
-        pitch = Pitch.from_name(scientific)
+        pitch = self.maybe_warns(Pitch.from_name, scientific)
         assert pitch.helmholtz == helmholtz
 
     def test_pitch_from_helmholtz(self, scientific, helmholtz):
-        pitch = Pitch.from_helmholtz(helmholtz)
+        pitch = self.maybe_warns(Pitch.from_helmholtz, helmholtz)
         assert pitch.name == scientific
 
     def test_helmholtz_name_and_octave(self, scientific, helmholtz):
-        from_helmholtz = Pitch.from_helmholtz(helmholtz)
-        from_name = Pitch.from_name(scientific)
+        from_helmholtz = self.maybe_warns(Pitch.from_helmholtz, helmholtz)
+        from_name = self.maybe_warns(Pitch.from_name, scientific)
         assert from_helmholtz.name == from_name.name
         assert from_helmholtz.class_name == from_name.class_name
         assert from_helmholtz.octave == from_name.octave

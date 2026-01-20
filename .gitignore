@@ -1,9 +1,16 @@
 .vscode
 pyabc2/sources/_*
 !pyabc2/sources/__init__.py
+!pyabc2/sources/_lzstring.py
 poetry.lock
 venv*/
+docs/api/
+docs/examples/music*.svg
+pyabc2/abcjs/headless/test.*
 
+# node
+node_modules
+package-lock.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

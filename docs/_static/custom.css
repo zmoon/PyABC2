@@ -1,0 +1,8 @@
+table.dataframe {
+    font-size: 0.8em !important;
+}
+figcaption p {
+    font-size: 85%;
+    line-height: 1.3;
+    text-align: left;
+}

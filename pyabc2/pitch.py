@@ -7,13 +7,13 @@ import functools
 import re
 import warnings
 from fractions import Fraction
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from .key import Key
 
 
-def _gen_pitch_values() -> Dict[str, int]:
+def _gen_pitch_values() -> dict[str, int]:
     pitch_values = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
     accidental_values = {"": 0, "#": 1, "b": -1}
     for n, v in list(pitch_values.items()):
@@ -54,17 +54,24 @@ _ACCIDENTAL_ASCII_TO_HTML = {
 }
 _TRAN_NUM_TO_UNICODE = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 
-NICE_C_CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
+NICE_C_CHROMATIC_NOTES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"]
 """ASCII chromatic notes, starting with C at index 0.
 The more common accidentals are used.
 """
 
 _S_RE_ASCII_ACCIDENTALS = r"(?:##|bb|b|#|=)"
 _S_RE_PITCH_CLASS = rf"[A-G]{_S_RE_ASCII_ACCIDENTALS}?"
-_S_RE_LOWER_PITCH_CLASS = rf"[a-g]{_S_RE_ASCII_ACCIDENTALS}?"
-_RE_PITCH_CLASS = re.compile(_S_RE_PITCH_CLASS)
 # _S_RE_PITCH_CLASS_ONE_ACC = r"[A-G][\#|b]?"
-_RE_PITCH = re.compile(rf"(?P<pitch_class>{_S_RE_PITCH_CLASS})" r"\s*" r"(?P<octave>[0-9]+)")
+_S_RE_LOWER_PITCH_CLASS = rf"[a-g]{_S_RE_ASCII_ACCIDENTALS}?"
+RE_PITCH_CLASS = re.compile(_S_RE_PITCH_CLASS)
+
+# fmt: off
+RE_PITCH = re.compile(
+    rf"(?P<pitch_class>{_S_RE_PITCH_CLASS})"
+    r"\s*"
+    r"(?P<octave>[0-9]+)"
+)
+# fmt: on
 
 
 def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
@@ -73,9 +80,9 @@ def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
     """
     pitch = pitch.strip()
 
-    if not _RE_PITCH_CLASS.fullmatch(pitch):
+    if not RE_PITCH_CLASS.fullmatch(pitch):
         raise ValueError(
-            f"invalid pitch class specification '{pitch}'; Should match '{_RE_PITCH_CLASS.pattern}'"
+            f"invalid pitch class specification '{pitch}'; Should match '{RE_PITCH_CLASS.pattern}'"
         )
 
     # Base value
@@ -94,7 +101,7 @@ def pitch_class_value(pitch: str, root: str = "C", *, mod: bool = False) -> int:
         val %= 12
 
     if not 0 <= val < 12:  # e.g., Cb, B##
-        warnings.warn("computed pitch class value outside 0--11")
+        warnings.warn("computed pitch class value outside 0--11", stacklevel=2)
 
     return val
 
@@ -145,20 +152,40 @@ def _to_roman(n: int) -> str:
 
 class PitchClass:
     """Pitch without octave.
-    Value as integer chromatic distance from C.
+    Value as integer chromatic distance from C in semitones (half steps).
+
+    Parameters
+    ----------
+    value
+        Chromatic distance from C in semitones (half steps).
+        For example, C is 0, D is 2, B is 11.
+
+    Examples
+    --------
+    >>> from pyabc2 import PitchClass
+    >>> PitchClass(0)
+    PitchClass(value=0, name='C')
+    >>> PitchClass(2)
+    PitchClass(value=2, name='D')
+    >>> PitchClass(11)
+    PitchClass(value=11, name='B')
+
+    >>> PitchClass.from_name('Bb')
+    PitchClass(value=10, name='Bb')
+
+    >>> PitchClass.from_name('E#')
+    PitchClass(value=5, name='E#')
+    >>> PitchClass(5)
+    PitchClass(value=5, name='F')
     """
 
     def __init__(self, value: int):
-        """
-        Parameters
-        ----------
-        value
-            Chromatic note value relative to C.
-        """
         self.value: int = value % 12
-        """Pitch class value, as integer chromatic distance from the C (0--11)."""
+        """Pitch class value
+        (integer chromatic distance from C in semitones (half steps)).
+        """
 
-        self._name: Optional[str] = None
+        self._name: str | None = None
 
     @property
     def name(self) -> str:
@@ -207,8 +234,7 @@ class PitchClass:
         return f"{type(self).__name__}(value={self.value}, name={self.name!r})"
 
     def _repr_html_(self):
-        name = self.name
-        return name[0] + "".join(_ACCIDENTAL_ASCII_TO_HTML[c] for c in name[1:])
+        return f"{self.nat}{_ACCIDENTAL_ASCII_TO_HTML[self.acc]}"
 
     def unicode(self):
         """String repr using unicode accidental symbols.
@@ -221,10 +247,15 @@ class PitchClass:
 
     @classmethod
     def from_pitch(cls, p: "Pitch") -> "PitchClass":
+        """From pitch instance."""
         return cls.from_name(p.class_name)
 
     @classmethod
     def from_name(cls, name: str) -> "PitchClass":
+        """From pitch class name (e.g., ``C``, ``F#``).
+
+        `name` is preserved (:attr:`name`) if using this initializer.
+        """
         _validate_pitch_class_name(name)
 
         value = pitch_class_value(name, mod=True)
@@ -233,6 +264,8 @@ class PitchClass:
         pc._name = name
 
         return pc
+
+    # TODO: PitchClass from value with acc option (to hint name)?
 
     @property
     def equivalent_sharp(self) -> "PitchClass":
@@ -401,6 +434,7 @@ class PitchClass:
         return s
 
     def to_pitch(self, octave: int) -> "Pitch":
+        """Convert to pitch in the specified octave."""
         p = Pitch.from_class_value(self.value, octave)
         p._class_name = self._name
 
@@ -449,23 +483,42 @@ class PitchClass:
 @functools.total_ordering
 class Pitch:
     """A pitch with value relative to C0.
-    Note names are expressed in the context of C major.
+
+    Parameters
+    ----------
+    value
+        Chromatic distance from C0 in semitones (half steps).
+        For example, C4 (middle C) is 48, A4 is 57.
+
+    Examples
+    --------
+    >>> from pyabc2 import Pitch
+    >>> Pitch(48)
+    Pitch(value=48, name='C4')
+    >>> Pitch(57)
+    Pitch(value=57, name='A4')
+
+    >>> Pitch.from_name('E#3')
+    Pitch(value=41, name='E#3')
+    >>> Pitch(41)
+    Pitch(value=41, name='F3')
+
+    >>> Pitch.from_etf(440)  # Hz
+    Pitch(value=57, name='A4')
     """
 
     # https://github.com/campagnola/pyabc/blob/4c22a70a0f40ff82f608ffc19a1ca51a153f8c24/pyabc.py#L204-L293
     def __init__(self, value: int):
-        """
-        Parameters
-        ----------
-        value
-            Chromatic note value relative to C0.
+
+        self.value: int = value
+        """Pitch value
+        (integer chromatic distance from C0 in semitones (half steps)).
         """
 
-        self.value = value
-        """Chromatic note value relative to C0."""
-
-        self._class_name: Optional[str] = None
-        self._octave: Optional[int] = None
+        self._class_name: str | None = None
+        self._octave: int | None = None
+        # TODO: we should be able to determine octave from value and class name
+        # in the case that _class_name is set
 
     @property
     def class_value(self) -> int:
@@ -490,7 +543,7 @@ class Pitch:
 
     @property
     def name(self) -> str:
-        """Note name with octave, e.g., C4, Bb2.
+        """Note (pitch) name with octave, e.g., C4, Bb2.
         (ASCII scientific pitch notation.)
         """
         return f"{self.class_name}{self.octave}"
@@ -553,7 +606,7 @@ class Pitch:
 
     @property
     def n(self) -> int:
-        """Alias for piano_key_number."""
+        """Alias for :attr:`piano_key_number`."""
         return self.piano_key_number
 
     @property
@@ -571,11 +624,12 @@ class Pitch:
 
     @property
     def etf(self) -> float:
-        """Alias for equal_temperament_frequency."""
+        """Alias for :attr:`equal_temperament_frequency`."""
         return self.equal_temperament_frequency
 
     @classmethod
     def from_etf(cls, f: float) -> "Pitch":
+        """From frequency, rounding to the nearest piano key."""
         from math import log2
 
         n_f = 12 * log2(f / 440) + 49  # piano key number
@@ -586,7 +640,8 @@ class Pitch:
             warnings.warn(
                 f"more than one cent off ({e * 100:.2f}). "
                 f"Rounding {'up' if e < 0 else 'down'} "
-                f"to the nearest integer piano key."
+                f"to the nearest integer piano key.",
+                stacklevel=2,
             )
 
         o, v = divmod(n + 8, 12)
@@ -601,7 +656,7 @@ class Pitch:
         """
         name = name.strip()
 
-        m = _RE_PITCH.fullmatch(name)
+        m = RE_PITCH.fullmatch(name)
         if m is None:
             raise ValueError(f"invalid pitch name '{name}'")
 
@@ -623,27 +678,32 @@ class Pitch:
 
     @classmethod
     def from_class_value(cls, value: int, octave: int) -> "Pitch":
+        """From pitch class chromatic value and octave."""
         return cls(value + octave * 12)
 
     @classmethod
     def from_class_name(cls, class_name: str, octave: int) -> "Pitch":
+        """From pitch class name and octave."""
         return cls.from_name(f"{class_name}{octave}")
 
     @classmethod
     def from_pitch_class(cls, pc: PitchClass, octave: int) -> "Pitch":
+        """From pitch class instance."""
         p = cls(pc.value + octave * 12)
         p._class_name = pc._name
 
         return p
 
     def to_pitch_class(self) -> PitchClass:
+        """Convert to pitch class, preserving the class name."""
         # Preserve explicit name if set
         if self._class_name is not None:
             return PitchClass.from_name(self.class_name)
         else:
             return PitchClass(self.class_value)
 
-    def to_note(self, *, duration: Optional[Fraction] = None):
+    def to_note(self, *, duration: Fraction | None = None):
+        """Convert to note (eighth note by default)."""
         from .note import _DEFAULT_UNIT_DURATION, Note
 
         if duration is None:
@@ -739,10 +799,11 @@ class SimpleInterval:
             else:
                 value_ = mod_abs_value
             warnings.warn(
-                f"input value {value} not between 0 and 12 " f"has been coerced to {value_}"
+                f"input value {value} not between 0 and 12 has been coerced to {value_}",
+                stacklevel=2,
             )
         self.value = value_
-        """Number of semitones (half-steps)."""
+        """Number of semitones (half steps)."""
 
     @property
     def name(self) -> str:
@@ -789,7 +850,7 @@ class SignedInterval(SimpleInterval):
 
     def __init__(self, value: int) -> None:
         self.value = value
-        """Number of semitones (half-steps)."""
+        """Number of semitones (half steps)."""
 
     @property
     def name(self) -> str:
