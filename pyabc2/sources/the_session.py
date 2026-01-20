@@ -604,9 +604,12 @@ def get_member_set(member_id: int, set_id: int) -> list[dict]:
     return tunes
 
 
-def get_member_sets(member_id: int) -> list[list[dict]]:
+def get_member_sets(member_id: int, **kwargs) -> list[list[dict]]:
     endpoint = f"/members/{member_id}/sets"
-    results = _consume(endpoint, max_threads=4)
+
+    if "max_threads" not in kwargs:
+        kwargs["max_threads"] = 4
+    results = _consume(endpoint, **kwargs)
 
     sets = []
     for set in chain.from_iterable(res["sets"] for res in results):

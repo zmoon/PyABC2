@@ -497,3 +497,24 @@ def test_the_session_get_member_sets():
     assert d["name"] == "Garech's Wedding"
     assert d["tune_id"] == 2620
     assert d["setting_id"] == 31341
+
+
+def test_the_session_get_member_sets_multipage():
+    sets = the_session.get_member_sets(1, pages=3, size=2, max_threads=2)
+    assert len(sets) == 6
+    d = sets[0][0]
+    assert d["name"] == "Toss The Feathers"
+    assert d["tune_id"] == 138
+
+
+def test_the_session_consume_validation():
+    f = the_session.get_member_sets
+
+    with pytest.raises(ValueError):
+        _ = f(1, size=1000)
+
+    with pytest.raises(ValueError):
+        _ = f(1, pages=0)
+
+    with pytest.raises(ValueError):
+        _ = f(1, max_threads=0)
