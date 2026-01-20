@@ -579,17 +579,22 @@ def get_tune_collections(tune_id: int) -> "pandas.DataFrame":
     )
 
 
+def _tune_id_from_url(url: str) -> int:
+    from urllib.parse import urlsplit
+
+    res = urlsplit(url)
+    return int(res.path.split("/")[-1])
+
+
 def get_member_set(member_id: int, set_id: int) -> list[dict]:
     endpoint = f"/members/{member_id}/sets/{set_id}"
     (res,) = _consume(endpoint)
 
     tunes = []
     for setting in res["settings"]:
-        url = setting["url"]
-        tune_id = int(url.split("/")[-1].split("#")[0])
         d = {
             "name": setting["name"],
-            "tune_id": tune_id,
+            "tune_id": _tune_id_from_url(setting["url"]),
             "setting_id": setting["id"],
             "type": setting["type"],
             "key": setting["key"],
@@ -605,8 +610,18 @@ def get_member_sets(member_id: int) -> list[list[dict]]:
 
     sets = []
     for set in chain.from_iterable(res["sets"] for res in results):
-        set_id = set["id"]
-        sets.append(get_member_set(member_id, set_id))
+        sets.append(
+            [
+                {
+                    "name": setting["name"],
+                    "tune_id": _tune_id_from_url(setting["url"]),
+                    "setting_id": setting["id"],
+                    "type": setting["type"],
+                    "key": setting["key"],
+                }
+                for setting in set["settings"]
+            ]
+        )
 
     return sets
 
