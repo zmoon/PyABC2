@@ -59,16 +59,13 @@ REPEAT_END = pp.Literal(":|").set_results_name("repeat_end")
 BAR_LINE = REPEAT_START | REPEAT_END | DOUBLE_BAR | SIMPLE_BAR
 
 # Endings - each has an ending number followed by required whitespace
-FIRST_ENDING_NUMBER = pp.Combine(pp.Literal("1") + pp.OneOrMore(pp.White())).set_results_name(
-    "first_ending_number"
-)
-SECOND_ENDING_NUMBER = pp.Combine(pp.Literal("2") + pp.OneOrMore(pp.White())).set_results_name(
-    "second_ending_number"
+ENDING_NUMBER = pp.Combine(pp.Word(pp.nums, exact=1) + pp.OneOrMore(pp.White())).set_results_name(
+    "ending_number"
 )
 
 # Complete ending constructs that include both bar components and ending numbers
-FIRST_ENDING = (SIMPLE_BAR + FIRST_ENDING_NUMBER).set_results_name("first_ending")
-SECOND_ENDING = (REPEAT_END + SECOND_ENDING_NUMBER).set_results_name("second_ending")
+FIRST_ENDING = (SIMPLE_BAR + ENDING_NUMBER).set_results_name("first_ending")
+NON_FIRST_ENDING = (REPEAT_END + ENDING_NUMBER).set_results_name("non_first_ending")
 
 # Whitespace handling
 WHITESPACE = pp.ZeroOrMore(pp.White())
@@ -82,7 +79,7 @@ MEASURE_CONTENT = pp.Group(
 ).set_results_name("measure_content")
 
 # Define measure with either a regular bar line or an ending
-MEASURE = pp.Group(MEASURE_CONTENT + (FIRST_ENDING | SECOND_ENDING | BAR_LINE)).set_results_name(
+MEASURE = pp.Group(MEASURE_CONTENT + (FIRST_ENDING | NON_FIRST_ENDING | BAR_LINE)).set_results_name(
     "measure"
 )
 
@@ -166,7 +163,7 @@ def parse_abc(abc: str) -> pp.ParseResults:
 
 if __name__ == "__main__":
 
-    abc = "|: G2BG DGBG | A2cA eAcA | G2BG DGBG |1 ABcd e2ed :|2 ABcd e2ef ||"
+    abc = "|: G2BG DGBG | A2cA eAcA | G2BG DGBG |1 ABcd e2ed :|2 ABcd e2ef :|3 ABcd e2ef ||"
     res = parse_abc(abc)
     res.pprint()
     # print(res.dump())  # detailed info
