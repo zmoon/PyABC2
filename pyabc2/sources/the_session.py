@@ -14,6 +14,7 @@ To load additional archive datasets with :func:`load_meta`, requires:
 import logging
 import os
 import warnings
+from itertools import chain
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
@@ -564,9 +565,9 @@ def get_tune_collections(tune_id: int) -> "pandas.DataFrame":
     import pandas as pd
 
     endpoint = f"/tunes/{tune_id}/collections"
-    (data,) = _consume(endpoint)
+    (res,) = _consume(endpoint)
 
-    return pd.DataFrame(data["collections"]).rename(
+    return pd.DataFrame(res["collections"]).rename(
         columns={
             "id": "collection_id",
             "name": "collection_name",
@@ -580,10 +581,10 @@ def get_tune_collections(tune_id: int) -> "pandas.DataFrame":
 
 def get_member_set(member_id: int, set_id: int) -> list[dict]:
     endpoint = f"/members/{member_id}/sets/{set_id}"
-    (data,) = _consume(endpoint)
+    (res,) = _consume(endpoint)
 
-    results = []
-    for setting in data["settings"]:
+    tunes = []
+    for setting in res["settings"]:
         url = setting["url"]
         tune_id = int(url.split("/")[-1].split("#")[0])
         d = {
@@ -592,19 +593,18 @@ def get_member_set(member_id: int, set_id: int) -> list[dict]:
             "setting_id": setting["id"],
             "type": setting["type"],
             "key": setting["key"],
-            "name_input": setting["name"],
         }
-        results.append(d)
+        tunes.append(d)
 
-    return results
+    return tunes
 
 
 def get_member_sets(member_id: int) -> list[list[dict]]:
     endpoint = f"/members/{member_id}/sets"
-    (data,) = _consume(endpoint)
+    results = _consume(endpoint, max_threads=4)
 
     sets = []
-    for set in data["sets"]:
+    for set in chain.from_iterable(res["sets"] for res in results):
         set_id = set["id"]
         sets.append(get_member_set(member_id, set_id))
 
