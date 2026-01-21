@@ -63,7 +63,7 @@ BAR_LINE = REPEAT_START | REPEAT_END | DOUBLE_BAR | SIMPLE_BAR
 
 # Endings - each has an ending number followed by required whitespace
 # Supports both short form ("|1 ") and long form ("| [1 ")
-ENDING_NUMBER = pp.Combine(pp.Word(pp.nums, exact=1) + pp.OneOrMore(pp.White())).set_results_name(
+ENDING_NUMBER = pp.Combine(pp.Word(pp.nums, exact=1) + pp.Literal(" ").suppress()).set_results_name(
     "ending_number"
 )
 
