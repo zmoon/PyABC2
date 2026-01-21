@@ -15,6 +15,9 @@ pp.ParserElement.enable_packrat()
 
 # === Basic elements ===
 
+# Whitespace handling
+WHITESPACE = pp.ZeroOrMore(pp.White())
+
 # Notes
 ACCIDENTAL = (
     pp.Literal("^^").set_results_name("double_sharp")
@@ -59,16 +62,18 @@ REPEAT_END = pp.Literal(":|").set_results_name("repeat_end")
 BAR_LINE = REPEAT_START | REPEAT_END | DOUBLE_BAR | SIMPLE_BAR
 
 # Endings - each has an ending number followed by required whitespace
+# Supports both short form ("|1 ") and long form ("| [1 ")
 ENDING_NUMBER = pp.Combine(pp.Word(pp.nums, exact=1) + pp.OneOrMore(pp.White())).set_results_name(
     "ending_number"
 )
 
 # Complete ending constructs that include both bar components and ending numbers
-FIRST_ENDING = (SIMPLE_BAR + ENDING_NUMBER).set_results_name("first_ending")
-NON_FIRST_ENDING = (REPEAT_END + ENDING_NUMBER).set_results_name("non_first_ending")
-
-# Whitespace handling
-WHITESPACE = pp.ZeroOrMore(pp.White())
+FIRST_ENDING = (
+    SIMPLE_BAR + pp.Optional(WHITESPACE + pp.Literal("[")) + ENDING_NUMBER
+).set_results_name("first_ending")
+NON_FIRST_ENDING = (
+    REPEAT_END + pp.Optional(WHITESPACE + pp.Literal("[")) + ENDING_NUMBER
+).set_results_name("non_first_ending")
 
 # Musical element (note or rest)
 MUSICAL_ELEMENT = NOTE | REST
