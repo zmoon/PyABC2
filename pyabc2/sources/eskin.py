@@ -59,6 +59,37 @@ for _alias, _target in _TUNEBOOK_ALIAS.items():
 _URL_NETLOCS = {"michaeleskin.com", "www.michaeleskin.com"}
 
 
+def _deflate(s: str, /) -> str:
+    """Use deflate (zlib) to compress and base64-encode `s`."""
+    import base64
+    import zlib
+
+    b = s.encode("utf-8")
+    c = zlib.compress(b)
+    b64 = base64.b64encode(c).decode("ascii")
+    b64_for_url = b64.replace("+", "-").replace("/", "_").rstrip("=")
+    return b64_for_url
+
+
+def _inflate(s: str, /) -> str:
+    """Use inflate (zlib) to decompress and base64-decode `s`."""
+    import base64
+    import zlib
+
+    b64 = s.replace("-", "+").replace("_", "/")
+    pad = len(b64) % 4
+    if pad == 2:
+        b64 += "=="
+    elif pad == 3:
+        b64 += "="
+    else:
+        if pad != 0:
+            raise ValueError(f"Invalid base64 string length {len(b64)}")
+    c = base64.b64decode(b64)
+    b = zlib.decompress(c)
+    return b.decode("utf-8")
+
+
 def abctools_url_to_abc(
     url: str,
     *,
@@ -99,19 +130,36 @@ def abctools_url_to_abc(
         logger.debug(f"Unexpected Eskin URL path: {res.path}")
 
     query_params = parse_qs(res.query)
-    try:
-        (lzw,) = query_params["lzw"]
-    except Exception as e:
-        raise ValueError("URL does not contain required 'lzw' parameter") from e
-    # Note `+` has been replaced with space by parse_qs
-    # Note js LZString.compressToEncodedURIComponent() is used to compress/encode the ABC
+    # Note `+` is now replaced with space
 
-    try:
-        abc = LZString.decompressFromEncodedURIComponent(lzw)
-    except Exception as e:
-        raise RuntimeError("Failed to decompress LZString data") from e
-    if abc is None:
-        raise RuntimeError("Failed to decompress LZString data")
+    abc_params = ["def", "lzw"]
+    todo = abc_params[:]
+    while todo:
+        param = todo.pop(0)
+        try:
+            (encoded,) = query_params[param]
+        except KeyError:
+            continue
+
+        if param == "lzw":
+            try:
+                abc = LZString.decompressFromEncodedURIComponent(encoded)
+            except Exception as e:
+                raise RuntimeError("Failed to decompress LZString data") from e
+            if abc is None:
+                raise RuntimeError("Failed to decompress LZString data")
+            break
+        elif param == "def":
+            try:
+                abc = _inflate(encoded)
+            except Exception as e:
+                raise RuntimeError("Failed to decompress deflate data") from e
+            break
+        else:  # pragma: no cover
+            raise AssertionError(f"Unexpected ABC data parameter: {param!r}")
+    else:
+        s_params = ", ".join(repr(p) for p in abc_params)
+        raise ValueError(f"No known ABC data parameter found in URL (tried {s_params})")
 
     wanted_lines = [
         line.strip() for line in abc.splitlines() if not line.lstrip().startswith(remove_prefs)
@@ -120,19 +168,33 @@ def abctools_url_to_abc(
     return "\n".join(wanted_lines)
 
 
-def abc_to_abctools_url(abc: str) -> str:
+def abc_to_abctools_url(abc: str, *, lzw: bool = True) -> str:
     """Create an Eskin abctools (``michaeleskin.com/abctools/``) share URL for `abc`.
 
     More info: https://michaeleskin.com/tools/generate_share_link.html
+
+    Parameters
+    ----------
+    abc
+        The tune.
+    lzw
+        Whether to use the original LZString compression method (``True``, default)
+        or the newer deflate (zlib) compression method (``False``),
+        which gives shorter URLs.
     """
 
     # Must start with 'X:' (seems value is not required)
     if not abc.lstrip().startswith("X"):
         abc = "X:\n" + abc
 
-    lzw = LZString.compressToEncodedURIComponent(abc)
+    if lzw:
+        param = "lzw"
+        compressed = LZString.compressToEncodedURIComponent(abc)
+    else:
+        param = "def"
+        compressed = _deflate(abc)
 
-    return f"https://michaeleskin.com/abctools/abctools.html?lzw={lzw}"
+    return f"https://michaeleskin.com/abctools/abctools.html?{param}={compressed}"
 
 
 class EskinTunebookInfo(NamedTuple):
@@ -298,8 +360,10 @@ if __name__ == "__main__":  # pragma: no cover
     from . import load_example_abc
 
     abc = load_example_abc("For the Love of Music")
-    url = abc_to_abctools_url(abc)
-    print(url)
+    url_lzw = abc_to_abctools_url(abc, lzw=True)
+    print(url_lzw)
+    url_def = abc_to_abctools_url(abc, lzw=False)
+    print(url_def)
 
     kss = load_meta("kss")
     print(kss)
