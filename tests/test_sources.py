@@ -432,6 +432,7 @@ def test_bill_black_no_https():
         r.raise_for_status()
 
 
+@pytest.mark.xfail(reason="Bill Black tunefolders are currently in flux", strict=False)
 @pytest.mark.parametrize("key", list(bill_black_tunefolders._KEY_TO_COLLECTION))
 def test_bill_black_tunefolders(key):
     import requests
