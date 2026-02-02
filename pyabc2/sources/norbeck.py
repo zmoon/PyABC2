@@ -80,7 +80,7 @@ def download() -> None:
     import requests
 
     # All Norbeck, including non-Irish
-    url = "https://www.norbeck.nu/abc/hn202110.zip"
+    url = "https://www.norbeck.nu/abc/hn202601.zip"
 
     r = requests.get(url, timeout=5)
 
