@@ -106,6 +106,14 @@ COLLECTIONS: list[Collection] = [
         key="jol",
         title="Johnny O'Leary of Sliabh Luachra",
         folder="31",
+        subfolders=[
+            "31-hps",
+            "31-jigs",
+            "31-misc",
+            "31-polkas",
+            "31-reels",
+            "31-slides",
+        ],
     ),
     Collection(
         key="levey",
@@ -142,6 +150,14 @@ COLLECTIONS: list[Collection] = [
         key="roche",
         title="Roche Collection",
         folder="53",
+        subfolders=[
+            "53-hps",
+            "53-jigs",
+            "53-misc",
+            "53-polkas",
+            "53-reels",
+            "53-sjigs",
+        ],
     ),
 ]
 
