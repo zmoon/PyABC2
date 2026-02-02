@@ -17,7 +17,7 @@ from pyabc2.sources import (
     the_session,
 )
 
-NORBECK_IRISH_COUNT = 2733
+NORBECK_IRISH_COUNT = 2813
 
 
 @pytest.mark.parametrize("tune_name", examples)
