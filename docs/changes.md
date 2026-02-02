@@ -1,5 +1,10 @@
 # Release notes
 
+## v0.1.2 (unreleased)
+
+* Update Norbeck to the current 2026-01 version ({pull}`96`)
+* Various Bill Black fixes ({pull}`96`)
+
 ## v0.1.1 (2026-01-20)
 
 * Fix loading The Session sets data ({pull}`77`)
