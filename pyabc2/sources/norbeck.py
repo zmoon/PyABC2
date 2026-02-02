@@ -82,7 +82,7 @@ def download() -> None:
     # All Norbeck, including non-Irish
     url = "https://www.norbeck.nu/abc/hn202601.zip"
 
-    r = requests.get(url, timeout=5)
+    r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
 
     try:
         r.raise_for_status()
