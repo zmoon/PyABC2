@@ -1,11 +1,11 @@
 """
 Bill Black's Irish Traditional Tune Library
 
-http://www.capeirish.com/ittl/
+https://www.capeirish.com/ittl/
 
 As of the 2025-06-14 update, the "tunefolders" method is deprecated.
-Bill Black is now using the Eskin ABC Tools (http://www.capeirish.com/ittl/alltunes/html/),
-while also posting ABC text files (http://www.capeirish.com/ittl/alltunes/text/),
+Bill Black is now using the Eskin ABC Tools (https://www.capeirish.com/ittl/alltunes/html/),
+while also posting ABC text files (https://www.capeirish.com/ittl/alltunes/text/),
 both split up alphabetically by tune name.
 """
 
@@ -20,7 +20,7 @@ logger = _get_logger(__name__)
 
 HERE = Path(__file__).parent
 
-ITTL = "http://www.capeirish.com/ittl/"
+ITTL = "https://www.capeirish.com/ittl/"
 SAVE_TO = HERE / "_bill-black_tunefolders"
 
 

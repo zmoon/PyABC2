@@ -1,7 +1,7 @@
 """
 Bill Black's Irish Traditional Tune Library
 
-http://www.capeirish.com/ittl/
+https://www.capeirish.com/ittl/
 """
 
 import logging
@@ -41,7 +41,7 @@ TXT_FNS = [
 
 
 def download() -> None:
-    """Download the alphabetical text files from http://www.capeirish.com/ittl/alltunes/text/
+    """Download the alphabetical text files from https://www.capeirish.com/ittl/alltunes/text/
     and store them in a compressed archive.
     """
     import zipfile
@@ -57,7 +57,7 @@ def download() -> None:
     with ThreadPoolExecutor(max_workers=4) as executor:
         futures = []
         for fn in TXT_FNS:
-            url = f"http://www.capeirish.com/ittl/alltunes/text/{fn}"
+            url = f"https://www.capeirish.com/ittl/alltunes/text/{fn}"
             futures.append(executor.submit(download_one, url))
 
     SAVE_TO.mkdir(exist_ok=True)

@@ -416,6 +416,7 @@ def test_eskin_invalid_tunebook_key():
         _ = eskin.get_tunebook_info("asdf")
 
 
+@pytest.mark.xfail(reason="Bill Black site now has HTTPS", strict=False)
 def test_bill_black_no_https():
     # If the site does get HTTPS, we'd like to know
     import requests
