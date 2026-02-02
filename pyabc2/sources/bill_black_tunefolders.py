@@ -1,11 +1,11 @@
 """
 Bill Black's Irish Traditional Tune Library
 
-http://www.capeirish.com/ittl/
+https://www.capeirish.com/ittl/
 
 As of the 2025-06-14 update, the "tunefolders" method is deprecated.
-Bill Black is now using the Eskin ABC Tools (http://www.capeirish.com/ittl/alltunes/html/),
-while also posting ABC text files (http://www.capeirish.com/ittl/alltunes/text/),
+Bill Black is now using the Eskin ABC Tools (https://www.capeirish.com/ittl/alltunes/html/),
+while also posting ABC text files (https://www.capeirish.com/ittl/alltunes/text/),
 both split up alphabetically by tune name.
 """
 
@@ -20,7 +20,7 @@ logger = _get_logger(__name__)
 
 HERE = Path(__file__).parent
 
-ITTL = "http://www.capeirish.com/ittl/"
+ITTL = "https://www.capeirish.com/ittl/"
 SAVE_TO = HERE / "_bill-black_tunefolders"
 
 
@@ -65,13 +65,26 @@ COLLECTIONS: list[Collection] = [
         key="bbmg",
         title="BB's Mostly Gems",
         folder="12",
-        subfolders=["12-AE", "12-FJ", "12-KQ", "12-RST", "12-UY"],
+        subfolders=[
+            "12-AE",
+            "12-FJ",
+            "12-KQ",
+            "12-RST",
+            "12-UY",
+        ],
     ),
     Collection(
         key="bs",
         title="Bulmer & Sharpley",
         folder="13",
-        subfolders=["13-hps", "13-jigs", "13-misc", "13-p&s", "13-reels", "13-sjigs"],
+        subfolders=[
+            "13-hps",
+            "13-jigs",
+            "13-misc",
+            "13-p&s",
+            "13-reels",
+            "13-sjigs",
+        ],
     ),
     Collection(
         key="car",
@@ -82,50 +95,83 @@ COLLECTIONS: list[Collection] = [
         key="cre",
         title="Ceol Rince na hÉireann",
         folder="18",
-        subfolders=["18-hornpipes", "18-jigs", "18-polkas_slides", "18-reels", "18-slipjigs"],
+        subfolders=[
+            "18-hornpipes",
+            "18-jigs",
+            "18-polkas_slides",
+            "18-reels",
+            "18-slipjigs",
+        ],
     ),
     Collection(
         key="dmi",
         title="Dance Music of Ireland",
         folder="21",
-        subfolders=["hps", "jigs", "reels", "slipjigs"],
+        subfolders=[
+            "hps",
+            "jigs",
+            "reels",
+            "slipjigs",
+        ],
     ),
     Collection(
         key="dmwc",
         title="Dance Music of Willie Clancy",
         folder="22",
-        subfolders=["22-hps", "22-jigs", "22-misc", "22-reels", "22-sjigs"],
+        subfolders=[
+            "22-hps",
+            "22-jigs",
+            "22-misc",
+            "22-reels",
+            "22-sjigs",
+        ],
     ),
     Collection(
         key="foinn",
         title="Foinn Seisiún",
         folder="25",
-        subfolders=["hps", "jigs", "misc", "p&s", "reels"],
+        subfolders=[
+            "hps",
+            "jigs",
+            "misc",
+            "p&s",
+            "reels",
+        ],
     ),
     Collection(
         key="jol",
         title="Johnny O'Leary of Sliabh Luachra",
         folder="31",
-        subfolders=["31-hps", "31-jigs", "31-misc", "31-polkas", "31-reels", "31-slides"],
+        subfolders=[
+            "31-hps",
+            "31-jigs",
+            "31-misc",
+            "31-polkas",
+            "31-reels",
+            "31-slides",
+        ],
     ),
     Collection(
         key="levey",
         title="Levey Collection",
         folder="33",
-        subfolders=["33-hps", "33-jigs", "33-marches", "33-reels", "33-sjigs"],
+        subfolders=[
+            "33-hps",
+            "33-jigs",
+            "33-marches",
+            "33-reels",
+            "33-sjigs",
+        ],
     ),
     Collection(
         key="ofpc",
         title="O'Farrell's Pocket Companion",
         folder="48",
         subfolders=[
-            "48-hps",
-            "48-jigs",
-            "48-marches",
-            "48-misc",
-            "48-polkas",
-            "48-reels",
-            "48-sjigs",
+            "481",
+            "482",
+            "483",
+            "484",
         ],
     ),
     Collection(
@@ -146,7 +192,14 @@ COLLECTIONS: list[Collection] = [
         key="roche",
         title="Roche Collection",
         folder="53",
-        subfolders=["53-hps", "53-jigs", "53-misc", "53-polkas", "53-reels", "53-sjigs"],
+        subfolders=[
+            "53-hps",
+            "53-jigs",
+            "53-misc",
+            "53-polkas",
+            "53-reels",
+            "53-sjigs",
+        ],
     ),
 ]
 

@@ -1,7 +1,7 @@
 """
 Bill Black's Irish Traditional Tune Library
 
-http://www.capeirish.com/ittl/
+https://www.capeirish.com/ittl/
 """
 
 import logging
@@ -33,7 +33,7 @@ TXT_FNS = [
     "o-tunes-1.txt",
     "pq-tunes-1.txt",
     "r-tunes-1.txt",
-    "s-tunes-2.txt",
+    "s-tunes-2.rtf",
     "t-tunes-1.txt",
     "uv-tunes-1.txt",
     "wz-tunes-1.txt",
@@ -41,7 +41,7 @@ TXT_FNS = [
 
 
 def download() -> None:
-    """Download the alphabetical text files from http://www.capeirish.com/ittl/alltunes/text/
+    """Download the alphabetical text files from https://www.capeirish.com/ittl/alltunes/text/
     and store them in a compressed archive.
     """
     import zipfile
@@ -57,7 +57,7 @@ def download() -> None:
     with ThreadPoolExecutor(max_workers=4) as executor:
         futures = []
         for fn in TXT_FNS:
-            url = f"http://www.capeirish.com/ittl/alltunes/text/{fn}"
+            url = f"https://www.capeirish.com/ittl/alltunes/text/{fn}"
             futures.append(executor.submit(download_one, url))
 
     SAVE_TO.mkdir(exist_ok=True)
@@ -117,6 +117,10 @@ def load_meta(*, redownload: bool = False, debug: bool = False) -> list[str]:
             text = "\n".join(
                 line.strip() for line in text.splitlines() if not line.lstrip().startswith("%")
             )
+
+            # For RTF, remove trailing backslashes
+            if fn.endswith(".rtf"):
+                text = "\n".join(line.rstrip("\\") for line in text.splitlines()).rstrip("}")
 
             # Find the start of the first tune, in order to skip header info
             start = text.find("X:")
