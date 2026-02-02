@@ -106,7 +106,6 @@ COLLECTIONS: list[Collection] = [
         key="jol",
         title="Johnny O'Leary of Sliabh Luachra",
         folder="31",
-        subfolders=["31-hps", "31-jigs", "31-misc", "31-polkas", "31-reels", "31-slides"],
     ),
     Collection(
         key="levey",
@@ -119,13 +118,10 @@ COLLECTIONS: list[Collection] = [
         title="O'Farrell's Pocket Companion",
         folder="48",
         subfolders=[
-            "48-hps",
-            "48-jigs",
-            "48-marches",
-            "48-misc",
-            "48-polkas",
-            "48-reels",
-            "48-sjigs",
+            "481",
+            "482",
+            "483",
+            "484",
         ],
     ),
     Collection(
@@ -146,7 +142,6 @@ COLLECTIONS: list[Collection] = [
         key="roche",
         title="Roche Collection",
         folder="53",
-        subfolders=["53-hps", "53-jigs", "53-misc", "53-polkas", "53-reels", "53-sjigs"],
     ),
 ]
 
