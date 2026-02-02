@@ -462,7 +462,7 @@ def test_bill_black_text_fns():
     r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
     r.raise_for_status()
 
-    fns_web = sorted(re.findall(r'href=["\']([a-z0-9\-]+\.txt)["\']', r.text))
+    fns_web = sorted(re.findall(r'href=["\']([a-z0-9\-]+\.(?:txt|rtf))["\']', r.text))
     if "s-tunes-1.txt" in fns_web:
         # We're using s-tunes-2, not both
         fns_web.remove("s-tunes-1.txt")
