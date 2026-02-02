@@ -33,7 +33,7 @@ TXT_FNS = [
     "o-tunes-1.txt",
     "pq-tunes-1.txt",
     "r-tunes-1.txt",
-    "s-tunes-2.txt",
+    "s-tunes-2.rtf",
     "t-tunes-1.txt",
     "uv-tunes-1.txt",
     "wz-tunes-1.txt",
@@ -117,6 +117,10 @@ def load_meta(*, redownload: bool = False, debug: bool = False) -> list[str]:
             text = "\n".join(
                 line.strip() for line in text.splitlines() if not line.lstrip().startswith("%")
             )
+
+            # For RTF, remove trailing backslashes
+            if fn.endswith(".rtf"):
+                text = "\n".join(line.rstrip("\\") for line in text.splitlines()).rstrip("}")
 
             # Find the start of the first tune, in order to skip header info
             start = text.find("X:")
