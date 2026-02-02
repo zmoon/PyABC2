@@ -116,6 +116,14 @@ def abctools_url_to_abc(
     remove_prefs
         Remove lines starting with these prefixes.
         Use ``False`` or an empty iterable to keep all lines instead.
+
+    Notes
+    -----
+    ``def`` takes preference if both ``def`` and ``lzw`` are present in the URL query parameters.
+
+    See Also
+    --------
+    abc_to_abctools_url
     """
 
     if not remove_prefs:
@@ -181,6 +189,10 @@ def abc_to_abctools_url(abc: str, *, lzw: bool = True) -> str:
         Whether to use the original LZString compression method (``True``, default)
         or the newer deflate (zlib) compression method (``False``),
         which gives shorter URLs.
+
+    See Also
+    --------
+    abctools_url_to_abc
     """
 
     # Must start with 'X:' (seems value is not required)
