@@ -439,6 +439,20 @@ def test_eskin_invalid_tunebook_key():
         _ = eskin.get_tunebook_info("asdf")
 
 
+def test_eskin_inflate_invalid_length():
+    s = "eJyFjbEKwkAQRPv9iv2DQyvd7jbGK0wQJIVtktucJ4FIghZyH-abcdefg"
+    with pytest.raises(
+        ValueError,
+        match=f"Invalid base64 string length {len(s)}",
+    ):
+        _ = eskin._inflate(s)
+
+
+def test_eskin_inflate_pad_3():
+    s = "abc"
+    assert eskin._inflate(eskin._deflate(s)) == s
+
+
 @pytest.mark.xfail(reason="Bill Black site now has HTTPS", strict=False)
 def test_bill_black_no_https():
     # If the site does get HTTPS, we'd like to know
