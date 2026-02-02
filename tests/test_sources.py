@@ -500,11 +500,12 @@ def test_the_session_get_member_sets():
 
 
 def test_the_session_get_member_sets_multipage():
-    sets = the_session.get_member_sets(1, pages=3, size=2, max_threads=2)
+    sets = the_session.get_member_sets(1, pages=3, size=2, max_threads=2, orderby="oldest")
     assert len(sets) == 6
+    assert len(sets[0]) == 3
     d = sets[0][0]
-    assert d["name"] == "Toss The Feathers"
-    assert d["tune_id"] == 138
+    assert d["name"] == "The Tarbolton"
+    assert d["tune_id"] == 560
 
 
 def test_the_session_consume_validation():
