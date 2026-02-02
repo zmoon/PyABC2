@@ -4,6 +4,11 @@
 
 * Update Norbeck to the current 2026-01 version ({pull}`96`)
 * Various Bill Black fixes ({pull}`96`)
+* Add zlib-based compression support
+  for Eskin ABC Transcription Tools URL decoding and URL creation ({pull}`95`).
+  It is the default in the Eskin tools as of 2026-02-02,
+  but for now, in {func}`~pyabc2.sources.eskin.abc_to_abctools_url`
+  you have to opt in using `lzw=False`.
 
 ## v0.1.1 (2026-01-20)
 
