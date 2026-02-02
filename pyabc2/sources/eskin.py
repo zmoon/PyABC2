@@ -154,7 +154,7 @@ def abctools_url_to_abc(
                 abc = LZString.decompressFromEncodedURIComponent(encoded)
             except Exception as e:
                 raise RuntimeError("Failed to decompress LZString data") from e
-            if abc is None:
+            if abc is None:  # pragma: no cover
                 raise RuntimeError("Failed to decompress LZString data")
             break
         elif param == "def":
