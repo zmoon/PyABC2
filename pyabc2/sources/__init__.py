@@ -88,6 +88,7 @@ def load_url(url: str) -> Tune:
     --------
     norbeck.load_url
     the_session.load_url
+    eskin.load_url
     """
     from urllib.parse import urlsplit
 

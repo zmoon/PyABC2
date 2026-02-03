@@ -363,6 +363,10 @@ def load_url(url: str) -> Tune:
     Notes
     -----
     The ABC is encoded in the URL, so we don't need to load the page.
+
+    See Also
+    --------
+    abctools_url_to_abc
     """
     abc = abctools_url_to_abc(url)
     return Tune(abc)
