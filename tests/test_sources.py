@@ -19,6 +19,13 @@ from pyabc2.sources import (
 
 NORBECK_IRISH_COUNT = 2813
 
+ESKIN_COMPRESSED_ABC_DATA = {
+    # For the Love of Music with `X:`
+    # Compressed/encoded tune data only (no other query params)
+    "lzw": "BoLgUAKiBiD2BOACCALApogMrAbhg8gGaICyArgM4CWAxmAEogUA2VADogFZUDmYAwiExUAXon4BDePFjNmYEiACcAegAcYTCACM6sAGkQAcTBGAogBFEFs0cQBBIwCFEAHwdG7zgCaI0333dzKxs7Rxo3RCc0DCd7F3MzRBBXMB5-PxVCFR4EpxUaFUDEdN80HgAjRAkAJmJ3Uszs3Id8wuL-F28nMKdAtIy0LJy8gqLIxvKq2olIipimnIxankjOxG7e+zdUoA",
+    "def": "eJyFjbEKwkAQRPv9iv2DQyvd7jbGK0wQJIVtktucJ4FIghZyH-8aCWJlM_BmZ2fOBBXthxGri2AxPASPHZb3KbZwoqmPN7zGABkV8YlZPY5D30NJW7OBglaqB3Lg8h3ucofWMSZVh449ivdK31urxCLIltXNkRIE0ZjpTFCHTWveD7MXGqzX3UKfhF0S4hk9a6WO_OuolRodnROiRvgpsJgSvAAdaUjy",
+}
+
 
 @pytest.mark.parametrize("tune_name", examples)
 def test_examples_load(tune_name):
@@ -258,10 +265,16 @@ def test_load_url_norbeck(netloc):
 
 
 @pytest.mark.parametrize("netloc", sorted(eskin._URL_NETLOCS))
-def test_load_url_eskin(netloc):
-    url = f"https://{netloc}/abctools/abctools.html?lzw=BoLgUAKiBiD2BOACCALApogMrAbhg8gGaICyArgM4CWAxmAEogUA2VADogFZUDmYAwiExUAXon4BDePFjNmYEiACcAegAcYTCACM6sAGkQAcTBGAogBFEFs0cQBBIwCFEAHwdG7zgCaI0333dzKxs7Rxo3RCc0DCd7F3MzRBBXMB5-PxVCFR4EpxUaFUDEdN80HgAjRAkAJmJ3Uszs3Id8wuL-F28nMKdAtIy0LJy8gqLIxvKq2olIipimnIxankjOxG7e+zdUoA"
+@pytest.mark.parametrize("param", list(ESKIN_COMPRESSED_ABC_DATA))
+def test_load_url_eskin(netloc, param):
+    data = ESKIN_COMPRESSED_ABC_DATA[param]
+    url = f"https://{netloc}/abctools/abctools.html?{param}={data}"
     tune = load_url(url)
     assert tune.title == "For The Love Of Music"
+    assert str(tune.key) == "Gmaj"
+    assert len(tune.measures) == 16
+    assert len(tune.measures[0]) == len(tune.measures[-1]) == 9
+    assert tune.abc + "\n" == "X:\n" + examples["for the love of music"]
 
 
 def test_load_url_invalid_domain():
@@ -375,13 +388,22 @@ def test_eskin_abc_url_parsing():
 
 def test_eskin_abc_url_missing_param():
     url = "https://michaeleskin.com/abctools/abctools.html?"
-    with pytest.raises(ValueError, match="URL does not contain required 'lzw' parameter"):
+    with pytest.raises(
+        ValueError,
+        match=r"No known ABC data parameter found in URL \(tried 'def', 'lzw'\)",
+    ):
         _ = eskin.abctools_url_to_abc(url)
 
 
 def test_eskin_abc_url_bad_param():
     url = "https://michaeleskin.com/abctools/abctools.html?lzw=hi"
     with pytest.raises(RuntimeError, match="Failed to decompress LZString data"):
+        _ = eskin.abctools_url_to_abc(url)
+
+
+def test_eskin_abc_url_bad_param_def():
+    url = "https://michaeleskin.com/abctools/abctools.html?def=hi"
+    with pytest.raises(RuntimeError, match="Failed to decompress deflate data"):
         _ = eskin.abctools_url_to_abc(url)
 
 
@@ -396,12 +418,13 @@ def test_eskin_abc_url_bad(caplog):
     ]
 
 
-def test_eskin_abc_url_creation():
+@pytest.mark.parametrize("use_lzw", [True, False])
+def test_eskin_abc_url_creation(use_lzw):
     import requests
 
     abc = load_example_abc("For the Love of Music")
 
-    url = eskin.abc_to_abctools_url(abc)
+    url = eskin.abc_to_abctools_url(abc, lzw=use_lzw)
     r = requests.head(url, timeout=5)
     r.raise_for_status()
     if (
@@ -414,6 +437,20 @@ def test_eskin_abc_url_creation():
 def test_eskin_invalid_tunebook_key():
     with pytest.raises(ValueError, match="Unknown Eskin tunebook key: 'asdf'"):
         _ = eskin.get_tunebook_info("asdf")
+
+
+def test_eskin_inflate_invalid_length():
+    s = "eJyFjbEKwkAQRPv9iv2DQyvd7jbGK0wQJIVtktucJ4FIghZyH-abcdefg"
+    with pytest.raises(
+        ValueError,
+        match=f"Invalid base64 string length {len(s)}",
+    ):
+        _ = eskin._inflate(s)
+
+
+def test_eskin_inflate_pad_3():
+    s = "abc"
+    assert eskin._inflate(eskin._deflate(s)) == s
 
 
 @pytest.mark.xfail(reason="Bill Black site now has HTTPS", strict=False)
