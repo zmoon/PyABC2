@@ -39,7 +39,6 @@ _TUNEBOOK_KEY_TO_URL = {
     "cce_san_diego_jan2025": f"{_CCE_SD}/cce_san_diego_tunes_31jan2025.html",
     "cce_san_diego_nov2025": f"{_CCE_SD}/cce_san_diego_tunes_10nov2025.html",
     # https://michaeleskin.com/tunebooks.html#websites_18th_century_collections
-    "aird": f"{_TBWS}/james_aird_campin_18jan2025.html",
     "playford1": f"{_TBWS}/playford_1_partington_17jan2025.html",
     "playford2": f"{_TBWS}/playford_2_partington_17jan2025.html",
     "playford3": f"{_TBWS}/playford_3_partington_20jan2025.html",
@@ -309,8 +308,6 @@ def load_meta(key: str, *, redownload: bool = False) -> "pandas.DataFrame":
 
            * - Key
              - Description
-           * - ``aird``
-             - James Aird's Airs by Jack Campin
            * - ``carp``
              - CARP Celtic Jam Tunebook
            * - ``cce_dublin_2001``
