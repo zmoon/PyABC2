@@ -356,7 +356,7 @@ class Key:
         """A dictionary of accidentals in the key signature,
         mapping natural note names to the accidental applied.
         """
-        return {p: a for p, a in self.key_signature}  # type: ignore[misc, has-type]
+        return {p: a for p, a in self.key_signature}  # type: ignore[str-unpack]
 
     def relative(self, mode: str, *, match_acc: bool = False) -> "Key":
         """Compute a relative key by specifying the target mode."""
