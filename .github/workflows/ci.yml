@@ -52,7 +52,7 @@ jobs:
 
       - name: Upload test coverage data to Codecov
         if: ${{ matrix.python-version == '3.14' }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
