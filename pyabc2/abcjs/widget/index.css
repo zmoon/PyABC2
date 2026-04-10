@@ -1,9 +1,9 @@
-div.container {
+div.abcjs-widget-container {
     max-width: var(--staff-max-width, none);
     overflow-x: auto;
 }
 
-div.container.debug {
+div.abcjs-widget-container.debug {
     color: forestgreen;
     border: 1px solid forestgreen;
 }
@@ -18,6 +18,6 @@ div.music.debug {
     border: 1px dashed grey;
 }
 
-div.container code {
+div.abcjs-widget-container code {
     white-space: pre-wrap;
 }

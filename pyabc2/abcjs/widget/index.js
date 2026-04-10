@@ -61,7 +61,7 @@ function render({ model, el }) {
     console.log(`first_load ${first_load}`);
 
     let container = el;
-    container.classList.add('container');
+    container.classList.add('abcjs-widget-container');
 
     if ((first_load || showLogo()) && !hide()) {
         let logo = document.createElement('img');
