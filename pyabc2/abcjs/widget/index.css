@@ -1,10 +1,17 @@
 div.container {
     max-width: var(--staff-max-width, none);
+    overflow-x: auto;
 }
 
 div.container.debug {
     color: forestgreen;
     border: 1px solid forestgreen;
+}
+
+div.music {
+    /* ABCJS seems to set `overflow: hidden` on the music div,
+       which prevents the container's auto overflow from working. */
+    overflow: visible !important;
 }
 
 div.music.debug {

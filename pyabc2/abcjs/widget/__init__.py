@@ -83,7 +83,7 @@ class ABCJSWidget(anywidget.AnyWidget):
         help="Width of the staff in pixels.",
     ).tag(sync=True)
     responsive = traitlets.Bool(
-        True,
+        False,
         help=(
             "Whether the rendering should be responsive to container width "
             "(up to `staff_width` + some padding)."
