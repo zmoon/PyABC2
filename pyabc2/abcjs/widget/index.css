@@ -1,3 +1,7 @@
+div.container {
+    max-width: var(--staff-max-width, none);
+}
+
 div.container.debug {
     color: forestgreen;
     border: 1px solid forestgreen;

@@ -53,6 +53,7 @@ function render({ model, el }) {
     let showDebugInput = () => model.get('debug_input');
     let showLogo = () => model.get('logo');
     let staffwidth = () => model.get('staff_width');
+    let doResize = () => model.get('responsive');
     let visualTranspose = () => model.get('transpose');
 
     let active_music_ids = model.get("_active_music_ids");
@@ -113,6 +114,19 @@ function render({ model, el }) {
         if (showDebugBox()) {showDebug.push('box')};
         if (showDebugGrid()) {showDebug.push('grid')};
 
+        // Responsive setting
+        let responsive = doResize() ? "resize" : undefined;
+        // We drive max-width via a CSS custom property so ABCJS's async ResizeObserver
+        // (which may clear inline max-width) cannot override it.
+        // ABCJS docs say left and right padding in the SVG are 15 and 50,
+        // so we try to give enough space for that, but note that in practice
+        // the results are not identical to responsive-off.
+        if (doResize()) {
+            container.style.setProperty('--staff-max-width', (staffwidth() + 65) + 'px');
+        } else {
+            container.style.removeProperty('--staff-max-width');
+        }
+
         // NOTE: doesn't work with `music_id` passed as target,
         // even though it should, still not sure why
         let tunes = ABCJS.renderAbc(
@@ -121,6 +135,7 @@ function render({ model, el }) {
             {
                 foregroundColor: foregroundColor(),
                 lineThickness: lineThickness(),
+                responsive: responsive,
                 scale: scale(),
                 showDebug: showDebug,
                 staffwidth: staffwidth(),

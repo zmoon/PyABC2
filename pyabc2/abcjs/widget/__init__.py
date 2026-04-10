@@ -82,6 +82,13 @@ class ABCJSWidget(anywidget.AnyWidget):
         740,
         help="Width of the staff in pixels.",
     ).tag(sync=True)
+    responsive = traitlets.Bool(
+        True,
+        help=(
+            "Whether the rendering should be responsive to container width "
+            "(up to `staff_width` + some padding)."
+        ),
+    ).tag(sync=True)
     transpose = traitlets.Integer(
         0,
         help="Visual transpose in half steps.",
