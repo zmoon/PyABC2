@@ -7,6 +7,10 @@ As of the 2025-06-14 update, the "tunefolders" method is deprecated.
 Bill Black is now using the Eskin ABC Tools (https://www.capeirish.com/ittl/alltunes/html/),
 while also posting ABC text files (https://www.capeirish.com/ittl/alltunes/text/),
 both split up alphabetically by tune name.
+
+Requires:
+
+* `requests <https://requests.readthedocs.io/>`__
 """
 
 import logging

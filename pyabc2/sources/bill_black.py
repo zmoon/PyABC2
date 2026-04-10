@@ -2,6 +2,10 @@
 Bill Black's Irish Traditional Tune Library
 
 https://www.capeirish.com/ittl/
+
+Requires:
+
+* `requests <https://requests.readthedocs.io/>`__
 """
 
 import logging
