@@ -95,6 +95,12 @@ function render({ model, el }) {
             music.innerHTML = '';
         };
 
+        // Clear any inline styles ABCJS may have been set on the music div
+        // (e.g. height/position from responsive mode's ResizeObserver),
+        // which would otherwise persist across re-renders and cause
+        // phantom empty space when toggling responsive on/off.
+        music.removeAttribute('style');
+
         head.innerHTML = '';
         if (showDebugInput() && !hide()) {
             let code = document.createElement('code');
