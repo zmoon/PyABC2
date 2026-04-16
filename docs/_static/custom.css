@@ -1,6 +1,124 @@
+/* Pandas tables. Pulled from the Jupyter / nbsphinx CSS
+   Included with MyST-NB until removal in v1.4.0 (Mar 2026).
+*/
+div.cell_output table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: var(--color-foreground-primary);
+  font-size: 1em;
+  table-layout: fixed;
+}
+div.cell_output thead {
+  border-bottom: 1px solid var(--color-table-border);
+  vertical-align: bottom;
+}
+div.cell_output tr,
+div.cell_output th,
+div.cell_output td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.cell_output th {
+  font-weight: bold;
+  /* background: var(--color-table-header-background); */
+}
+div.cell_output tbody tr:nth-child(odd) {
+  background: var(--color-background-secondary);
+}
+div.cell_output tbody tr:hover {
+  background: var(--color-background-hover);
+}
+
+/* ipywidgets dark mode support.
+   The widgets CSS uses --jp-* variables throughout, but Furo doesn't define them.
+   The embed bundle injects the --jp-* defaults in :root *after* page load, so
+   remapping them is unreliable. Instead we directly override the widget selectors
+   with Furo's --color-* variables, which already adapt to light/dark mode.
+   noUiSlider (used for sliders) has entirely hardcoded colors, so those are
+   also overridden here.
+*/
+
+/* Text / label colors */
+.jupyter-widgets,
+.widget-label, .jupyter-widget-label,
+.widget-label-basic, .jupyter-widget-label-basic,
+.widget-readout, .jupyter-widget-readout {
+    color: var(--color-foreground-primary) !important;
+}
+
+/* Input / textarea / select backgrounds */
+.jupyter-widgets input[type="text"],
+.jupyter-widgets input[type="number"],
+.jupyter-widgets input[type="password"],
+.jupyter-widgets textarea,
+.jupyter-widgets select {
+    background-color: var(--color-background-secondary) !important;
+    color: var(--color-foreground-primary) !important;
+    border-color: var(--color-background-border) !important;
+}
+
+/* Checkboxes: use brand color for the check/tick instead of bright white/blue */
+.jupyter-widgets input[type="checkbox"] {
+    accent-color: var(--color-brand-primary) !important;
+}
+
+/* Checkbox body: render native checkbox in dark style in dark mode */
+body[data-theme="dark"] .jupyter-widgets input[type="checkbox"] {
+    color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+    body:not([data-theme="light"]) .jupyter-widgets input[type="checkbox"] {
+        color-scheme: dark;
+    }
+}
+
+/* Color picker: tone down the bright border */
+.jupyter-widgets input[type="color"] {
+    background-color: var(--color-background-secondary) !important;
+    border-color: var(--color-background-border) !important;
+}
+
+/* Buttons */
+.jupyter-button {
+    background-color: var(--color-background-secondary) !important;
+    color: var(--color-foreground-primary) !important;
+    border-color: var(--color-background-border) !important;
+}
+.jupyter-button.mod-primary {
+    background-color: var(--color-brand-primary) !important;
+    color: white !important;
+}
+
+/* noUiSlider track, handle, and active range */
+.widget-slider .noUi-target,
+.jupyter-widget-slider .noUi-target {
+    background: var(--color-background-secondary) !important;
+    border-color: var(--color-background-border) !important;
+    box-shadow: none !important;
+}
+.widget-slider .noUi-handle,
+.jupyter-widget-slider .noUi-handle {
+    background: var(--color-background-primary) !important;
+    border-color: var(--color-background-border) !important;
+    box-shadow: none !important;
+}
+.widget-slider .noUi-connect,
+.jupyter-widget-slider .noUi-connect {
+    background: var(--color-brand-primary) !important;
+}
+
+/* Misc. overrides */
+
 table.dataframe {
     font-size: 0.8em !important;
 }
+
 figcaption p {
     font-size: 85%;
     line-height: 1.3;

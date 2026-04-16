@@ -1,5 +1,13 @@
 # Release notes
 
+## v0.1.3 (unreleased)
+
+* Improve styling of abcjs containers, pandas dataframes, and ipywidgets
+  in the docs ({pull}`103`).
+  You can now activate abcjs responsive mode in
+  {class}`~pyabc2.abcjs.widget.ABCJSWidget`,
+  but non-responsive is still the default.
+
 ## v0.1.2 (2026-02-03)
 
 * Update Norbeck to the current 2026-01 version ({pull}`96`)

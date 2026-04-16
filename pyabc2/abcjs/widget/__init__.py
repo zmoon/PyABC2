@@ -82,6 +82,13 @@ class ABCJSWidget(anywidget.AnyWidget):
         740,
         help="Width of the staff in pixels.",
     ).tag(sync=True)
+    responsive = traitlets.Bool(
+        False,
+        help=(
+            "Whether the rendering should be responsive to container width "
+            "(up to `staff_width` + some padding)."
+        ),
+    ).tag(sync=True)
     transpose = traitlets.Integer(
         0,
         help="Visual transpose in half steps.",
@@ -114,6 +121,11 @@ def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":  # pragma: no c
         value=740,
         description="Staff width (px)",
         **slider_kws,
+    )
+    responsive_cbox = ipw.Checkbox(
+        value=False,
+        description="Responsive",
+        indent=True,
     )
     line_thickness_slider = ipw.FloatSlider(
         min=-0.4,
@@ -152,6 +164,7 @@ def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":  # pragma: no c
 
     ipw.link((w, "abc"), (input_box, "value"))
     ipw.link((w, "staff_width"), (width_slider, "value"))
+    ipw.link((w, "responsive"), (responsive_cbox, "value"))
     ipw.link((w, "scale"), (scale_slider, "value"))
     ipw.link((w, "line_thickness_increase"), (line_thickness_slider, "value"))
     ipw.link((w, "transpose"), (transpose_slider, "value"))
@@ -196,6 +209,7 @@ def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":  # pragma: no c
         [
             input_box,
             width_slider,
+            responsive_cbox,
             scale_slider,
             line_thickness_slider,
             transpose_slider,
