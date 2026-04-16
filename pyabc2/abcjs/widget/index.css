@@ -8,13 +8,13 @@ div.abcjs-widget-container.debug {
     border: 1px solid forestgreen;
 }
 
-div.music {
+div.abcjs-widget-container div.music {
     /* ABCJS seems to set `overflow: hidden` on the music div,
        which prevents the container's auto overflow from working. */
     overflow: visible !important;
 }
 
-div.music.debug {
+div.abcjs-widget-container div.music.debug {
     border: 1px dashed grey;
 }
 
