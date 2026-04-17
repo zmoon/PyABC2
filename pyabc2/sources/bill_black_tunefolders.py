@@ -69,12 +69,9 @@ COLLECTIONS: list[Collection] = [
         key="bbmg",
         title="BB's Mostly Gems",
         folder="12",
-        subfolders=[
-            "12-AE",
-            "12-FJ",
-            "12-KQ",
-            "12-RST",
-            "12-UY",
+        urls=[
+            f"{ITTL}tunefolders/12/12-AM-ABC.rtf",
+            f"{ITTL}tunefolders/12/12-NY-ABC.rtf",
         ],
     ),
     Collection(
@@ -82,12 +79,10 @@ COLLECTIONS: list[Collection] = [
         title="Bulmer & Sharpley",
         folder="13",
         subfolders=[
-            "13-hps",
-            "13-jigs",
-            "13-misc",
-            "13-p&s",
-            "13-reels",
-            "13-sjigs",
+            "131",
+            "132",
+            "133",
+            "134",
         ],
     ),
     Collection(
@@ -122,13 +117,6 @@ COLLECTIONS: list[Collection] = [
         key="dmwc",
         title="Dance Music of Willie Clancy",
         folder="22",
-        subfolders=[
-            "22-hps",
-            "22-jigs",
-            "22-misc",
-            "22-reels",
-            "22-sjigs",
-        ],
     ),
     Collection(
         key="foinn",
@@ -147,12 +135,8 @@ COLLECTIONS: list[Collection] = [
         title="Johnny O'Leary of Sliabh Luachra",
         folder="31",
         subfolders=[
-            "31-hps",
-            "31-jigs",
-            "31-misc",
-            "31-polkas",
-            "31-reels",
-            "31-slides",
+            "31-AI",
+            "31-JY",
         ],
     ),
     Collection(
@@ -160,11 +144,8 @@ COLLECTIONS: list[Collection] = [
         title="Levey Collection",
         folder="33",
         subfolders=[
-            "33-hps",
-            "33-jigs",
-            "33-marches",
-            "33-reels",
-            "33-sjigs",
+            "331",
+            "332",
         ],
     ),
     Collection(
@@ -197,12 +178,10 @@ COLLECTIONS: list[Collection] = [
         title="Roche Collection",
         folder="53",
         subfolders=[
-            "53-hps",
-            "53-jigs",
-            "53-misc",
-            "53-polkas",
-            "53-reels",
-            "53-sjigs",
+            "531",
+            "532",
+            "533",
+            "534",
         ],
     ),
 ]

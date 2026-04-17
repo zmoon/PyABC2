@@ -484,7 +484,7 @@ def test_bill_black_tunefolders(key):
         assert e.value.response.status_code == 404
         return
     else:
-        lst = bill_black_tunefolders.load_meta(key)
+        lst = bill_black_tunefolders.load_meta(key, redownload=True)
 
     assert len(lst) > 0
 
