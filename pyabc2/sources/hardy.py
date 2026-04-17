@@ -88,11 +88,6 @@ def load_meta(
         Defaults to ``("%",)``, which strips all ``%`` comment and ``%%`` directive lines.
         Pass ``False`` or ``()`` to keep all lines.
 
-    Returns
-    -------
-    list of str
-        List of ABC tune block strings, one per tune.
-
     See Also
     --------
     :doc:`/examples/sources`
