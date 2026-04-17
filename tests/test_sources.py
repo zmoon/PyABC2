@@ -453,9 +453,7 @@ def test_eskin_inflate_pad_3():
     assert eskin._inflate(eskin._deflate(s)) == s
 
 
-@pytest.mark.xfail(reason="Bill Black site now has HTTPS", strict=False)
-def test_bill_black_no_https():
-    # If the site does get HTTPS, we'd like to know
+def test_bill_black_https():
     import requests
 
     url = "http://www.capeirish.com/ittl/tunefolders/"
@@ -463,10 +461,11 @@ def test_bill_black_no_https():
 
     r = requests.head(url, headers={"User-Agent": "pyabc2"}, timeout=5)
     r.raise_for_status()
+    assert "Strict-Transport-Security" not in r.headers
 
-    with pytest.raises(requests.exceptions.SSLError):
-        r = requests.head(url_https, headers={"User-Agent": "pyabc2"}, timeout=5)
-        r.raise_for_status()
+    r = requests.head(url_https, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r.raise_for_status()
+    assert "Strict-Transport-Security" in r.headers
 
 
 @pytest.mark.xfail(reason="Bill Black tunefolders are currently in flux", strict=False)
