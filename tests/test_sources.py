@@ -454,9 +454,7 @@ def test_eskin_inflate_pad_3():
     assert eskin._inflate(eskin._deflate(s)) == s
 
 
-@pytest.mark.xfail(reason="Bill Black site now has HTTPS", strict=False)
-def test_bill_black_no_https():
-    # If the site does get HTTPS, we'd like to know
+def test_bill_black_https():
     import requests
 
     url = "http://www.capeirish.com/ittl/tunefolders/"
@@ -464,29 +462,17 @@ def test_bill_black_no_https():
 
     r = requests.head(url, headers={"User-Agent": "pyabc2"}, timeout=5)
     r.raise_for_status()
+    assert "Strict-Transport-Security" not in r.headers
 
-    with pytest.raises(requests.exceptions.SSLError):
-        r = requests.head(url_https, headers={"User-Agent": "pyabc2"}, timeout=5)
-        r.raise_for_status()
+    r = requests.head(url_https, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r.raise_for_status()
+    assert "Strict-Transport-Security" in r.headers
 
 
 @pytest.mark.xfail(reason="Bill Black tunefolders are currently in flux", strict=False)
 @pytest.mark.parametrize("key", list(bill_black_tunefolders._KEY_TO_COLLECTION))
 def test_bill_black_tunefolders(key):
-    import requests
-
-    col = bill_black_tunefolders.get_collection(key)
-    if int(col.folder) in {14, 18, 21, 25, 49}:
-        # 14, 18, 25 -- These only have .txt now, not .rtf
-        # 21 -- some subfolder names don't match the file names
-        # 49 -- has subsubfolders
-        with pytest.raises(requests.exceptions.HTTPError) as e:
-            lst = bill_black_tunefolders.load_meta(key)
-        assert e.value.response.status_code == 404
-        return
-    else:
-        lst = bill_black_tunefolders.load_meta(key)
-
+    lst = bill_black_tunefolders.load_meta(key, redownload=True)
     assert len(lst) > 0
 
 

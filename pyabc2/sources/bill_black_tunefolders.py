@@ -69,12 +69,9 @@ COLLECTIONS: list[Collection] = [
         key="bbmg",
         title="BB's Mostly Gems",
         folder="12",
-        subfolders=[
-            "12-AE",
-            "12-FJ",
-            "12-KQ",
-            "12-RST",
-            "12-UY",
+        urls=[
+            f"{ITTL}tunefolders/12/12-AM-ABC.rtf",
+            f"{ITTL}tunefolders/12/12-NY-ABC.rtf",
         ],
     ),
     Collection(
@@ -82,64 +79,51 @@ COLLECTIONS: list[Collection] = [
         title="Bulmer & Sharpley",
         folder="13",
         subfolders=[
-            "13-hps",
-            "13-jigs",
-            "13-misc",
-            "13-p&s",
-            "13-reels",
-            "13-sjigs",
+            "131",
+            "132",
+            "133",
+            "134",
         ],
     ),
     Collection(
         key="car",
         title="Carolan Tunes",
         folder="14",
+        subfolders=[
+            "14-AL",
+            "14-MY",
+        ],
     ),
     Collection(
         key="cre",
         title="Ceol Rince na hÉireann",
         folder="18",
         subfolders=[
-            "18-hornpipes",
-            "18-jigs",
-            "18-polkas_slides",
-            "18-reels",
-            "18-slipjigs",
+            "181",
+            "182",
+            "183",
+            "184",
+            "185",
         ],
     ),
     Collection(
         key="dmi",
         title="Dance Music of Ireland",
         folder="21",
-        subfolders=[
-            "hps",
-            "jigs",
-            "reels",
-            "slipjigs",
-        ],
     ),
     Collection(
         key="dmwc",
         title="Dance Music of Willie Clancy",
         folder="22",
-        subfolders=[
-            "22-hps",
-            "22-jigs",
-            "22-misc",
-            "22-reels",
-            "22-sjigs",
-        ],
     ),
     Collection(
         key="foinn",
         title="Foinn Seisiún",
         folder="25",
         subfolders=[
-            "hps",
-            "jigs",
-            "misc",
-            "p&s",
-            "reels",
+            "251",
+            "252",
+            "253",
         ],
     ),
     Collection(
@@ -147,12 +131,8 @@ COLLECTIONS: list[Collection] = [
         title="Johnny O'Leary of Sliabh Luachra",
         folder="31",
         subfolders=[
-            "31-hps",
-            "31-jigs",
-            "31-misc",
-            "31-polkas",
-            "31-reels",
-            "31-slides",
+            "31-AI",
+            "31-JY",
         ],
     ),
     Collection(
@@ -160,11 +140,8 @@ COLLECTIONS: list[Collection] = [
         title="Levey Collection",
         folder="33",
         subfolders=[
-            "33-hps",
-            "33-jigs",
-            "33-marches",
-            "33-reels",
-            "33-sjigs",
+            "331",
+            "332",
         ],
     ),
     Collection(
@@ -182,14 +159,24 @@ COLLECTIONS: list[Collection] = [
         key="moi",
         title="Music of Ireland",
         folder="49",
-        subfolders=[
-            "491-airs",
-            "492-hps",
-            "493-jigs",
-            "494-misc",
-            "495-reels",
-            "496-sjigs",
-            "497-arr",
+        urls=[
+            f"{ITTL}tunefolders/49/491-airs/491-AE/491-AE-ABC.rtf",
+            f"{ITTL}tunefolders/49/491-airs/491-FK/491-FK-ABC.rtf",
+            f"{ITTL}tunefolders/49/491-airs/491-LQ/491-LQ-ABC.rtf",
+            f"{ITTL}tunefolders/49/491-airs/491-RST/491-RST-ABC.rtf",
+            f"{ITTL}tunefolders/49/491-airs/491-WZ/491-WZ-ABC.rtf",
+            f"{ITTL}tunefolders/49/492-hps/492-AM/492-AM-ABC.rtf",
+            f"{ITTL}tunefolders/49/492-hps/492-NY/492-NY-ABC.rtf",
+            f"{ITTL}tunefolders/49/493-jigs/493-AH/493-AH-ABC.rtf",
+            f"{ITTL}tunefolders/49/493-jigs/493-IP/493-IP-ABC.rtf",
+            f"{ITTL}tunefolders/49/493-jigs/493-RY/493-RY-ABC.rtf",
+            f"{ITTL}tunefolders/49/494-misc/494-ABC.rtf",
+            f"{ITTL}tunefolders/49/495-reels/495-AF/495-AF-ABC.rtf",
+            f"{ITTL}tunefolders/49/495-reels/495-GL/495-GL-ABC.rtf",
+            f"{ITTL}tunefolders/49/495-reels/495-MR/495-MR-ABC.rtf",
+            f"{ITTL}tunefolders/49/495-reels/495-SY/495-SY-ABC.rtf",
+            f"{ITTL}tunefolders/49/496-sjigs/496-ABC.rtf",
+            f"{ITTL}tunefolders/49/497-arr/497-ABC.rtf",
         ],
     ),
     Collection(
@@ -197,12 +184,10 @@ COLLECTIONS: list[Collection] = [
         title="Roche Collection",
         folder="53",
         subfolders=[
-            "53-hps",
-            "53-jigs",
-            "53-misc",
-            "53-polkas",
-            "53-reels",
-            "53-sjigs",
+            "531",
+            "532",
+            "533",
+            "534",
         ],
     ),
 ]
@@ -291,8 +276,10 @@ def load_meta(key: str, *, redownload: bool = False, debug: bool = False) -> lis
         if start == -1:  # pragma: no cover
             raise RuntimeError(f"Could not find start of tune in {p.name}")
 
-        # Split on 3 or more %
-        blocks = re.split(r"\s*%{3,}\s*", text[start:])
+        # Split on lines that are solely 3 or more % (with optional trailing horizontal whitespace).
+        # Using \n+ on both sides consumes surrounding blank lines and avoids splitting on
+        # commented-out %% directives like `%%%staffwidth 650` (which have non-whitespace after %%%).
+        blocks = re.split(r"\n+%{3,}[ \t]*\n+", text[start:])
         if not blocks:  # pragma: no cover
             raise RuntimeError(f"Splitting blocks failed for {p.name}")
 
@@ -306,8 +293,10 @@ def load_meta(key: str, *, redownload: bool = False, debug: bool = False) -> lis
                 logger.debug(f"Tune in block {i} in {p.name} marked as deleted: {block!r}")
                 continue
 
-            if not block.startswith("X:"):
-                logger.debug(f"Block {i} in {p.name} does not start with `X:`: {block!r}")
+            if not re.match(r"X: *[0-9]", block):
+                logger.debug(
+                    f"Block {i} in {p.name} does not start with a valid `X:` field: {block!r}"
+                )
                 continue
 
             # Remove anything that may be after the final bar symbol
