@@ -127,7 +127,7 @@ def load_meta(
             lines.pop()
         part = "\n".join(lines).strip()
 
-        if not part:
+        if not part:  # pragma: no cover
             continue
 
         if remove_prefs:

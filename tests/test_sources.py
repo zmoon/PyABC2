@@ -581,6 +581,8 @@ def test_hardy_load_meta_remove_prefs():
     # Default: no % lines
     key = "session"
     abcs = hardy.load_meta(key)
+    abcs_single_pref_as_str = hardy.load_meta(key, remove_prefs="%")
+    assert abcs == abcs_single_pref_as_str
     assert not any(line.lstrip().startswith("%") for abc in abcs for line in abc.splitlines())
 
     # With remove_prefs=False: % lines preserved
@@ -591,6 +593,11 @@ def test_hardy_load_meta_remove_prefs():
 def test_hardy_bad_key():
     with pytest.raises(ValueError, match="Unknown Hardy tunebook key"):
         _ = hardy.load_meta("asdf")
+
+
+def test_hardy_download_bad_key():
+    with pytest.raises(ValueError, match="Unknown Hardy tunebook key"):
+        _ = hardy.download("asdf")
 
 
 def test_hardy_annex_is_latest():
