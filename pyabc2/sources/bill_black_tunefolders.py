@@ -270,8 +270,10 @@ def load_meta(key: str, *, redownload: bool = False, debug: bool = False) -> lis
         if start == -1:  # pragma: no cover
             raise RuntimeError(f"Could not find start of tune in {p.name}")
 
-        # Split on 3 or more %
-        blocks = re.split(r"\s*%{3,}\s*", text[start:])
+        # Split on lines that are solely 3 or more % (with optional trailing horizontal whitespace).
+        # Using \n+ on both sides consumes surrounding blank lines and avoids splitting on
+        # commented-out %% directives like `%%%staffwidth 650` (which have non-whitespace after %%%).
+        blocks = re.split(r"\n+%{3,}[ \t]*\n+", text[start:])
         if not blocks:  # pragma: no cover
             raise RuntimeError(f"Splitting blocks failed for {p.name}")
 
@@ -285,8 +287,10 @@ def load_meta(key: str, *, redownload: bool = False, debug: bool = False) -> lis
                 logger.debug(f"Tune in block {i} in {p.name} marked as deleted: {block!r}")
                 continue
 
-            if not block.startswith("X:"):
-                logger.debug(f"Block {i} in {p.name} does not start with `X:`: {block!r}")
+            if not re.match(r"X: *[0-9]", block):
+                logger.debug(
+                    f"Block {i} in {p.name} does not start with a valid `X:` field: {block!r}"
+                )
                 continue
 
             # Remove anything that may be after the final bar symbol
