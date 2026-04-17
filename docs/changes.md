@@ -7,6 +7,7 @@
   You can now activate abcjs responsive mode in
   {class}`~pyabc2.abcjs.widget.ABCJSWidget`,
   but non-responsive is still the default.
+* Update for changes in <https://www.capeirish.com/ittl/tunefolders/> ({pull}`104`).
 
 ## v0.1.2 (2026-02-03)
 
