@@ -55,6 +55,7 @@ function render({ model, el }) {
     let staffwidth = () => model.get('staff_width');
     let doResize = () => model.get('responsive');
     let visualTranspose = () => model.get('transpose');
+    let chordGrid = () => model.get('chord_grid');
 
     let active_music_ids = model.get("_active_music_ids");
     let first_load = model.get("_first_load");
@@ -146,6 +147,7 @@ function render({ model, el }) {
                 showDebug: showDebug,
                 staffwidth: staffwidth(),
                 visualTranspose: visualTranspose(),
+                chordGrid: chordGrid(),
             },
         );
         if (tunes.length === 0) {
