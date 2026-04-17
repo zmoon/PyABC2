@@ -167,6 +167,20 @@ Functions:
 
    bill_black.load_meta
 
+Paul Hardy
+----------
+
+.. automodule:: pyabc2.sources.hardy
+
+Functions:
+
+.. currentmodule:: pyabc2.sources
+
+.. autosummary::
+   :toctree: api/
+
+   hardy.load_meta
+
 abcjs tools
 ===========
 

@@ -10,6 +10,7 @@ from pyabc2.sources import (
     bill_black_tunefolders,
     eskin,
     examples,
+    hardy,
     load_example,
     load_example_abc,
     load_url,
@@ -563,3 +564,52 @@ def test_the_session_consume_validation():
 def test_the_session_consume_auto_leading_slash():
     (d,) = the_session._consume("tunes/22878")
     assert d["name"] == "Jack Farrell's"
+
+
+@pytest.mark.parametrize("key", list(hardy._TUNEBOOK_KEY_TO_URL))
+def test_hardy_load_meta(key):
+    abcs = hardy.load_meta(key)
+    assert isinstance(abcs, list)
+    assert len(abcs) > 0
+    for abc in abcs:
+        assert abc.startswith("X:")
+        assert any(line.startswith("T:") for line in abc.splitlines())
+
+
+def test_hardy_load_meta_remove_prefs():
+    # Default: no % lines
+    key = "session"
+    abcs = hardy.load_meta(key)
+    assert not any(line.lstrip().startswith("%") for abc in abcs for line in abc.splitlines())
+
+    # With remove_prefs=False: % lines preserved
+    abcs_raw = hardy.load_meta(key, remove_prefs=False)
+    assert sum(line.lstrip().startswith("%") for abc in abcs_raw for line in abc.splitlines()) > 1
+
+
+def test_hardy_bad_key():
+    with pytest.raises(ValueError, match="Unknown Hardy tunebook key"):
+        _ = hardy.load_meta("asdf")
+
+
+def test_hardy_annex_is_latest():
+    """Confirm the hardcoded 'annex' URL points to the current (non-superseded) annex file."""
+    import requests
+
+    r = requests.get("https://pghardy.net/tunebooks/", timeout=10)
+    r.raise_for_status()
+    html = r.text
+
+    # The current annex abc link should appear outside the 'superceded' path
+    annex_url = hardy._TUNEBOOK_KEY_TO_URL["annex"]
+    annex_fn = annex_url.split("/")[-1]  # e.g. 'pgh_annex_tunebook.abc'
+
+    # Find all abc links on the page
+    abc_links = re.findall(r'href="([^"]*\.abc)"', html)
+
+    # The non-superseded link matching our filename should exist
+    non_superseded = [lnk for lnk in abc_links if annex_fn in lnk and "superceded" not in lnk]
+    assert non_superseded, (
+        f"No non-superseded link found for {annex_fn!r} on the tunebooks page. "
+        f"The 'annex' key URL may need updating. Found links: {abc_links}"
+    )
