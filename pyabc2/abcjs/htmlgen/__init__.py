@@ -6,7 +6,7 @@ FULLPAGE_TPL = """\
   <head>
     <meta charset="utf-8" />
     <title>{title:s}</title>
-    <script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/abcjs@6.6.2/dist/abcjs-basic-min.js"></script>
     <style>
       div#notation {{
         white-space: pre-wrap;
