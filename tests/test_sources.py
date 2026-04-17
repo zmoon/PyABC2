@@ -472,20 +472,7 @@ def test_bill_black_no_https():
 @pytest.mark.xfail(reason="Bill Black tunefolders are currently in flux", strict=False)
 @pytest.mark.parametrize("key", list(bill_black_tunefolders._KEY_TO_COLLECTION))
 def test_bill_black_tunefolders(key):
-    import requests
-
-    col = bill_black_tunefolders.get_collection(key)
-    if int(col.folder) in {14, 18, 21, 25, 49}:
-        # 14, 18, 25 -- These only have .txt now, not .rtf
-        # 21 -- some subfolder names don't match the file names
-        # 49 -- has subsubfolders
-        with pytest.raises(requests.exceptions.HTTPError) as e:
-            lst = bill_black_tunefolders.load_meta(key)
-        assert e.value.response.status_code == 404
-        return
-    else:
-        lst = bill_black_tunefolders.load_meta(key, redownload=True)
-
+    lst = bill_black_tunefolders.load_meta(key, redownload=True)
     assert len(lst) > 0
 
 
