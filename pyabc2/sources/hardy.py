@@ -108,7 +108,9 @@ def load_meta(
         download(key)
         print("done")
 
-    text = (SAVE_TO / f"{key}.abc").read_text(encoding="utf-8")
+    # Read as binary to avoid universal-newlines mangling of \r\r\n (Hardy's line ending)
+    # and then convert to \n.
+    text = (SAVE_TO / f"{key}.abc").read_bytes().decode("utf-8").replace("\r", "")
 
     if not remove_prefs:
         remove_prefs = ()

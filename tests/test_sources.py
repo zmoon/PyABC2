@@ -574,6 +574,7 @@ def test_hardy_load_meta(key):
     for abc in abcs:
         assert abc.startswith("X:")
         assert any(line.startswith("T:") for line in abc.splitlines())
+        assert "\n\n" not in abc, "no empty lines within a tune block"
 
 
 def test_hardy_load_meta_remove_prefs():
