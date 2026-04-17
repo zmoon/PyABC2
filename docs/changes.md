@@ -7,6 +7,7 @@
   You can now activate abcjs responsive mode in
   {class}`~pyabc2.abcjs.widget.ABCJSWidget`,
   but non-responsive is still the default.
+* Add Paul Hardy ({mod}`pyabc2.sources.hardy`; {pull}`105`).
 
 ## v0.1.2 (2026-02-03)
 
