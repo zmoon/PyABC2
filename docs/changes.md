@@ -9,6 +9,8 @@
   but non-responsive is still the default.
 * Update for changes in <https://www.capeirish.com/ittl/tunefolders/> ({pull}`104`).
 * Add Paul Hardy to sources ({mod}`pyabc2.sources.hardy`; {pull}`105`).
+* Update abcjs version from 6.4.4 to 6.6.2 (late Feb 2026; {pull}`106`).
+  Integrate the new chord grid option into the widget.
 
 ## v0.1.2 (2026-02-03)
 

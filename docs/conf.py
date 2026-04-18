@@ -37,7 +37,7 @@ html_css_files = ["custom.css"]
 html_js_files = [
     # TODO: just the pages that need it (example notebooks) instead of every page, using `app.add_js_file`
     (
-        "https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js",
+        "https://cdn.jsdelivr.net/npm/abcjs@6.6.2/dist/abcjs-basic-min.js",
         {
             "crossorigin": "anonymous",
             # We need it to load before the widget instances

@@ -1,4 +1,4 @@
-const ABCJS_URL = 'https://cdn.jsdelivr.net/npm/abcjs@6.4.4/dist/abcjs-basic-min.js';
+const ABCJS_URL = 'https://cdn.jsdelivr.net/npm/abcjs@6.6.2/dist/abcjs-basic-min.js';
 const ABCJS_LOGO_URL = 'https://raw.githubusercontent.com/paulrosen/abcjs/' +
                        'refs/heads/main/docs/' +
                        '.vuepress/public/img/abcjs_comp_extended_08.svg';
@@ -55,6 +55,7 @@ function render({ model, el }) {
     let staffwidth = () => model.get('staff_width');
     let doResize = () => model.get('responsive');
     let visualTranspose = () => model.get('transpose');
+    let chordGrid = () => model.get('chord_grid');
 
     let active_music_ids = model.get("_active_music_ids");
     let first_load = model.get("_first_load");
@@ -146,6 +147,7 @@ function render({ model, el }) {
                 showDebug: showDebug,
                 staffwidth: staffwidth(),
                 visualTranspose: visualTranspose(),
+                chordGrid: chordGrid(),
             },
         );
         if (tunes.length === 0) {

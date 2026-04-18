@@ -11,8 +11,8 @@
     "abcjs-render": "./cli.cjs"
   },
   "dependencies": {
-    "abcjs": "6.4.4",
-    "jsdom": "^26.0.0"
+    "abcjs": "6.6.2",
+    "jsdom": "^29.0.0"
   },
   "author": "zmoon",
   "license": "ISC"

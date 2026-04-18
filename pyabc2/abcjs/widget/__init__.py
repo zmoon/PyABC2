@@ -93,6 +93,28 @@ class ABCJSWidget(anywidget.AnyWidget):
         0,
         help="Visual transpose in half steps.",
     ).tag(sync=True)
+    chord_grid = traitlets.Unicode(
+        None,
+        allow_none=True,
+        help=(
+            "Chord grid. "
+            "``'withMusic'`` to print above the staff, or "
+            "``'noMusic'`` to print without staff. "
+            "``None`` to disable (default). "
+            "Somewhat experimental, currently only works in certain situations."
+        ),
+    ).tag(sync=True)
+
+    _CHORD_GRID_OPTIONS = ("withMusic", "noMusic")
+
+    @traitlets.validate("chord_grid")
+    def _validate_chord_grid(self, proposal):
+        v = proposal["value"]
+        if v is not None and v not in self._CHORD_GRID_OPTIONS:
+            raise traitlets.TraitError(
+                f"chord_grid must be one of {self._CHORD_GRID_OPTIONS} or None, got {v!r}"
+            )
+        return v
 
 
 def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":  # pragma: no cover
@@ -149,6 +171,18 @@ def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":  # pragma: no c
         description="Transpose (half steps)",
         **slider_kws,
     )
+    chord_grid_radio = ipw.RadioButtons(
+        options=["off", "with music", "no music"],
+        value="off",
+        description="Chord grid",
+        orientation="horizontal",
+    )
+    chord_grid_radio_to_widget = {
+        "off": None,
+        "with music": "withMusic",
+        "no music": "noMusic",
+    }
+    chord_grid_widget_to_radio = {v: k for k, v in chord_grid_radio_to_widget.items()}
     foreground_picker = ipw.ColorPicker(
         concise=False,
         description="Foreground color",
@@ -169,6 +203,14 @@ def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":  # pragma: no c
     ipw.link((w, "line_thickness_increase"), (line_thickness_slider, "value"))
     ipw.link((w, "transpose"), (transpose_slider, "value"))
     ipw.link((w, "foreground"), (foreground_picker, "value"))
+    ipw.link(
+        (w, "chord_grid"),
+        (chord_grid_radio, "value"),
+        transform=(
+            chord_grid_widget_to_radio.__getitem__,  # widget -> radio
+            chord_grid_radio_to_widget.__getitem__,  # radio -> widget
+        ),
+    )
     # ipw.link((w, "logo"), (logo_cbox, "value"))
     ipw.link((w, "debug_box"), (debug_box_cbox, "value"))
     ipw.link((w, "debug_grid"), (debug_grid_cbox, "value"))
@@ -214,6 +256,7 @@ def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":  # pragma: no c
             line_thickness_slider,
             transpose_slider,
             foreground_picker,
+            chord_grid_radio,
             # logo_cbox,
             w,
             ipw.HBox(
