@@ -175,6 +175,7 @@ def interactive(abc: str = "", **kwargs) -> "ipywidgets.Widget":  # pragma: no c
         options=["off", "with music", "no music"],
         value="off",
         description="Chord grid",
+        orientation="horizontal",
     )
     chord_grid_radio_to_widget = {
         "off": None,
