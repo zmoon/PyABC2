@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "abcjs": "6.6.2",
-    "jsdom": "^26.0.0"
+    "jsdom": "^29.0.0"
   },
   "author": "zmoon",
   "license": "ISC"
