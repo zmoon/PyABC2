@@ -2,7 +2,7 @@
 Python ABC notation tools
 """
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
 
 from .key import Key
 from .note import Note

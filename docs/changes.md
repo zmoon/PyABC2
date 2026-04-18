@@ -1,6 +1,6 @@
 # Release notes
 
-## v0.1.3 (unreleased)
+## v0.1.3 (2026-04-17)
 
 * Improve styling of abcjs containers, pandas dataframes, and ipywidgets
   in the docs ({pull}`103`).
