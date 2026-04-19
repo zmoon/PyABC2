@@ -15,5 +15,8 @@ dependencies:
   - ipywidgets
   - traitlets
   #
+  # examples
+  - matplotlib
+  #
   - pip:
     - pyabc2 ==0.1.3
