@@ -1,11 +1,9 @@
 name: pyabc2
 channels:
-  - conda-forge
   - emscripten-forge-4x
-  - nodefaults
+  - conda-forge
 dependencies:
   - xeus-python
-  - pip
   #
   # sources
   - numpy ==2.*

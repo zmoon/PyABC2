@@ -3,7 +3,6 @@
   "platform": "emscripten-wasm32",
   "specs": [
     "xeus-python",
-    "pip",
     "numpy ==2.*",
     "pandas ==2.*",
     "requests ==2.*",
@@ -12,20 +11,10 @@
     "traitlets"
   ],
   "channels": [
-    "conda-forge",
-    "emscripten-forge-4x"
+    "emscripten-forge-4x",
+    "conda-forge"
   ],
   "channelInfo": {
-    "conda-forge": [
-      {
-        "url": "https://prefix.dev/conda-forge",
-        "protocol": "https"
-      },
-      {
-        "url": "https://repo.prefix.dev/conda-forge",
-        "protocol": "https"
-      }
-    ],
     "emscripten-forge-4x": [
       {
         "url": "https://prefix.dev/emscripten-forge-4x",
@@ -33,6 +22,16 @@
       },
       {
         "url": "https://repo.prefix.dev/emscripten-forge-4x",
+        "protocol": "https"
+      }
+    ],
+    "conda-forge": [
+      {
+        "url": "https://prefix.dev/conda-forge",
+        "protocol": "https"
+      },
+      {
+        "url": "https://repo.prefix.dev/conda-forge",
         "protocol": "https"
       }
     ]
@@ -49,18 +48,6 @@
         "sha256": "364f2aebd73e32efb830643cc1dbf575161de8fda67e0d563d841d8da3936979"
       },
       "size": 5118148
-    },
-    "pip-26.0.1-pyh145f28c_0.conda": {
-      "name": "pip",
-      "build": "pyh145f28c_0",
-      "version": "26.0.1",
-      "subdir": "noarch",
-      "channel": "conda-forge",
-      "hash": {
-        "md5": "09a970fbf75e8ed1aa633827ded6aa4f",
-        "sha256": "5f66ea31d62188c266c5a8752119b0cc90a5bf05963f665cf48a33e0ec58d39c"
-      },
-      "size": 1180743
     },
     "numpy-2.4.4-py313hcf5bae3_0.tar.bz2": {
       "name": "numpy",
@@ -374,29 +361,16 @@
       },
       "size": 14690
     },
-    "ipython-9.12.0-pyhecfbec7_0.conda": {
+    "ipython-9.9.0-py313h6d8a2ba_0.tar.bz2": {
       "name": "ipython",
-      "build": "pyhecfbec7_0",
-      "version": "9.12.0",
-      "subdir": "noarch",
-      "channel": "conda-forge",
+      "build": "py313h6d8a2ba_0",
+      "version": "9.9.0",
+      "subdir": "emscripten-wasm32",
+      "channel": "emscripten-forge-4x",
       "hash": {
-        "md5": "b293210beb192c3024683bf6a998a0b8",
-        "sha256": "932044bd893f7adce6c9b384b96a72fd3804cc381e76789398c2fae900f21df7"
+        "sha256": "7887d2b248c431a1efc18fe03e43042d05c91b103b20f0cdc221e2c5792227b3"
       },
-      "size": 649967
-    },
-    "ipython_pygments_lexers-1.1.1-pyhd8ed1ab_0.conda": {
-      "name": "ipython_pygments_lexers",
-      "build": "pyhd8ed1ab_0",
-      "version": "1.1.1",
-      "subdir": "noarch",
-      "channel": "conda-forge",
-      "hash": {
-        "md5": "bd80ba060603cc228d9d81c257093119",
-        "sha256": "894682a42a7d659ae12878dbcb274516a7031bbea9104e92f8e88c1f2765a104"
-      },
-      "size": 13993
+      "size": 1177339
     },
     "jupyterlab_widgets-3.0.16-pyhcf101f3_1.conda": {
       "name": "jupyterlab_widgets",
@@ -434,6 +408,18 @@
       },
       "size": 89360
     },
+    "backcall-0.2.0-pyh9f0ad1d_0.tar.bz2": {
+      "name": "backcall",
+      "build": "pyh9f0ad1d_0",
+      "version": "0.2.0",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "6006a6d08a3fa99268a2681c7fb55213",
+        "sha256": "ee62d6434090c1327a48551734e06bd10e65a64ef7f3b6e68719500dab0e42b9"
+      },
+      "size": 13705
+    },
     "decorator-5.2.1-pyhd8ed1ab_0.conda": {
       "name": "decorator",
       "build": "pyhd8ed1ab_0",
@@ -446,18 +432,6 @@
       },
       "size": 14129
     },
-    "jedi-0.19.2-pyhd8ed1ab_1.conda": {
-      "name": "jedi",
-      "build": "pyhd8ed1ab_1",
-      "version": "0.19.2",
-      "subdir": "noarch",
-      "channel": "conda-forge",
-      "hash": {
-        "md5": "a4f4c5dc9b80bc50e0d3dc4e6e8f1bd9",
-        "sha256": "92c4d217e2dc68983f724aa983cca5464dcb929c566627b26a2511159667dba8"
-      },
-      "size": 843646
-    },
     "matplotlib-inline-0.2.1-pyhd8ed1ab_0.conda": {
       "name": "matplotlib-inline",
       "build": "pyhd8ed1ab_0",
@@ -469,6 +443,18 @@
         "sha256": "9d690334de0cd1d22c51bc28420663f4277cfa60d34fa5cad1ce284a13f1d603"
       },
       "size": 15175
+    },
+    "pickleshare-0.7.5-pyhd8ed1ab_1004.conda": {
+      "name": "pickleshare",
+      "build": "pyhd8ed1ab_1004",
+      "version": "0.7.5",
+      "subdir": "noarch",
+      "channel": "conda-forge",
+      "hash": {
+        "md5": "11a9d1d09a3615fc07c3faf79bc0b943",
+        "sha256": "e2ac3d66c367dada209fc6da43e645672364b9fd5f9d28b9f016e24b81af475b"
+      },
+      "size": 11748
     },
     "prompt-toolkit-3.0.52-pyha770c72_0.conda": {
       "name": "prompt-toolkit",
@@ -542,17 +528,17 @@
       },
       "size": 322484
     },
-    "pysocks-1.7.1-pyha55dd90_7.conda": {
+    "pysocks-1.7.1-py313h1804a44_3.tar.bz2": {
       "name": "pysocks",
-      "build": "pyha55dd90_7",
+      "build": "py313h1804a44_3",
       "version": "1.7.1",
-      "subdir": "noarch",
-      "channel": "conda-forge",
+      "subdir": "emscripten-wasm32",
+      "channel": "emscripten-forge-4x",
       "hash": {
-        "md5": "461219d1a5bd61342293efa2c0c90eac",
-        "sha256": "ba3b032fa52709ce0d9fd388f63d330a026754587a2f461117cac9ab73d8d0d8"
+        "md5": "57894a81ce1ffd23b77701ce0fe33aa9",
+        "sha256": "d6ba305a95b1ee410e2c3054a011898116dd9be4fa2a3aff6f3776bbedd8aa80"
       },
-      "size": 21085
+      "size": 23576
     },
     "wrapt-2.1.2-py313h6d8a2ba_1.tar.bz2": {
       "name": "wrapt",
@@ -565,18 +551,6 @@
         "sha256": "f7fb3fac57d00a3270174fd30257c18f0d036c7ca84b91c93d6048d8b40a207a"
       },
       "size": 49246
-    },
-    "parso-0.8.6-pyhcf101f3_0.conda": {
-      "name": "parso",
-      "build": "pyhcf101f3_0",
-      "version": "0.8.6",
-      "subdir": "noarch",
-      "channel": "conda-forge",
-      "hash": {
-        "md5": "97c1ce2fffa1209e7afb432810ec6e12",
-        "sha256": "42b2d77ccea60752f3aa929a6413a7835aaacdbbde679f2f5870a744fa836b94"
-      },
-      "size": 82287
     },
     "wcwidth-0.6.0-pyhd8ed1ab_0.conda": {
       "name": "wcwidth",
@@ -652,5 +626,5 @@
       }
     }
   },
-  "id": "3029273127162507"
+  "id": "7939955660606321"
 }
