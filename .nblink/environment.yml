@@ -1,0 +1,21 @@
+name: pyabc2
+channels:
+  - conda-forge
+  - emscripten-forge-3x
+  - nodefaults
+dependencies:
+  - python=3.13
+  - pip
+  #
+  # sources
+  - numpy ==2.*
+  - pandas ==2.*
+  - requests ==2.*
+  #
+  # abcjs widget
+  - anywidget
+  - ipywidgets
+  - traitlets
+  #
+  - pip:
+    - pyabc2 ==0.1.3
