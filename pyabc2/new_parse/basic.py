@@ -32,18 +32,16 @@ OCTAVE = (OCTAVE_UP | OCTAVE_DOWN).set_name(
     "octave"
 )  # no results name; direction carried by OCTAVE_UP/DOWN
 
-# Note length formats: number, fraction (n/m), or shorthand (/, //)
+# Note length formats: number, fraction (n/m), denominator-only (/m), or shorthand (/, //)
 NOTE_LENGTH_FRACTION = pp.Combine(pp.Word(pp.nums) + pp.Literal("/") + pp.Word(pp.nums))
-
+NOTE_LENGTH_DENOM = pp.Combine(pp.Literal("/") + pp.Word(pp.nums))
 NOTE_LENGTH_NUMBER = pp.Word(pp.nums)
-
 NOTE_LENGTH_SHORTHAND = (pp.Literal("///") | pp.Literal("//") | pp.Literal("/")).set_name(
     "note_length_shorthand"
 )
-
-NOTE_LENGTH = (NOTE_LENGTH_FRACTION | NOTE_LENGTH_NUMBER | NOTE_LENGTH_SHORTHAND)(
-    "length"
-).set_name("note_length")
+NOTE_LENGTH = (
+    NOTE_LENGTH_FRACTION | NOTE_LENGTH_DENOM | NOTE_LENGTH_NUMBER | NOTE_LENGTH_SHORTHAND
+)("length").set_name("note_length")
 
 NOTE = pp.Group(
     pp.Optional(ACCIDENTAL) + NOTE_LETTER + pp.Optional(OCTAVE) + pp.Optional(NOTE_LENGTH)
@@ -69,7 +67,6 @@ ENDING_NUMBER = pp.Combine(pp.Word(pp.nums, exact=1) + pp.Literal(" ").suppress(
 FIRST_ENDING = (SIMPLE_BAR + pp.Optional(WHITESPACE + pp.Literal("[")) + ENDING_NUMBER)(
     "first_ending"
 )
-
 NON_FIRST_ENDING = (REPEAT_END + pp.Optional(WHITESPACE + pp.Literal("[")) + ENDING_NUMBER)(
     "non_first_ending"
 )
@@ -166,6 +163,31 @@ def parse_abc(abc: str) -> pp.ParseResults:
 
 if __name__ == "__main__":
 
+    NOTE.run_tests(
+        """
+        # plain note
+        G
+        # number multiplier
+        G2
+        # full fraction n/m
+        G3/2
+        # denominator-only /m (e.g. A/2 = eighth when L:1/4)
+        G/2
+        # shorthand / (= /2)
+        G/
+        # shorthand //
+        G//
+        # octave up
+        g'
+        # accidental + length
+        ^G2
+        # flat + octave down + length
+        _G,2
+        """,
+        parse_all=True,
+    )
+
+    print()
     abc = "|: G2BG DGBG | A2cA eAcA | G2BG DGBG |1 ABcd e2ed :|2 ABcd e2ef :|3 ABcd e2ef ||"
     res = parse_abc(abc)
     res.pprint()
