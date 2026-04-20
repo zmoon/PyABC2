@@ -7,9 +7,6 @@ Basic ABC notation parser using pyparsing, supporting the core features:
 
 import pyparsing as pp
 
-# For convenience when referencing pyparsing_common
-ppc = pp.pyparsing_common
-
 # Enable packrat parsing for better performance
 pp.ParserElement.enable_packrat()
 
@@ -20,78 +17,80 @@ WHITESPACE = pp.ZeroOrMore(pp.White())
 
 # Notes
 ACCIDENTAL = (
-    pp.Literal("^^").set_results_name("double_sharp")
-    | pp.Literal("^").set_results_name("sharp")
-    | pp.Literal("__").set_results_name("double_flat")
-    | pp.Literal("_").set_results_name("flat")
-    | pp.Literal("=").set_results_name("natural")
-)
-NOTE_LETTER = pp.Word("abcdefgABCDEFG", exact=1).set_results_name("pitch")
-OCTAVE_UP = pp.OneOrMore(pp.Literal("'")).set_results_name("octave_up")
-OCTAVE_DOWN = pp.OneOrMore(pp.Literal(",")).set_results_name("octave_down")
-OCTAVE = OCTAVE_UP | OCTAVE_DOWN
+    pp.Literal("^^")("double_sharp")
+    | pp.Literal("^")("sharp")
+    | pp.Literal("__")("double_flat")
+    | pp.Literal("_")("flat")
+    | pp.Literal("=")("natural")
+).set_name("accidental")
+
+NOTE_LETTER = pp.Word("abcdefgABCDEFG", exact=1)("natural_pitch_class").set_name("note_letter")
+
+OCTAVE_UP = pp.OneOrMore(pp.Literal("'"))("octave_up")
+OCTAVE_DOWN = pp.OneOrMore(pp.Literal(","))("octave_down")
+OCTAVE = (OCTAVE_UP | OCTAVE_DOWN).set_name(
+    "octave"
+)  # no results name; direction carried by OCTAVE_UP/DOWN
 
 # Note length formats: number, fraction (n/m), or shorthand (/, //)
-NOTE_LENGTH_FRACTION = pp.Combine(
-    pp.Word(pp.nums) + pp.Literal("/") + pp.Word(pp.nums)
-).set_results_name("length_fraction")
-NOTE_LENGTH_NUMBER = pp.Word(pp.nums).set_results_name("length_number")
-NOTE_LENGTH_SHORTHAND = (
-    pp.Literal("///").set_results_name("length_eighth")
-    | pp.Literal("//").set_results_name("length_quarter")
-    | pp.Literal("/").set_results_name("length_half")
+NOTE_LENGTH_FRACTION = pp.Combine(pp.Word(pp.nums) + pp.Literal("/") + pp.Word(pp.nums))
+
+NOTE_LENGTH_NUMBER = pp.Word(pp.nums)
+
+NOTE_LENGTH_SHORTHAND = (pp.Literal("///") | pp.Literal("//") | pp.Literal("/")).set_name(
+    "note_length_shorthand"
 )
-NOTE_LENGTH = (NOTE_LENGTH_FRACTION | NOTE_LENGTH_NUMBER | NOTE_LENGTH_SHORTHAND).set_results_name(
+
+NOTE_LENGTH = (NOTE_LENGTH_FRACTION | NOTE_LENGTH_NUMBER | NOTE_LENGTH_SHORTHAND)(
     "length"
-)
+).set_name("note_length")
 
 NOTE = pp.Group(
     pp.Optional(ACCIDENTAL) + NOTE_LETTER + pp.Optional(OCTAVE) + pp.Optional(NOTE_LENGTH)
-).set_results_name("note")
+)("note").set_name("note")
 
 # Rests
-REST = pp.Group(pp.Literal("z").set_results_name("rest") + pp.Optional(NOTE_LENGTH))
+REST = pp.Group(pp.Literal("z") + pp.Optional(NOTE_LENGTH))("rest").set_name("rest")
 
 # Bar lines and repeat signs
-SIMPLE_BAR = pp.Literal("|").set_results_name("bar")
-DOUBLE_BAR = pp.Literal("||").set_results_name("double_bar")
-REPEAT_START = pp.Literal("|:").set_results_name("repeat_start")
-REPEAT_END = pp.Literal(":|").set_results_name("repeat_end")
+SIMPLE_BAR = pp.Literal("|")("bar")
+DOUBLE_BAR = pp.Literal("||")("double_bar")
+REPEAT_START = pp.Literal("|:")("repeat_start")
+REPEAT_END = pp.Literal(":|")("repeat_end")
 
 # Combined bar lines without endings
-BAR_LINE = REPEAT_START | REPEAT_END | DOUBLE_BAR | SIMPLE_BAR
+BAR_LINE = (REPEAT_START | REPEAT_END | DOUBLE_BAR | SIMPLE_BAR).set_name("bar_line")
 
 # Endings - each has an ending number followed by required whitespace
 # Supports both short form ("|1 ") and long form ("| [1 ")
-ENDING_NUMBER = pp.Combine(pp.Word(pp.nums, exact=1) + pp.Literal(" ").suppress()).set_results_name(
-    "ending_number"
-)
+ENDING_NUMBER = pp.Combine(pp.Word(pp.nums, exact=1) + pp.Literal(" ").suppress())("ending_number")
 
 # Complete ending constructs that include both bar components and ending numbers
-FIRST_ENDING = (
-    SIMPLE_BAR + pp.Optional(WHITESPACE + pp.Literal("[")) + ENDING_NUMBER
-).set_results_name("first_ending")
-NON_FIRST_ENDING = (
-    REPEAT_END + pp.Optional(WHITESPACE + pp.Literal("[")) + ENDING_NUMBER
-).set_results_name("non_first_ending")
+FIRST_ENDING = (SIMPLE_BAR + pp.Optional(WHITESPACE + pp.Literal("[")) + ENDING_NUMBER)(
+    "first_ending"
+)
+
+NON_FIRST_ENDING = (REPEAT_END + pp.Optional(WHITESPACE + pp.Literal("[")) + ENDING_NUMBER)(
+    "non_first_ending"
+)
 
 # Musical element (note or rest)
-MUSICAL_ELEMENT = NOTE | REST
+MUSICAL_ELEMENT = (NOTE | REST).set_name("musical_element")
 
 # Measure - a group of notes/rests ended by a bar line or ending
-MEASURE_CONTENT = pp.Group(
-    WHITESPACE + pp.OneOrMore(MUSICAL_ELEMENT + WHITESPACE)
-).set_results_name("measure_content")
+MEASURE_CONTENT = pp.Group(WHITESPACE + pp.OneOrMore(MUSICAL_ELEMENT + WHITESPACE))(
+    "measure_content"
+)
 
 # Define measure with either a regular bar line or an ending
 # We also need optional starting bar line, e.g. for left repeat
 MEASURE = pp.Group(
     pp.Optional(BAR_LINE) + MEASURE_CONTENT + (FIRST_ENDING | NON_FIRST_ENDING | BAR_LINE)
-).set_results_name("measure")
+)("measure").set_name("measure")
 
 # Full tune body
-TUNE_BODY = pp.Forward()
-TUNE_BODY <<= pp.Group(pp.OneOrMore(MEASURE + WHITESPACE)).set_results_name("tune_body")
+TUNE_BODY = pp.Forward().set_name("tune_body")
+TUNE_BODY <<= pp.Group(pp.OneOrMore(MEASURE + WHITESPACE))("tune_body")
 
 
 def parse_abc(abc: str) -> pp.ParseResults:
