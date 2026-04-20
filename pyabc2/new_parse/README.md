@@ -1,6 +1,6 @@
 # New parser
 
-PEG parser using [pyparsing](https://pyparsing-docs.readthedocs.io/) [v3.2](https://pyparsing-docs.readthedocs.io/en/latest/whats_new_in_3_2.html#new-features),
+PEG parser using [pyparsing](https://pyparsing-docs.readthedocs.io/) [v3.3](https://pyparsing-docs.readthedocs.io/en/latest/whats_new_in_3_3.html#new-features),
 producing an abtract syntax tree (AST).
 
 ## Goals
@@ -94,4 +94,5 @@ Useful new features of pyparsing v3:
 * [making railroad diagrams](https://pyparsing-docs.readthedocs.io/en/latest/whats_new_in_3_0_0.html#railroad-diagramming)
 * type annotations
 * improved warning/debug message control (`.set_debug()`, `enable_diag()`, `enable_all_warnings()`, `ParseException.explain()` instance method, etc.)
-* `Tag` ParserElement for inserting metadata
+* `Tag` ParserElement for inserting metadata ([v3.1](https://pyparsing-docs.readthedocs.io/en/latest/whats_new_in_3_1.html#new-features))
+* AI best-practices included (v3.3): `pyparsing.show_best_practices()`, `python -m pyparsing.ai.show_best_practices`, or on the web [here](https://raw.githubusercontent.com/pyparsing/pyparsing/refs/heads/master/pyparsing/ai/best_practices.md)

@@ -33,7 +33,7 @@ abcjs-headless = [
     "nodejs-wheel-binaries",
 ]
 peg = [
-    "pyparsing ~=3.2",
+    "pyparsing ~=3.3",
 ]
 test = [
     "mypy",
