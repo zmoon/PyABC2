@@ -52,12 +52,23 @@ REST = pp.Group(pp.Literal("z") + pp.Optional(NOTE_LENGTH))("rest").set_name("re
 
 # Bar lines and repeat signs
 SIMPLE_BAR = pp.Literal("|")("bar")
-DOUBLE_BAR = pp.Literal("||")("double_bar")
+DOUBLE_BAR = pp.Literal("||")("double_bar")  # thin-thin, e.g. ends a line
+THIN_THICK_BAR = pp.Literal("|]")("thin_thick_bar")  # thin-thick, ends a section
+THICK_THIN_BAR = pp.Literal("[|")("thick_thin_bar")  # thick-thin, starts a section
 REPEAT_START = pp.Literal("|:")("repeat_start")
 REPEAT_END = pp.Literal(":|")("repeat_end")
+DOUBLE_REPEAT = pp.Literal("::")("double_repeat")  # shorthand for :| followed by |:
 
-# Combined bar lines without endings
-BAR_LINE = (REPEAT_START | REPEAT_END | DOUBLE_BAR | SIMPLE_BAR).set_name("bar_line")
+# Combined bar lines (all 2-char variants before the 1-char |)
+BAR_LINE = (
+    DOUBLE_REPEAT
+    | REPEAT_START
+    | REPEAT_END
+    | THICK_THIN_BAR
+    | THIN_THICK_BAR
+    | DOUBLE_BAR
+    | SIMPLE_BAR
+).set_name("bar_line")
 
 # Endings - each has an ending number followed by required whitespace
 # Supports both short form ("|1 ") and long form ("| [1 ")
@@ -177,18 +188,78 @@ if __name__ == "__main__":
         G/
         # shorthand //
         G//
+        # triple shorthand ///
+        G///
         # octave up
         g'
+        # octave down
+        G,
         # accidental + length
         ^G2
         # flat + octave down + length
         _G,2
+        # double sharp
+        ^^G
+        # natural
+        =G
         """,
         parse_all=True,
     )
 
     print()
-    abc = "|: G2BG DGBG | A2cA eAcA | G2BG DGBG |1 ABcd e2ed :|2 ABcd e2ef :|3 ABcd e2ef ||"
-    res = parse_abc(abc)
-    res.pprint()
-    # print(res.dump())  # detailed info
+    BAR_LINE.run_tests(
+        """
+        # simple bar
+        |
+        # thin-thin double bar
+        ||
+        # thin-thick bar
+        |]
+        # thick-thin bar
+        [|
+        # repeat start
+        |:
+        # repeat end
+        :|
+        # double repeat (shorthand for :| |:)
+        ::
+        """,
+        parse_all=True,
+    )
+
+    print()
+    REST.run_tests(
+        """
+        # simple rest
+        z
+        # rest with length
+        z2
+        # rest with fraction
+        z3/2
+        """,
+        parse_all=True,
+    )
+
+    print()
+    # Standard tune with simple bar and final bar
+    abc = "G2BG DGBG | A2cA eAcA |]"
+    print(f"Parsing: {abc!r}")
+    parse_abc(abc).pprint()
+
+    print()
+    # Repeated section with double repeat and final bar
+    abc = "|: G2BG DGBG | A2cA eAcA :: DGBG G2BG | eAcA A2cA |]"
+    print(f"Parsing: {abc!r}")
+    parse_abc(abc).pprint()
+
+    print()
+    # First and second endings with soft final bar (thin-thin)
+    abc = "|: G2BG DGBG | A2cA eAcA | G2BG DGBG |1 ABcd e2ed :|2 ABcd e2ef ||"
+    print(f"Parsing: {abc!r}")
+    parse_abc(abc).pprint()
+
+    print()
+    # Three endings with final bar (thin-thick)
+    abc = "|: G2BG DGBG | A2cA eAcA | G2BG DGBG |1 ABcd e2ed :|2 ABcd e2ef :|3 ABcd e2ef |]"
+    print(f"Parsing: {abc!r}")
+    parse_abc(abc).pprint()
