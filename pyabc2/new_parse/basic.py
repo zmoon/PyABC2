@@ -310,3 +310,11 @@ if __name__ == "__main__":
     abc = "|: G2BG DGBG | A2cA eAcA | G2BG DGBG |1 ABcd e2ed :|2 ABcd e2ef :|3 ABcd e2ef |]"
     print(f"Parsing: {abc!r}")
     parse_abc(abc).pprint()
+
+    print()
+    # Multi-line ABC (newlines are whitespace between tokens — no structural difference)
+    abc = "|: G2BG DGBG | A2cA eAcA |\nG2BG DGBG |1 ABcd e2ed :|2 ABcd e2ef ||"
+    print(f"Parsing: {abc!r}")
+    res = parse_abc(abc)
+    res.pprint()
+    assert len(res[0]) == 5, f"expected 5 measures, got {len(res[0])}"
