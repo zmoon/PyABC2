@@ -12,9 +12,6 @@ pp.ParserElement.enable_packrat()
 
 # === Basic elements ===
 
-# Whitespace handling
-WHITESPACE = pp.ZeroOrMore(pp.White())
-
 # Notes
 ACCIDENTAL = (
     pp.Literal("^^")("double_sharp")
@@ -70,25 +67,33 @@ BAR_LINE = (
     | SIMPLE_BAR
 ).set_name("bar_line")
 
-# Endings - each has an ending number followed by required whitespace
-# Supports both short form ("|1 ") and long form ("| [1 ")
-ENDING_NUMBER = pp.Combine(pp.Word(pp.nums, exact=1) + pp.Literal(" ").suppress())("ending_number")
-
-# Complete ending constructs that include both bar components and ending numbers
-FIRST_ENDING = (SIMPLE_BAR + pp.Optional(WHITESPACE + pp.Literal("[")) + ENDING_NUMBER)(
-    "first_ending"
-)
-NON_FIRST_ENDING = (REPEAT_END + pp.Optional(WHITESPACE + pp.Literal("[")) + ENDING_NUMBER)(
-    "non_first_ending"
-)
+# Endings
+# Two forms, both requiring at least one trailing space (per spec, suppressed):
+#   Short: bar directly adjacent to digit,          e.g. |1 or :|2
+#   Long:  bar, optional space, [ adjacent to digit, e.g. | [1 or :| [2
+# "| 1" (space between | and digit, no [) is NOT legal per the ABC spec.
+_end_digit = pp.Word(pp.nums)(
+    "ending_number"
+).leave_whitespace()  # one or more digits, no leading whitespace
+_end_trail = pp.Suppress(pp.White()).leave_whitespace()  # requires at least one trailing space
+FIRST_ENDING = (
+    # Long form: | [N — space before [ is OK, but [ must directly precede digit
+    (SIMPLE_BAR + pp.Suppress(pp.Literal("[")) + _end_digit + _end_trail)
+    # Short form: |N — | must directly precede digit
+    | (SIMPLE_BAR + _end_digit + _end_trail)
+)("first_ending").set_name("first_ending")
+NON_FIRST_ENDING = (
+    # Long form: :| [N — space before [ is OK, but [ must directly precede digit
+    (REPEAT_END + pp.Suppress(pp.Literal("[")) + _end_digit + _end_trail)
+    # Short form: :|N — :| must directly precede digit
+    | (REPEAT_END + _end_digit + _end_trail)
+)("non_first_ending").set_name("non_first_ending")
 
 # Musical element (note or rest)
 MUSICAL_ELEMENT = (NOTE | REST).set_name("musical_element")
 
-# Measure - a group of notes/rests ended by a bar line or ending
-MEASURE_CONTENT = pp.Group(WHITESPACE + pp.OneOrMore(MUSICAL_ELEMENT + WHITESPACE))(
-    "measure_content"
-)
+# Measure content: one or more musical elements; whitespace skipped automatically
+MEASURE_CONTENT = pp.Group(pp.OneOrMore(MUSICAL_ELEMENT))("measure_content")
 
 # Define measure with either a regular bar line or an ending
 # We also need optional starting bar line, e.g. for left repeat
@@ -98,7 +103,7 @@ MEASURE = pp.Group(
 
 # Full tune body
 TUNE_BODY = pp.Forward().set_name("tune_body")
-TUNE_BODY <<= pp.Group(pp.OneOrMore(MEASURE + WHITESPACE))("tune_body")
+TUNE_BODY <<= pp.Group(pp.OneOrMore(MEASURE))("tune_body")
 
 
 def parse_abc(abc: str) -> pp.ParseResults:
@@ -239,6 +244,48 @@ if __name__ == "__main__":
         """,
         parse_all=True,
     )
+
+    print()
+    # Ending forms — parse_all=False since notes follow the ending marker
+    FIRST_ENDING.run_tests(
+        """
+        # short form: | directly adjacent to digit
+        |1 G
+        # long form: space before [ is OK
+        | [1 G
+        # long form: no space before [ also OK
+        |[1 G
+        # multi-digit ending number
+        |12 G
+        # long form multi-digit
+        | [12 G
+        """,
+        parse_all=False,
+    )
+
+    print()
+    NON_FIRST_ENDING.run_tests(
+        """
+        # short form: :| directly adjacent to digit
+        :|2 G
+        # long form: space before [ is OK
+        :| [2 G
+        """,
+        parse_all=False,
+    )
+
+    print()
+    print("Illegal ending forms (all should be rejected):")
+    for bad, reason in [
+        ("| 1 G", "space between | and digit (no [)"),
+        ("|1G", "no trailing space after digit"),
+        ("|[ 1 G", "space between [ and digit"),
+    ]:
+        try:
+            FIRST_ENDING.parse_string(bad, parse_all=False)
+            print(f"  WRONGLY ACCEPTED: {bad!r}  ({reason})")
+        except pp.ParseException:
+            print(f"  Correctly rejected: {bad!r}  ({reason})")
 
     print()
     # Standard tune with simple bar and final bar
