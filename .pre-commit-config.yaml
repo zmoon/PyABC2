@@ -18,7 +18,7 @@ repos:
         exclude: ^pyabc2/sources/_lzstring.py
 
   - repo: https://github.com/PyCQA/isort
-    rev: '9.0.0a3'
+    rev: '8.0.1'
     hooks:
       - id: isort
         exclude: ^pyabc2/sources/_lzstring.py
