@@ -69,6 +69,10 @@ exclude = ["^venv"]
 install_types = true
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "pyabc2.sources._lzstring"
+ignore_errors = true
+
 [tool.pyright]
 ignore = ["pyabc2/sources/_lzstring.py"]
 
