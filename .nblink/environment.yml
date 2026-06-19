@@ -1,0 +1,22 @@
+name: pyabc2
+channels:
+  - emscripten-forge-4x
+  - conda-forge
+dependencies:
+  - xeus-python
+  #
+  # sources
+  - numpy ==2.*
+  - pandas ==2.*
+  - requests ==2.*
+  #
+  # abcjs widget
+  - anywidget
+  - ipywidgets
+  - traitlets
+  #
+  # examples
+  - matplotlib
+  #
+  - pip:
+    - pyabc2 ==0.1.3
