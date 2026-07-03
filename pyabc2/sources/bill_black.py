@@ -53,6 +53,10 @@ TXT_FNS = [
 
 @functools.lru_cache(1)
 def _get_session() -> requests.Session:
+    return _build_session()
+
+
+def _build_session() -> requests.Session:
     import requests
     from requests.adapters import HTTPAdapter
     from urllib3.util import Retry
@@ -78,12 +82,23 @@ def download() -> None:
     """Download the alphabetical text files from https://www.capeirish.com/ittl/alltunes/alltunes-text/
     and store them in a compressed archive.
     """
+    import threading
     import zipfile
     from concurrent.futures import ThreadPoolExecutor
 
-    session = _get_session()
+    thread_local = threading.local()
+
+    def get_worker_session() -> requests.Session:
+        # One Session per worker thread to avoid cross-thread Session sharing.
+        try:
+            return thread_local.session
+        except AttributeError:
+            session = _build_session()
+            thread_local.session = session
+            return session
 
     def download_one(url):
+        session = get_worker_session()
         r = session.get(url, timeout=5)
         r.raise_for_status()
         return r.text
