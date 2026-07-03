@@ -284,13 +284,13 @@ def test_load_url_invalid_domain():
 
 
 def test_eskin_tunebook_bad_url_redirects():
-    import requests
+    session = eskin._get_session()
 
     # Bad URL (2025 -> 3025)
     # Redirects to the home page.
     # Nothing in `r.history`. `allow_redirects=False` has no impact.
     url = "https://michaeleskin.com/cce_sd/cce_san_diego_tunes_10nov3025.html"
-    r = requests.head(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r = session.head(url, timeout=5)
     r.raise_for_status()
 
     assert r.status_code == 302
@@ -301,10 +301,10 @@ def test_eskin_tunebook_bad_url_redirects():
 
 @pytest.mark.parametrize("key", eskin._TUNEBOOK_KEY_TO_URL)
 def test_eskin_tunebook_url_exist(key):
-    import requests
+    session = eskin._get_session()
 
     url = eskin._TUNEBOOK_KEY_TO_URL[key]
-    r = requests.head(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r = session.head(url, timeout=5)
     r.raise_for_status()
     # Bad URLs seem to just redirect to his homepage,
     # so we need to check the final URL
@@ -317,10 +317,10 @@ def test_eskin_tunebook_url_exist(key):
 
 
 def test_eskin_tunebook_url_current():
-    import requests
+    session = eskin._get_session()
 
     url = "https://michaeleskin.com/tunebooks.html"
-    r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r = session.get(url, timeout=5)
     r.raise_for_status()
     if (
         r.status_code == 302
@@ -496,16 +496,16 @@ def test_eskin_inflate_pad_3():
 
 
 def test_bill_black_https():
-    import requests
+    session = bill_black._get_session()
 
     url = "http://www.capeirish.com/ittl/tunefolders/"
     url_https = url.replace("http://", "https://")
 
-    r = requests.head(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r = session.head(url, timeout=5)
     r.raise_for_status()
     assert "Strict-Transport-Security" not in r.headers
 
-    r = requests.head(url_https, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r = session.head(url_https, timeout=5)
     r.raise_for_status()
     assert "Strict-Transport-Security" in r.headers
 
@@ -523,10 +523,10 @@ def test_bill_black_tunefolders_invalid_key():
 
 
 def test_bill_black_text_fns():
-    import requests
+    session = bill_black._get_session()
 
     url = "http://www.capeirish.com/ittl/alltunes/alltunes-text/"
-    r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r = session.get(url, timeout=5)
     r.raise_for_status()
 
     fns_web = sorted(

@@ -8,6 +8,7 @@ Requires:
 * `requests <https://requests.readthedocs.io/>`__
 """
 
+import functools
 import logging
 import re
 from pathlib import Path
@@ -44,6 +45,28 @@ TXT_FNS = [
 ]
 
 
+@functools.lru_cache(1)
+def _get_session():
+    import requests
+    from requests.adapters import HTTPAdapter
+    from urllib3.util import Retry
+
+    session = requests.Session()
+    session.headers.update({"User-Agent": "pyabc2"})
+    retries = Retry(
+        total=10,
+        backoff_factor=1.0,
+        backoff_jitter=0.5,
+        allowed_methods={"GET", "HEAD"},
+        status_forcelist=[403, 429, 500, 502, 503, 504],
+        # Bill Black seems to sporadically return 403 (forbidden)
+        # possibly to indicate a temporary server issue or throttling/anti-bot
+    )
+    session.mount("https://", HTTPAdapter(max_retries=retries))
+
+    return session
+
+
 def download() -> None:
     """Download the alphabetical text files from https://www.capeirish.com/ittl/alltunes/alltunes-text/
     and store them in a compressed archive.
@@ -51,10 +74,10 @@ def download() -> None:
     import zipfile
     from concurrent.futures import ThreadPoolExecutor
 
-    import requests
+    session = _get_session()
 
     def download_one(url):
-        r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+        r = session.get(url, timeout=5)
         r.raise_for_status()
         return r.text
 

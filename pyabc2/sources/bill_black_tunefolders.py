@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from pyabc2._util import get_logger as _get_logger
+from pyabc2.sources.bill_black import _get_session
 
 logger = _get_logger(__name__)
 
@@ -209,7 +210,7 @@ def get_collection(key: str) -> Collection:
 def download(key: str | Iterable[str] | None = None) -> None:
     import gzip
 
-    import requests
+    session = _get_session()
 
     SAVE_TO.mkdir(exist_ok=True)
 
@@ -224,7 +225,7 @@ def download(key: str | Iterable[str] | None = None) -> None:
         for url in collection.abc_urls:
             p = collection.url_to_file(url)
             logger.info(f"Downloading {url} to {p.relative_to(HERE).as_posix()}")
-            r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+            r = session.get(url, timeout=5)
             r.raise_for_status()
 
             # Extract filename from URL and append .gz

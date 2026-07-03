@@ -7,6 +7,9 @@ Requires:
 * `requests <https://requests.readthedocs.io/>`__
 """
 
+from __future__ import annotations
+
+import functools
 import json
 import re
 from collections import defaultdict
@@ -20,6 +23,7 @@ from pyabc2.sources._lzstring import LZString
 
 if TYPE_CHECKING:  # pragma: no cover
     import pandas
+    import requests
 
 logger = _get_logger(__name__)
 
@@ -58,6 +62,28 @@ for _alias, _target in _TUNEBOOK_ALIAS.items():
     _TUNEBOOK_KEY_TO_URL[_alias] = _TUNEBOOK_KEY_TO_URL[_target]
 
 _URL_NETLOCS = {"michaeleskin.com", "www.michaeleskin.com"}
+
+
+@functools.lru_cache(1)
+def _get_session() -> requests.Session:
+    import requests
+    from requests.adapters import HTTPAdapter
+    from urllib3.util import Retry
+
+    session = requests.Session()
+    session.headers.update({"User-Agent": "pyabc2"})
+    retries = Retry(
+        total=5,
+        backoff_factor=0.5,
+        backoff_jitter=0.5,
+        allowed_methods={"GET", "HEAD"},
+        status_forcelist=[415, 429, 500, 502, 503, 504],
+        # Eskin seems to sporadically return 415 (unsupported media type)
+        # possibly to indicate a temporary server issue or throttling/anti-bot
+    )
+    session.mount("https://", HTTPAdapter(max_retries=retries))
+
+    return session
 
 
 def _deflate(s: str, /) -> str:
@@ -363,11 +389,11 @@ def _download_data(key: str):
     """Extract and save the tune data from the tunebook webpage as JSON."""
     import gzip
 
-    import requests
+    session = _get_session()
 
     tb_info = get_tunebook_info(key)
 
-    r = requests.get(tb_info.url, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r = session.get(tb_info.url, timeout=5)
     r.raise_for_status()
     html = r.text
 
@@ -389,7 +415,7 @@ def _load_data(key: str):
         return json.load(f)
 
 
-def load_meta(key: str, *, redownload: bool = False) -> "pandas.DataFrame":
+def load_meta(key: str, *, redownload: bool = False) -> pandas.DataFrame:
     """Load the tunebook data, no parsing.
 
     Parameters
