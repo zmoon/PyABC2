@@ -340,7 +340,7 @@ def _extract_data_from_html_2026(html: str, *, key: str):
         abc_lines = []
         for line in abc_raw.splitlines():
             line = line.strip()
-            if line.startswith("%"):
+            if not line or line.startswith("%"):
                 continue
             abc_lines.append(line)
 
