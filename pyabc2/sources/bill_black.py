@@ -20,32 +20,32 @@ HERE = Path(__file__).parent
 
 SAVE_TO = HERE / "_bill-black"
 TXT_FNS = [
-    "a-tunes-1.txt",
-    "b-tunes-1.txt",
-    "c-tunes-1.txt",
-    "d-tunes-1.txt",
-    "e-tunes-1.txt",
-    "f-tunes-1.txt",
-    "g-tunes-1.txt",
-    "h-tunes-1.txt",
-    "i-tunes-1.txt",
-    "j-tunes-1.txt",
-    "k-tunes-1.txt",
-    "l-tunes-1.txt",
-    "m-tunes-1.txt",
-    "n-tunes-1.txt",
-    "o-tunes-1.txt",
-    "pq-tunes-1.txt",
-    "r-tunes-1.txt",
-    "s-tunes-2.rtf",
-    "t-tunes-1.txt",
-    "uv-tunes-1.txt",
-    "wz-tunes-1.txt",
+    "a-tunes.txt",
+    "b-tunes.txt",
+    "c-tunes.txt",
+    "d-tunes.txt",
+    "e-tunes.txt",
+    "f-tunes.txt",
+    "g-tunes.txt",
+    "h-tunes.txt",
+    "i-tunes.txt",
+    "j-tunes.txt",
+    "k-tunes.txt",
+    "L-tunes.txt",
+    "m-tunes.txt",
+    "n-tunes.txt",
+    "o-tunes.txt",
+    "pq-tunes.txt",
+    "r-tunes.txt",
+    "s-tunes.txt",
+    "t-tunes.txt",
+    "uv-tunes.txt",
+    "wxyz-tunes.txt",
 ]
 
 
 def download() -> None:
-    """Download the alphabetical text files from https://www.capeirish.com/ittl/alltunes/text/
+    """Download the alphabetical text files from https://www.capeirish.com/ittl/alltunes/alltunes-text/
     and store them in a compressed archive.
     """
     import zipfile
@@ -61,7 +61,7 @@ def download() -> None:
     with ThreadPoolExecutor(max_workers=4) as executor:
         futures = []
         for fn in TXT_FNS:
-            url = f"https://www.capeirish.com/ittl/alltunes/text/{fn}"
+            url = f"https://www.capeirish.com/ittl/alltunes/alltunes-text/{fn}"
             futures.append(executor.submit(download_one, url))
 
     SAVE_TO.mkdir(exist_ok=True)

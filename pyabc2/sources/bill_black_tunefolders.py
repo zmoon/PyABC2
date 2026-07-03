@@ -4,8 +4,8 @@ Bill Black's Irish Traditional Tune Library
 https://www.capeirish.com/ittl/
 
 As of the 2025-06-14 update, the "tunefolders" method is deprecated.
-Bill Black is now using the Eskin ABC Tools (https://www.capeirish.com/ittl/alltunes/html/),
-while also posting ABC text files (https://www.capeirish.com/ittl/alltunes/text/),
+Bill Black is now using the Eskin ABC Tools (https://www.capeirish.com/ittl/alltunes/alltunes-html/),
+while also posting ABC text files (https://www.capeirish.com/ittl/alltunes/alltunes-text/),
 both split up alphabetically by tune name.
 
 Requires:
