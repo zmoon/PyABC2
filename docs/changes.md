@@ -1,5 +1,9 @@
 # Release notes
 
+## v0.1.4 (unreleased)
+
+* Updates for Eskin and Bill Black ({pull}`112`)
+
 ## v0.1.3 (2026-04-17)
 
 * Improve styling of abcjs containers, pandas dataframes, and ipywidgets
