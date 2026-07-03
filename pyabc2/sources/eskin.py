@@ -400,8 +400,13 @@ def _download_data(key: str):
 
     try:
         data = _extract_data_from_html_2025(html, key=key)
-    except RuntimeError:
-        data = _extract_data_from_html_2026(html, key=key)
+    except RuntimeError as e:
+        if str(e) == "Unable to detect tune types":
+            # We can be pretty sure it's the new format
+            logger.debug("Tune groups array not detected, assuming new format.")
+            data = _extract_data_from_html_2026(html, key=key)
+        else:
+            raise
 
     SAVE_TO.mkdir(exist_ok=True)
     with gzip.open(tb_info.path, "wt") as f:
