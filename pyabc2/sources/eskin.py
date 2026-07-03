@@ -30,14 +30,16 @@ _TBWS = "https://michaeleskin.com/tunebook_websites"
 _CCE_SD = "https://michaeleskin.com/cce_sd"
 _TUNEBOOK_KEY_TO_URL = {
     # https://michaeleskin.com/tunebooks.html#websites_irish
-    "kss": f"{_TBWS}/king_street_sessions_tunebook_17Jan2025.html",
-    "oflaherty_2025": f"{_TBWS}/oflahertys_2025_retreat_tunes_final.html",
-    "carp": f"{_TBWS}/carp_celtic_jam_tunebook_17Jan2025.html",
+    "kss": f"{_TBWS}/king-street-session-tunebook-25jun2026.html",
+    "oflaherty_2025": f"{_TBWS}/oflaherty-2025-retreat-tunes-played-slowly.html",
+    "oflaherty_2026": f"{_TBWS}/oflaherty-2026-retreat-tunes-played-slowly.html",
+    "carp": f"{_TBWS}/carp_celtic_jam_tunebook_29jun2026.html",
     "hardy_2024": f"{_TBWS}/paul_hardy_2024_8feb2025.html",
-    "hardy_2025": f"{_TBWS}/paul_hardy_2025_12aug2025.html",
-    "cce_dublin_2001": f"{_CCE_SD}/cce_dublin_2001_tunebook_17Jan2025.html",
+    "hardy_2025": f"{_TBWS}/paul_hardy_2025_29jun2026.html",
+    "cce_dublin_2001": f"{_CCE_SD}/cce_dublin_2001_tunebook_29jun2026.html",
     "cce_san_diego_jan2025": f"{_CCE_SD}/cce_san_diego_tunes_31jan2025.html",
     "cce_san_diego_nov2025": f"{_CCE_SD}/cce_san_diego_tunes_10nov2025.html",
+    "cce_san_diego_jun2026": f"{_TBWS}/comhaltas-san-diego-tunebook-24jun2026.html",
     # https://michaeleskin.com/tunebooks.html#websites_18th_century_collections
     "playford1": f"{_TBWS}/playford_1_partington_17jan2025.html",
     "playford2": f"{_TBWS}/playford_2_partington_17jan2025.html",
@@ -50,7 +52,7 @@ https://michaeleskin.com/tunebooks.html
 
 # Definitive versions
 _TUNEBOOK_ALIAS = {
-    "cce_san_diego": "cce_san_diego_nov2025",
+    "cce_san_diego": "cce_san_diego_jun2026",
 }
 for _alias, _target in _TUNEBOOK_ALIAS.items():
     _TUNEBOOK_KEY_TO_URL[_alias] = _TUNEBOOK_KEY_TO_URL[_target]
@@ -318,7 +320,7 @@ def load_meta(key: str, *, redownload: bool = False) -> "pandas.DataFrame":
              - Paul Hardy's Session Tunebook
            * - ``kss``
              - King Street Sessions Tunebook
-           * - ``oflaherty_2025``
+           * - ``oflaherty_{2025,2026}``
              - O'Flaherty's Retreat Tunes
            * - ``playford{1,2,3}``
              - Playford vols. 1--3
