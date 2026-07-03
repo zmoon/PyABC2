@@ -8,12 +8,18 @@ Requires:
 * `requests <https://requests.readthedocs.io/>`__
 """
 
+from __future__ import annotations
+
 import functools
 import logging
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pyabc2._util import get_logger as _get_logger
+
+if TYPE_CHECKING:  # pragma: no cover
+    import requests
 
 logger = _get_logger(__name__)
 
@@ -46,7 +52,7 @@ TXT_FNS = [
 
 
 @functools.lru_cache(1)
-def _get_session():
+def _get_session() -> requests.Session:
     import requests
     from requests.adapters import HTTPAdapter
     from urllib3.util import Retry
