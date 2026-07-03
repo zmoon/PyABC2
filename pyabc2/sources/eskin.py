@@ -9,6 +9,7 @@ Requires:
 
 import json
 import re
+from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, NamedTuple
 from urllib.parse import parse_qs, urlsplit
@@ -38,7 +39,6 @@ _TUNEBOOK_KEY_TO_URL = {
     "hardy_2025": f"{_TBWS}/paul_hardy_2025_29jun2026.html",
     "cce_dublin_2001": f"{_CCE_SD}/cce_dublin_2001_tunebook_29jun2026.html",
     "cce_san_diego_jan2025": f"{_CCE_SD}/cce_san_diego_tunes_31jan2025.html",
-    "cce_san_diego_nov2025": f"{_CCE_SD}/cce_san_diego_tunes_10nov2025.html",
     "cce_san_diego_jun2026": f"{_TBWS}/comhaltas-san-diego-tunebook-24jun2026.html",
     # https://michaeleskin.com/tunebooks.html#websites_18th_century_collections
     "playford1": f"{_TBWS}/playford_1_partington_17jan2025.html",
@@ -235,18 +235,7 @@ def get_tunebook_info(key: str) -> EskinTunebookInfo:
     )
 
 
-def _download_data(key: str):
-    """Extract and save the tune data from the tunebook webpage as JSON."""
-    import gzip
-
-    import requests
-
-    tb_info = get_tunebook_info(key)
-
-    r = requests.get(tb_info.url, timeout=5)
-    r.raise_for_status()
-    html = r.text
-
+def _extract_data_from_html_2025(html: str, *, key: str):
     # First find the tune type options by searching for 'tunes = type;'
     types = sorted(set(re.findall(r"tunes = (.*?);", html)))
     if types:
@@ -283,9 +272,109 @@ def _download_data(key: str):
 
         all_data[type_] = data
 
+    return all_data
+
+
+def _extract_data_from_html_2026(html: str, *, key: str):
+    # The ABCs are in <script> tags, eg:
+    # <script type="text/plain" id="sir-john-fenwick-s-the-flower-amang-them-all-abc">
+    # Group IDs are `group-1`, `group-2`, etc.
+    # with names in <option> tags, eg:
+    # <option value="group-1">Air (13)</option>
+    # AFAICT, group assignment is only given in the <div class="toc-links">,
+    # using the data-group attribute, e.g.:
+    # <a href="#tune-farewell-to-whiskey" data-toc-entry="true" data-group="group-1" data-toc-title="Farewell to whiskey"><span>2</span>Farewell to whiskey</a>
+
+    from html import unescape
+
+    logger.info(f"Extracting data from HTML for Eskin tunebook {key!r}")
+
+    # Find group assignments
+    group_assignments = {}
+    for m in re.finditer(
+        # Note groups that aren't the default active one have the hidden attribute
+        # so we don't include the trailing `>` in the regex
+        r'<a href="#tune-([^"]+)" data-toc-entry="true" data-group="([^"]+)" data-toc-title="([^"]+)"',
+        html,
+        flags=re.DOTALL | re.MULTILINE,
+    ):
+        tune_id, group_id, tune_name = m.groups()
+        tune_name = unescape(tune_name)
+        logger.debug(f"Found group assignment: {tune_id=}, {group_id=}, {tune_name=}")
+        group_assignments[tune_id] = group_id
+    if not group_assignments:
+        logger.debug("No group assignments found in HTML")
+
+    # Find group names
+    group_names = {}
+    if len(unique_group_ids := set(group_assignments.values())) == 1:
+        logger.info("One group, using name 'tunes'")
+        (group_id,) = unique_group_ids
+        group_names[group_id] = "tunes"
+    else:
+        for m in re.finditer(
+            r'<option value="([^"]+)">([^<]+)</option>',
+            html,
+            flags=re.DOTALL,
+        ):
+            group_id, group_name_raw = m.groups()
+            group_name = re.sub(r" *\([0-9]+\)$", "", unescape(group_name_raw))
+            logger.debug(f"Found group name: {group_id=}, {group_name=}")
+            group_names[group_id] = group_name
+        if not group_names:
+            logger.debug("No group names found in HTML")
+
+    # Find tunes
+    tunes = []
+    for m in re.finditer(
+        r'<script type="text/plain" id="([^"]+)-abc">(.+?)</script>',
+        html,
+        flags=re.DOTALL | re.MULTILINE,
+    ):
+        tune_id, abc_raw = m.groups()
+
+        abc_lines = []
+        for line in abc_raw.splitlines():
+            line = line.strip()
+            if line.startswith("%"):
+                continue
+            abc_lines.append(line)
+
+        tunes.append({"id": tune_id, "abc": "\n".join(abc_lines)})
+
+    # Group tunes
+    all_data = defaultdict(list)
+    for tune in tunes:
+        group_id = group_assignments.get(tune["id"])
+        if group_id is None:
+            logger.warning(f"No group assignment found for tune {tune['id']}")
+            continue
+        group_name = group_names.get(group_id, f"Unknown group {group_id}")
+        all_data[group_name].append(tune)
+
+    return all_data
+
+
+def _download_data(key: str):
+    """Extract and save the tune data from the tunebook webpage as JSON."""
+    import gzip
+
+    import requests
+
+    tb_info = get_tunebook_info(key)
+
+    r = requests.get(tb_info.url, timeout=5)
+    r.raise_for_status()
+    html = r.text
+
+    try:
+        data = _extract_data_from_html_2025(html, key=key)
+    except RuntimeError:
+        data = _extract_data_from_html_2026(html, key=key)
+
     SAVE_TO.mkdir(exist_ok=True)
     with gzip.open(tb_info.path, "wt") as f:
-        json.dump(all_data, f, indent=2)
+        json.dump(data, f, indent=2)
 
 
 def _load_data(key: str):

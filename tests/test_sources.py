@@ -346,7 +346,10 @@ def test_eskin_tunebook_url_current():
 def test_eskin_tunebook_data_load(key):
     df = eskin.load_meta(key)
 
+    assert len(df) >= 20
+
     tune_group_keys = {
+        # Old KSS
         "airs_songs",
         "hornpipes",
         "jigs",
@@ -361,12 +364,51 @@ def test_eskin_tunebook_data_load(key):
         "slipjigs",
         "strathspeys",
         "waltzes",
+        # New KSS
+        "Long Dance",
+        "Barndance",
+        "Reel O-R",
+        "Reel F-K",
+        "Set Dance",
+        "Reel A-E",
+        "Single Jig",
+        "Set dance",
+        "Jig or march",
+        "Quadrille",
+        "Highland Schottish",  # XXX: "Highland Schottische"
+        "Pipe Reel",
+        "Strathspey",
+        "Hornpipe",
+        "Reel S-Y",
+        "Reel L-N",
+        "March",
+        "Waltz",
+        "Slip Jig",
+        "Jig A-G",
+        "Slide",
+        "Highland Scottische",  # XXX: "Highland Schottische"
+        "Other",
+        "Polka or Reel",
+        "Bourree",
+        "Schottische",
+        "Air",
+        "Polka or march",
+        "Song",
+        "Fling",
+        "Slow Air",
+        "Mazurka",
+        "Jig Q-Y",
+        "Polka",
+        "Jig H-P",
     }
 
+    unique_groups = set(df.group.unique())
     if key in {"kss"}:
-        assert set(df.group.unique()) <= tune_group_keys
+        assert unique_groups <= tune_group_keys
     else:
-        assert df.group.unique().tolist() == ["tunes"]
+        assert unique_groups == {"tunes"} or all(
+            re.fullmatch(r"^[A-Z\-]+$", g) is not None for g in unique_groups
+        )
 
 
 def test_eskin_abc_url_parsing():
