@@ -64,8 +64,8 @@ def _build_session() -> requests.Session:
     session = requests.Session()
     session.headers.update({"User-Agent": "pyabc2"})
     retries = Retry(
-        total=10,
-        backoff_factor=1.0,
+        total=5,
+        backoff_factor=0.5,
         backoff_jitter=0.5,
         allowed_methods={"GET", "HEAD"},
         status_forcelist=[403, 429, 500, 502, 503, 504],
