@@ -367,7 +367,7 @@ def _download_data(key: str):
 
     tb_info = get_tunebook_info(key)
 
-    r = requests.get(tb_info.url, timeout=5)
+    r = requests.get(tb_info.url, headers={"User-Agent": "pyabc2"}, timeout=5)
     r.raise_for_status()
     html = r.text
 

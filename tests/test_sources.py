@@ -290,7 +290,7 @@ def test_eskin_tunebook_bad_url_redirects():
     # Redirects to the home page.
     # Nothing in `r.history`. `allow_redirects=False` has no impact.
     url = "https://michaeleskin.com/cce_sd/cce_san_diego_tunes_10nov3025.html"
-    r = requests.head(url, timeout=5)
+    r = requests.head(url, headers={"User-Agent": "pyabc2"}, timeout=5)
     r.raise_for_status()
 
     assert r.status_code == 302
@@ -304,7 +304,7 @@ def test_eskin_tunebook_url_exist(key):
     import requests
 
     url = eskin._TUNEBOOK_KEY_TO_URL[key]
-    r = requests.head(url, timeout=5)
+    r = requests.head(url, headers={"User-Agent": "pyabc2"}, timeout=5)
     r.raise_for_status()
     # Bad URLs seem to just redirect to his homepage,
     # so we need to check the final URL
@@ -320,7 +320,7 @@ def test_eskin_tunebook_url_current():
     import requests
 
     url = "https://michaeleskin.com/tunebooks.html"
-    r = requests.get(url, timeout=5)
+    r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
     r.raise_for_status()
     if (
         r.status_code == 302
