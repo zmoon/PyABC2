@@ -320,6 +320,10 @@ def _extract_data_from_html_2026(html: str, *, key: str):
             group_id, group_name_raw = m.groups()
             group_name = re.sub(r" *\([0-9]+\)$", "", unescape(group_name_raw))
             logger.debug(f"Found group name: {group_id=}, {group_name=}")
+            if group_name in {"Highland Schottish", "Highland Scottische"}:
+                group_name_norm = "Highland Schottische"
+                logger.debug(f"Normalizing group name {group_name!r} to {group_name_norm!r}")
+                group_name = group_name_norm
             group_names[group_id] = group_name
         if not group_names:
             logger.debug("No group names found in HTML")

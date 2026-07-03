@@ -375,7 +375,7 @@ def test_eskin_tunebook_data_load(key):
         "Set dance",
         "Jig or march",
         "Quadrille",
-        "Highland Schottish",  # XXX: "Highland Schottische"
+        "Highland Schottische",
         "Pipe Reel",
         "Strathspey",
         "Hornpipe",
@@ -386,7 +386,6 @@ def test_eskin_tunebook_data_load(key):
         "Slip Jig",
         "Jig A-G",
         "Slide",
-        "Highland Scottische",  # XXX: "Highland Schottische"
         "Other",
         "Polka or Reel",
         "Bourree",
