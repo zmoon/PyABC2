@@ -82,6 +82,7 @@ def _get_session() -> requests.Session:
         # possibly to indicate a temporary server issue or throttling/anti-bot
     )
     session.mount("https://", HTTPAdapter(max_retries=retries))
+    session.mount("http://", HTTPAdapter(max_retries=retries))
 
     return session
 
