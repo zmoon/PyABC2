@@ -239,7 +239,7 @@ def _extract_data_from_html_2025(html: str, *, key: str):
     # First find the tune type options by searching for 'tunes = type;'
     types = sorted(set(re.findall(r"tunes = (.*?);", html)))
     if types:
-        pass
+        pass  # pragma: no cover
     elif "const tunes=[" in html:  # no types, just one list of tunes
         types = ["tunes"]
     else:
@@ -249,13 +249,13 @@ def _extract_data_from_html_2025(html: str, *, key: str):
     all_data = {}
     for type_ in types:
         m = re.search(rf"const {type_}=\[(.*?)\];", html, flags=re.DOTALL)
-        if m is None:
+        if m is None:  # pragma: no cover
             raise RuntimeError(f"Unable to find data for type {type_!r}")
         s_data = "[" + m.group(1) + "]"
 
         try:
             data = json.loads(s_data)
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError as e:  # pragma: no cover
             w = 25
             a = max(0, e.pos - w)
             b = min(len(s_data), e.pos + w)
@@ -302,7 +302,7 @@ def _extract_data_from_html_2026(html: str, *, key: str):
         tune_name = unescape(tune_name)
         logger.debug(f"Found group assignment: {tune_id=}, {group_id=}, {tune_name=}")
         group_assignments[tune_id] = group_id
-    if not group_assignments:
+    if not group_assignments:  # pragma: no cover
         logger.debug("No group assignments found in HTML")
 
     # Find group names
@@ -325,7 +325,7 @@ def _extract_data_from_html_2026(html: str, *, key: str):
                 logger.debug(f"Normalizing group name {group_name!r} to {group_name_norm!r}")
                 group_name = group_name_norm
             group_names[group_id] = group_name
-        if not group_names:
+        if not group_names:  # pragma: no cover
             logger.debug("No group names found in HTML")
 
     # Find tunes
@@ -350,7 +350,7 @@ def _extract_data_from_html_2026(html: str, *, key: str):
     all_data = defaultdict(list)
     for tune in tunes:
         group_id = group_assignments.get(tune["id"])
-        if group_id is None:
+        if group_id is None:  # pragma: no cover
             logger.warning(f"No group assignment found for tune {tune['id']}")
             continue
         group_name = group_names.get(group_id, f"Unknown group {group_id}")
