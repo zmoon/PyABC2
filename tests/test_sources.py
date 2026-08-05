@@ -396,49 +396,40 @@ def test_eskin_tunebook_data_load(key):
         "strathspeys",
         "waltzes",
         # New KSS
-        "Long Dance",
-        "Barndance",
-        "Reel O-R",
-        "Reel F-K",
-        "Set Dance",
-        "Reel A-E",
-        "Single Jig",
-        "Set dance",
-        "Jig or march",
-        "Quadrille",
-        "Highland Schottische",
-        "Pipe Reel",
-        "Strathspey",
-        "Hornpipe",
-        "Reel S-Y",
-        "Reel L-N",
-        "March",
-        "Waltz",
-        "Slip Jig",
-        "Jig A-G",
-        "Slide",
-        "Other",
-        "Polka or Reel",
-        "Bourree",
-        "Schottische",
         "Air",
-        "Polka or march",
-        "Song",
+        "Barndance",
+        "Bourree",
         "Fling",
-        "Slow Air",
+        "Highland Schottische",
+        "Hornpipe",
+        "Jig",
+        "Jig or March",
+        "Long Dance",
+        "March",
         "Mazurka",
-        "Jig Q-Y",
+        "Other",
+        "Pipe Reel",
         "Polka",
-        "Jig H-P",
+        "Polka or March",
+        "Polka or Reel",
+        "Quadrille",
+        "Reel",
+        "Schottische",
+        "Set Dance",
+        "Single Jig",
+        "Slide",
+        "Slip Jig",
+        "Slow Air",
+        "Song",
+        "Strathspey",
+        "Waltz",
     }
 
     unique_groups = set(df.group.unique())
     if key in {"kss"}:
         assert unique_groups <= tune_group_keys
     else:
-        assert unique_groups == {"tunes"} or all(
-            re.fullmatch(r"^[A-Z\-]+$", g) is not None for g in unique_groups
-        )
+        assert unique_groups == {"tunes"}
 
 
 @pytest.mark.xdist_group("eskin")
@@ -538,8 +529,91 @@ def test_eskin_inflate_pad_3():
 
 @pytest.mark.xdist_group("eskin")
 def test_eskin_normalize_group_name():
-    assert eskin._normalize_group_name("Reel M · 1–50") == "Reel M 1-50"
-    assert eskin._normalize_group_name("Reel A-E") == "Reel A-E"
+    assert eskin._normalize_group_name("Reel M · 1–50") == "Reel"
+    assert eskin._normalize_group_name("Reel A-E") == "Reel"
+    assert eskin._normalize_group_name("Highland Schottish") == "Highland Schottische"
+    assert eskin._normalize_group_name("Highland Scottische") == "Highland Schottische"
+    assert eskin._normalize_group_name("Set dance") == "Set Dance"
+    assert eskin._normalize_group_name("Jig or march") == "Jig or March"
+    assert eskin._normalize_group_name("Polka or march") == "Polka or March"
+
+
+@pytest.mark.parametrize(
+    "s",
+    [
+        "Reel M 51-56",
+        "Reel C",
+        "Jig C-E",
+        "Reel L",
+        "Reel T-Y",
+        "Hornpipe O-W",
+        "Reel S",
+        "Reel G-I",
+        "Reel J-K",
+        "Reel M 1-50",
+        "Jig I-L",
+        "Reel N-P",
+        "Reel D-F",
+        "Reel A-B",
+        "Jig A-B",
+        "Jig M-R",
+        "Jig F-H",
+        "Jig S-Y",
+        "Reel R",
+        "Hornpipe A-N",
+    ],
+)
+def test_eskin_alpha_split_group_validator(s):
+    assert eskin._is_valid_alpha_split_group_name(s)
+
+
+@pytest.mark.parametrize(
+    "s, expected",
+    [
+        ("Reel M 51-56", "Reel"),
+        ("Jig C-E", "Jig"),
+        ("Hornpipe O-W", "Hornpipe"),
+    ],
+)
+def test_eskin_alpha_split_group_normalization(s, expected):
+    assert eskin._normalize_group_name(s) == expected
+
+
+@pytest.mark.parametrize(
+    "s",
+    [
+        "T-V",
+        "A",
+        "D-E",
+        "J-L",
+        "S 51-80",
+        "C",
+        "N-P",
+        "W",
+        "M 51-54",
+        "F-G",
+        "M 1-50",
+        "B 1-50",
+        "S 1-50",
+        "B 51-51",
+        "R",
+        "H-I",
+    ],
+)
+def test_eskin_alpha_only_group_validator(s):
+    assert eskin._is_valid_alpha_only_group_name(s)
+
+
+@pytest.mark.parametrize(
+    "s",
+    [
+        "T-V",
+        "S 51-80",
+        "M 1-50",
+    ],
+)
+def test_eskin_alpha_only_group_normalization(s):
+    assert eskin._normalize_group_name(s) == "tunes"
 
 
 @pytest.mark.web

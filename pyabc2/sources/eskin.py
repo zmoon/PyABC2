@@ -63,12 +63,75 @@ for _alias, _target in _TUNEBOOK_ALIAS.items():
 
 _URL_NETLOCS = {"michaeleskin.com", "www.michaeleskin.com"}
 
+_TUNE_TYPE_PATTERN = r"[A-Za-z][A-Za-z &'/-]*"
+_TUNE_TYPE_RE = re.compile(rf"^{_TUNE_TYPE_PATTERN}$")
+
+_GROUP_ALPHA_SPLIT_RE = re.compile(
+    rf"^(?P<tune_type>{_TUNE_TYPE_PATTERN}?) "
+    r"(?P<alpha>[A-Za-z](?:-[A-Za-z])?)"
+    r"(?: (?P<number>[0-9]+-[0-9]+))?$"
+)
+
+_GROUP_ALPHA_ONLY_RE = re.compile(
+    r"^(?P<alpha>[A-Za-z](?:-[A-Za-z])?)(?: (?P<number>[0-9]+-[0-9]+))?$"
+)
+
+
+def _is_valid_alpha_split_group_name(s: str, /) -> bool:
+    """Return whether `s` looks like an Eskin type + alpha split group label."""
+
+    return _GROUP_ALPHA_SPLIT_RE.fullmatch(s) is not None
+
+
+def _is_valid_alpha_only_group_name(s: str, /) -> bool:
+    """Return whether `s` looks like an Eskin alpha-only split group label."""
+
+    return _GROUP_ALPHA_ONLY_RE.fullmatch(s) is not None
+
+
+def _is_valid_tune_type_group_name(s: str, /) -> bool:
+    """Return whether `s` looks like a standalone tune type group label."""
+
+    return _TUNE_TYPE_RE.fullmatch(s) is not None
+
+
+def _normalize_tune_type(s: str, /) -> str:
+    """Normalize tune type labels parsed from Eskin group names."""
+
+    if s in {"Highland Schottish", "Highland Scottische"}:
+        return "Highland Schottische"
+
+    if s == "Set dance":
+        return "Set Dance"
+
+    m = re.fullmatch(r"(.+?) or ([A-Za-z][A-Za-z &'/-]*)", s)
+    if m is not None:
+        first, second = m.groups()
+        return f"{first} or {second.title()}"
+
+    return s
+
 
 def _normalize_group_name(s: str, /) -> str:
     """Normalize parsed Eskin group labels to expected style."""
 
+    s = s.strip()
     s = s.replace(" · ", " ")
     s = s.replace("–", "-")
+
+    if _is_valid_alpha_split_group_name(s):
+        # Upstream alpha/number splits can churn; keep only tune type.
+        m = _GROUP_ALPHA_SPLIT_RE.fullmatch(s)
+        assert m is not None  # for typing
+        return _normalize_tune_type(m.group("tune_type"))
+
+    if _is_valid_alpha_only_group_name(s):
+        # Some tunebooks split by alpha range only; collapse to one generic group.
+        return "tunes"
+
+    if _is_valid_tune_type_group_name(s):
+        return _normalize_tune_type(s)
+
     return s
 
 
@@ -356,10 +419,6 @@ def _extract_data_from_html_2026(html: str, *, key: str):
             group_name = re.sub(r" *\([0-9]+\)$", "", unescape(group_name_raw))
             group_name = _normalize_group_name(group_name)
             logger.debug(f"Found group name: {group_id=}, {group_name=}")
-            if group_name in {"Highland Schottish", "Highland Scottische"}:
-                group_name_norm = "Highland Schottische"
-                logger.debug(f"Normalizing group name {group_name!r} to {group_name_norm!r}")
-                group_name = group_name_norm
             group_names[group_id] = group_name
         if not group_names:  # pragma: no cover
             logger.debug("No group names found in HTML")
