@@ -44,6 +44,8 @@ def test_example_random():
     assert type(tune) is Tune
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("norbeck")
 def test_norbeck_tune_type_file_prefix():
     norbeck._maybe_download()
     all_fps = list(norbeck.SAVE_TO.glob("*.abc"))
@@ -58,6 +60,8 @@ def test_norbeck_tune_type_file_prefix():
     assert set(all_fps) == all_fps_type_set
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("norbeck")
 def test_norbeck_x_unique():
     # X value should be unique within tune type
     norbeck._maybe_download()
@@ -74,6 +78,8 @@ def test_norbeck_x_unique():
     assert len(set(xs)) == len(xs), "X unique"
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("norbeck")
 def test_norbeck_x_vals():
     # Make sure they match with what file says
     norbeck._maybe_download()
@@ -100,6 +106,8 @@ def test_norbeck_x_vals():
 
 
 @pytest.mark.slow
+@pytest.mark.web
+@pytest.mark.xdist_group("norbeck")
 def test_norbeck_load():
     # NOTE: downloads files if not already present
 
@@ -131,6 +139,8 @@ def test_norbeck_load():
         norbeck.load("asdf")
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("the_session")
 @pytest.mark.parametrize(
     "url,title,key,type",
     [
@@ -149,11 +159,14 @@ def test_the_session_load_url(url, title, key, type):
         assert tune.header["reference number"] == "1"
 
 
+@pytest.mark.xdist_group("the_session")
 def test_the_session_url_check():
     with pytest.raises(AssertionError):
         the_session.load_url("https://www.google.com")
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("the_session")
 def test_the_session_load_archive_threaded():
     # NOTE: downloads file if not already present
     with pytest.warns(UserWarning, match=r"The Session tune\(s\) failed to load"):
@@ -163,12 +176,15 @@ def test_the_session_load_archive_threaded():
     assert tunes1 == tunes2
 
 
+@pytest.mark.xdist_group("the_session")
 def test_the_session_download_invalid():
     with pytest.raises(ValueError):
         _ = the_session.download("asdf")
 
 
 @pytest.mark.slow
+@pytest.mark.web
+@pytest.mark.xdist_group("the_session")
 @pytest.mark.parametrize(
     "which", ["aliases", "events", "recordings", "sessions", "sets", "tune_popularity", "tunes"]
 )
@@ -203,6 +219,7 @@ def test_the_session_load_meta(which):
         # in df3, `pd.Float64Dtype()`
 
 
+@pytest.mark.xdist_group("the_session")
 def test_the_session_load_meta_invalid():
     with pytest.raises(ValueError):
         _ = the_session.load_meta("asdf")
@@ -211,6 +228,7 @@ def test_the_session_load_meta_invalid():
         _ = the_session.load_meta("sessions", format="asdf")
 
 
+@pytest.mark.xdist_group("the_session")
 def test_the_session_load_meta_doc_consistency():
     s_options = ", ".join(repr(x) for x in sorted(the_session._META_ALLOWED))
     expected_line = f"which : {{{s_options}}}"
@@ -246,12 +264,16 @@ def test_int_downcast():
         assert s3.dtype == expected_dtype_ext
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("the_session")
 @pytest.mark.parametrize("netloc", sorted(the_session._URL_NETLOCS))
 def test_load_url_the_session(netloc):
     tune = load_url(f"https://{netloc}/tunes/10000")
     assert tune.title == "Brian Quinn's"
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("norbeck")
 @pytest.mark.parametrize("netloc", sorted(norbeck._URL_NETLOCS))
 def test_load_url_norbeck(netloc):
     import requests
@@ -265,6 +287,7 @@ def test_load_url_norbeck(netloc):
         assert tune.title == "For The Love Of Music"
 
 
+@pytest.mark.xdist_group("eskin")
 @pytest.mark.parametrize("netloc", sorted(eskin._URL_NETLOCS))
 @pytest.mark.parametrize("param", list(ESKIN_COMPRESSED_ABC_DATA))
 def test_load_url_eskin(netloc, param):
@@ -283,14 +306,17 @@ def test_load_url_invalid_domain():
         _ = load_url("https://www.google.com")
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("eskin")
+@pytest.mark.xfail(reason="now it does 404", strict=False)
 def test_eskin_tunebook_bad_url_redirects():
-    import requests
+    session = eskin._get_session()
 
     # Bad URL (2025 -> 3025)
     # Redirects to the home page.
     # Nothing in `r.history`. `allow_redirects=False` has no impact.
     url = "https://michaeleskin.com/cce_sd/cce_san_diego_tunes_10nov3025.html"
-    r = requests.head(url, timeout=5)
+    r = session.head(url, timeout=5)
     r.raise_for_status()
 
     assert r.status_code == 302
@@ -299,12 +325,14 @@ def test_eskin_tunebook_bad_url_redirects():
     assert r.is_redirect
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("eskin")
 @pytest.mark.parametrize("key", eskin._TUNEBOOK_KEY_TO_URL)
 def test_eskin_tunebook_url_exist(key):
-    import requests
+    session = eskin._get_session()
 
     url = eskin._TUNEBOOK_KEY_TO_URL[key]
-    r = requests.head(url, timeout=5)
+    r = session.head(url, timeout=5)
     r.raise_for_status()
     # Bad URLs seem to just redirect to his homepage,
     # so we need to check the final URL
@@ -316,11 +344,13 @@ def test_eskin_tunebook_url_exist(key):
         raise ValueError(f"{key!r} URL {url} redirects to homepage")
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("eskin")
 def test_eskin_tunebook_url_current():
-    import requests
+    session = eskin._get_session()
 
     url = "https://michaeleskin.com/tunebooks.html"
-    r = requests.get(url, timeout=5)
+    r = session.get(url, timeout=5)
     r.raise_for_status()
     if (
         r.status_code == 302
@@ -332,6 +362,7 @@ def test_eskin_tunebook_url_current():
     old_keys = {
         "cce_san_diego_jan2025",
         "hardy_2024",
+        "hardy_2025",
     }
     for key, tb_url in eskin._TUNEBOOK_KEY_TO_URL.items():
         m = re.search(rf'href=["\']({tb_url})["\']', html)
@@ -342,11 +373,16 @@ def test_eskin_tunebook_url_current():
                 raise ValueError(f"Could not find link for tunebook {key!r} in tunebooks page.")
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("eskin")
 @pytest.mark.parametrize("key", eskin._TUNEBOOK_KEY_TO_URL)
 def test_eskin_tunebook_data_load(key):
     df = eskin.load_meta(key)
 
+    assert len(df) >= 20
+
     tune_group_keys = {
+        # Old KSS
         "airs_songs",
         "hornpipes",
         "jigs",
@@ -361,14 +397,44 @@ def test_eskin_tunebook_data_load(key):
         "slipjigs",
         "strathspeys",
         "waltzes",
+        # New KSS
+        "Air",
+        "Barndance",
+        "Bourree",
+        "Fling",
+        "Highland Schottische",
+        "Hornpipe",
+        "Jig",
+        "Jig or March",
+        "Long Dance",
+        "March",
+        "Mazurka",
+        "Other",
+        "Pipe Reel",
+        "Polka",
+        "Polka or March",
+        "Polka or Reel",
+        "Quadrille",
+        "Reel",
+        "Schottische",
+        "Set Dance",
+        "Single Jig",
+        "Slide",
+        "Slip Jig",
+        "Slow Air",
+        "Song",
+        "Strathspey",
+        "Waltz",
     }
 
+    unique_groups = set(df.group.unique())
     if key in {"kss"}:
-        assert set(df.group.unique()) <= tune_group_keys
+        assert unique_groups <= tune_group_keys
     else:
-        assert df.group.unique().tolist() == ["tunes"]
+        assert unique_groups == {"tunes"}
 
 
+@pytest.mark.xdist_group("eskin")
 def test_eskin_abc_url_parsing():
     # From https://michaeleskin.com/cce_sd/cce_san_diego_tunes_10nov2025.html
     url = "https://michaeleskin.com/abctools/abctools.html?lzw=BoLgjAUApFAuCWsA2BTAZgewHawAQAUBDJQhLDXMADmigGcBXAIwWXWzyJLIrAGZa8LJkw4CxUkN4CYAB0IAnWHVGcJPSjLgoAtrIyrx3KZtqwUAD1iGuk8qYAqIBwAsUuAIJMmKAJ64IABlwAHoaAFkQABYQqIgARRAAJliAXgBOAAYIACUQHJQUJGg6AHchAHNcTIA6SABpEABxaEImAGMAKzoAfToMBiwAE0M0UiYMX1pwgEkAERncWQUMCoVCHWrp+cWmQjo6ZdWtmFmF3HaXDAUho6rs053cPYOANwwkXAA2OMfzy+uQ3enx+rSGQx6xCQPVkJF8e3aAGsekghIi6BAAEQeHSYzx8XAAIU8SVwTQAorgAD6eDxNDy4TFNPGE8HEmnY3G0jzEunkgBi1MZzLJTXpRLZ1KxOLxHlJPJJZMpNI8dIZTJZko5MsVCr5go5IrF4tZQyqVKp0q5KAqttwhFJeyFGtwFTaVUIFRQQ2dOptdodrsIzuZTDdaFd7iGpMtnLx-o9FTDIcxnuTnu9vutto9pLdKbDhAjXqG7IAukA&format=noten&ssp=10&name=The_Abbey&play=1"
@@ -387,6 +453,7 @@ def test_eskin_abc_url_parsing():
     assert sum(line.startswith(r"%%") for line in abc_no_rm.splitlines()) > 0
 
 
+@pytest.mark.xdist_group("eskin")
 def test_eskin_abc_url_missing_param():
     url = "https://michaeleskin.com/abctools/abctools.html?"
     with pytest.raises(
@@ -396,18 +463,21 @@ def test_eskin_abc_url_missing_param():
         _ = eskin.abctools_url_to_abc(url)
 
 
+@pytest.mark.xdist_group("eskin")
 def test_eskin_abc_url_bad_param():
     url = "https://michaeleskin.com/abctools/abctools.html?lzw=hi"
     with pytest.raises(RuntimeError, match="Failed to decompress LZString data"):
         _ = eskin.abctools_url_to_abc(url)
 
 
+@pytest.mark.xdist_group("eskin")
 def test_eskin_abc_url_bad_param_def():
     url = "https://michaeleskin.com/abctools/abctools.html?def=hi"
     with pytest.raises(RuntimeError, match="Failed to decompress deflate data"):
         _ = eskin.abctools_url_to_abc(url)
 
 
+@pytest.mark.xdist_group("eskin")
 def test_eskin_abc_url_bad(caplog):
     url = "https://michaeleski.com/deftools/abctools.html?lzw=BoLgjAUApFAuCWsA2BTAZgewHawAQAUBDJQhLDXMADmigGcBXAIwWXWzyJLIrAGZa8LJkw4CxUkN4CYAB0IAnWHVGcJPSjLgoAtrIyrx3KZtqwUAD1iGuk8qYAqIBwAsUuAIJMmKAJ64IABlwAHoaAFkQABYQqIgARRAAJliAXgBOAAYIACUQHJQUJGg6AHchAHNcTIA6SABpEABxaEImAGMAKzoAfToMBiwAE0M0UiYMX1pwgEkAERncWQUMCoVCHWrp+cWmQjo6ZdWtmFmF3HaXDAUho6rs053cPYOANwwkXAA2OMfzy+uQ3enx+rSGQx6xCQPVkJF8e3aAGsekghIi6BAAEQeHSYzx8XAAIU8SVwTQAorgAD6eDxNDy4TFNPGE8HEmnY3G0jzEunkgBi1MZzLJTXpRLZ1KxOLxHlJPJJZMpNI8dIZTJZko5MsVCr5go5IrF4tZQyqVKp0q5KAqttwhFJeyFGtwFTaVUIFRQQ2dOptdodrsIzuZTDdaFd7iGpMtnLx-o9FTDIcxnuTnu9vutto9pLdKbDhAjXqG7IAukA&format=noten&ssp=10&name=The_Abbey&play=1"
     with caplog.at_level("DEBUG"):
@@ -419,6 +489,8 @@ def test_eskin_abc_url_bad(caplog):
     ]
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("eskin")
 @pytest.mark.parametrize("use_lzw", [True, False])
 def test_eskin_abc_url_creation(use_lzw):
     import requests
@@ -435,11 +507,13 @@ def test_eskin_abc_url_creation(use_lzw):
         raise ValueError(f"URL {url} redirects to homepage")
 
 
+@pytest.mark.xdist_group("eskin")
 def test_eskin_invalid_tunebook_key():
     with pytest.raises(ValueError, match="Unknown Eskin tunebook key: 'asdf'"):
         _ = eskin.get_tunebook_info("asdf")
 
 
+@pytest.mark.xdist_group("eskin")
 def test_eskin_inflate_invalid_length():
     s = "eJyFjbEKwkAQRPv9iv2DQyvd7jbGK0wQJIVtktucJ4FIghZyH-abcdefg"
     with pytest.raises(
@@ -449,64 +523,167 @@ def test_eskin_inflate_invalid_length():
         _ = eskin._inflate(s)
 
 
+@pytest.mark.xdist_group("eskin")
 def test_eskin_inflate_pad_3():
     s = "abc"
     assert eskin._inflate(eskin._deflate(s)) == s
 
 
+@pytest.mark.xdist_group("eskin")
+def test_eskin_normalize_group_name():
+    assert eskin._normalize_group_name("Reel M · 1–50") == "Reel"
+    assert eskin._normalize_group_name("Reel A-E") == "Reel"
+    assert eskin._normalize_group_name("Highland Schottish") == "Highland Schottische"
+    assert eskin._normalize_group_name("Highland Scottische") == "Highland Schottische"
+    assert eskin._normalize_group_name("Set dance") == "Set Dance"
+    assert eskin._normalize_group_name("Jig or march") == "Jig or March"
+    assert eskin._normalize_group_name("Polka or march") == "Polka or March"
+
+
+@pytest.mark.parametrize(
+    "s",
+    [
+        "Reel M 51-56",
+        "Reel C",
+        "Jig C-E",
+        "Reel L",
+        "Reel T-Y",
+        "Hornpipe O-W",
+        "Reel S",
+        "Reel G-I",
+        "Reel J-K",
+        "Reel M 1-50",
+        "Jig I-L",
+        "Reel N-P",
+        "Reel D-F",
+        "Reel A-B",
+        "Jig A-B",
+        "Jig M-R",
+        "Jig F-H",
+        "Jig S-Y",
+        "Reel R",
+        "Hornpipe A-N",
+    ],
+)
+def test_eskin_alpha_split_group_validator(s):
+    assert eskin._is_valid_alpha_split_group_name(s)
+
+
+@pytest.mark.parametrize(
+    "s, expected",
+    [
+        ("Reel M 51-56", "Reel"),
+        ("Jig C-E", "Jig"),
+        ("Hornpipe O-W", "Hornpipe"),
+    ],
+)
+def test_eskin_alpha_split_group_normalization(s, expected):
+    assert eskin._normalize_group_name(s) == expected
+
+
+@pytest.mark.parametrize(
+    "s",
+    [
+        "T-V",
+        "A",
+        "D-E",
+        "J-L",
+        "S 51-80",
+        "C",
+        "N-P",
+        "W",
+        "M 51-54",
+        "F-G",
+        "M 1-50",
+        "B 1-50",
+        "S 1-50",
+        "B 51-51",
+        "R",
+        "H-I",
+    ],
+)
+def test_eskin_alpha_only_group_validator(s):
+    assert eskin._is_valid_alpha_only_group_name(s)
+
+
+@pytest.mark.parametrize(
+    "s",
+    [
+        "T-V",
+        "S 51-80",
+        "M 1-50",
+    ],
+)
+def test_eskin_alpha_only_group_normalization(s):
+    assert eskin._normalize_group_name(s) == "tunes"
+
+
+@pytest.mark.web
+@pytest.mark.xdist_group("bill_black")
 def test_bill_black_https():
-    import requests
+    session = bill_black._get_session()
 
     url = "http://www.capeirish.com/ittl/tunefolders/"
     url_https = url.replace("http://", "https://")
 
-    r = requests.head(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r = session.head(url, timeout=5)
     r.raise_for_status()
     assert "Strict-Transport-Security" not in r.headers
 
-    r = requests.head(url_https, headers={"User-Agent": "pyabc2"}, timeout=5)
+    r = session.head(url_https, timeout=5)
     r.raise_for_status()
     assert "Strict-Transport-Security" in r.headers
 
 
 @pytest.mark.xfail(reason="Bill Black tunefolders are currently in flux", strict=False)
+@pytest.mark.web
+@pytest.mark.xdist_group("bill_black")
 @pytest.mark.parametrize("key", list(bill_black_tunefolders._KEY_TO_COLLECTION))
 def test_bill_black_tunefolders(key):
     lst = bill_black_tunefolders.load_meta(key, redownload=True)
     assert len(lst) > 0
 
 
+@pytest.mark.xdist_group("bill_black")
 def test_bill_black_tunefolders_invalid_key():
     with pytest.raises(ValueError, match="Unknown collection key: 'asdf'"):
         _ = bill_black_tunefolders.get_collection("asdf")
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("bill_black")
 def test_bill_black_text_fns():
-    import requests
+    session = bill_black._get_session()
 
-    url = "http://www.capeirish.com/ittl/alltunes/text/"
-    r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+    url = "http://www.capeirish.com/ittl/alltunes/alltunes-text/"
+    r = session.get(url, timeout=5)
     r.raise_for_status()
 
-    fns_web = sorted(re.findall(r'href=["\']([a-z0-9\-]+\.(?:txt|rtf))["\']', r.text))
-    if "s-tunes-1.txt" in fns_web:
-        # We're using s-tunes-2, not both
-        fns_web.remove("s-tunes-1.txt")
+    fns_web = sorted(
+        re.findall(r'href=["\']([a-zA-Z0-9\-]+\.(?:txt|rtf))["\']', r.text),
+        key=lambda s: s.lower(),
+    )
 
     assert bill_black.TXT_FNS == fns_web
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("bill_black")
 def test_bill_black_load():
     lst = bill_black.load_meta()
     assert len(lst) > 0
     assert lst[0].startswith("X:")
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("the_session")
 def test_the_session_get_tune_collections():
     df = the_session.get_tune_collections(1)  # Cooley's
     assert not df.empty
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("the_session")
 def test_the_session_get_member_set():
     tunes = the_session.get_member_set(65013, 106212)
     assert len(tunes) == 3
@@ -516,6 +693,8 @@ def test_the_session_get_member_set():
     assert d["setting_id"] == 31341
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("the_session")
 def test_the_session_get_member_sets():
     sets = the_session.get_member_sets(65013)
     assert len(sets) >= 1
@@ -525,6 +704,8 @@ def test_the_session_get_member_sets():
     assert d["setting_id"] == 31341
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("the_session")
 def test_the_session_get_member_sets_multipage():
     sets = the_session.get_member_sets(1, pages=3, size=2, max_threads=2, orderby="oldest")
     assert len(sets) == 6
@@ -534,6 +715,7 @@ def test_the_session_get_member_sets_multipage():
     assert d["tune_id"] == 560
 
 
+@pytest.mark.xdist_group("the_session")
 def test_the_session_consume_validation():
     f = the_session.get_member_sets
 
@@ -547,11 +729,15 @@ def test_the_session_consume_validation():
         _ = f(1, max_threads=0)
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("the_session")
 def test_the_session_consume_auto_leading_slash():
     (d,) = the_session._consume("tunes/22878")
     assert d["name"] == "Jack Farrell's"
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("hardy")
 @pytest.mark.parametrize("key", list(hardy._TUNEBOOK_KEY_TO_URL))
 def test_hardy_load_meta(key):
     abcs = hardy.load_meta(key)
@@ -563,6 +749,8 @@ def test_hardy_load_meta(key):
         assert "\n\n" not in abc, "no empty lines within a tune block"
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("hardy")
 def test_hardy_load_meta_remove_prefs():
     # Default: no % lines
     key = "session"
@@ -576,16 +764,20 @@ def test_hardy_load_meta_remove_prefs():
     assert sum(line.lstrip().startswith("%") for abc in abcs_raw for line in abc.splitlines()) > 1
 
 
+@pytest.mark.xdist_group("hardy")
 def test_hardy_bad_key():
     with pytest.raises(ValueError, match="Unknown Hardy tunebook key"):
         _ = hardy.load_meta("asdf")
 
 
+@pytest.mark.xdist_group("hardy")
 def test_hardy_download_bad_key():
     with pytest.raises(ValueError, match="Unknown Hardy tunebook key"):
         _ = hardy.download("asdf")
 
 
+@pytest.mark.web
+@pytest.mark.xdist_group("hardy")
 def test_hardy_annex_is_latest():
     """Confirm the hardcoded 'annex' URL points to the current (non-superseded) annex file."""
     import requests

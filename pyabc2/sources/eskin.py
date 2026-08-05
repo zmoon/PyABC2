@@ -7,8 +7,12 @@ Requires:
 * `requests <https://requests.readthedocs.io/>`__
 """
 
+from __future__ import annotations
+
+import functools
 import json
 import re
+from collections import defaultdict
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, NamedTuple
 from urllib.parse import parse_qs, urlsplit
@@ -19,6 +23,7 @@ from pyabc2.sources._lzstring import LZString
 
 if TYPE_CHECKING:  # pragma: no cover
     import pandas
+    import requests
 
 logger = _get_logger(__name__)
 
@@ -30,14 +35,16 @@ _TBWS = "https://michaeleskin.com/tunebook_websites"
 _CCE_SD = "https://michaeleskin.com/cce_sd"
 _TUNEBOOK_KEY_TO_URL = {
     # https://michaeleskin.com/tunebooks.html#websites_irish
-    "kss": f"{_TBWS}/king_street_sessions_tunebook_17Jan2025.html",
-    "oflaherty_2025": f"{_TBWS}/oflahertys_2025_retreat_tunes_final.html",
-    "carp": f"{_TBWS}/carp_celtic_jam_tunebook_17Jan2025.html",
+    "kss": f"{_TBWS}/king-street-session-tunebook-25jun2026.html",
+    "oflaherty_2025": f"{_TBWS}/oflaherty-2025-retreat-tunes-played-slowly.html",
+    "oflaherty_2026": f"{_TBWS}/oflaherty-2026-retreat-tunes-played-slowly.html",
+    "carp": f"{_TBWS}/carp_celtic_jam_tunebook_29jun2026.html",
     "hardy_2024": f"{_TBWS}/paul_hardy_2024_8feb2025.html",
-    "hardy_2025": f"{_TBWS}/paul_hardy_2025_12aug2025.html",
-    "cce_dublin_2001": f"{_CCE_SD}/cce_dublin_2001_tunebook_17Jan2025.html",
+    "hardy_2025": f"{_TBWS}/paul_hardy_2025_29jun2026.html",
+    "hardy_2026": f"{_TBWS}/paul_hardy_2026_1aug2026.html",
+    "cce_dublin_2001": f"{_CCE_SD}/cce_dublin_2001_tunebook_29jun2026.html",
     "cce_san_diego_jan2025": f"{_CCE_SD}/cce_san_diego_tunes_31jan2025.html",
-    "cce_san_diego_nov2025": f"{_CCE_SD}/cce_san_diego_tunes_10nov2025.html",
+    "cce_san_diego_jun2026": f"{_TBWS}/comhaltas-san-diego-tunebook-24jun2026.html",
     # https://michaeleskin.com/tunebooks.html#websites_18th_century_collections
     "playford1": f"{_TBWS}/playford_1_partington_17jan2025.html",
     "playford2": f"{_TBWS}/playford_2_partington_17jan2025.html",
@@ -50,12 +57,106 @@ https://michaeleskin.com/tunebooks.html
 
 # Definitive versions
 _TUNEBOOK_ALIAS = {
-    "cce_san_diego": "cce_san_diego_nov2025",
+    "cce_san_diego": "cce_san_diego_jun2026",
 }
 for _alias, _target in _TUNEBOOK_ALIAS.items():
     _TUNEBOOK_KEY_TO_URL[_alias] = _TUNEBOOK_KEY_TO_URL[_target]
 
 _URL_NETLOCS = {"michaeleskin.com", "www.michaeleskin.com"}
+
+_TUNE_TYPE_PATTERN = r"[A-Za-z][A-Za-z &'/-]*"
+_TUNE_TYPE_RE = re.compile(rf"^{_TUNE_TYPE_PATTERN}$")
+
+_GROUP_ALPHA_SPLIT_RE = re.compile(
+    rf"^(?P<tune_type>{_TUNE_TYPE_PATTERN}?) "
+    r"(?P<alpha>[A-Za-z](?:-[A-Za-z])?)"
+    r"(?: (?P<number>[0-9]+-[0-9]+))?$"
+)
+
+_GROUP_ALPHA_ONLY_RE = re.compile(
+    r"^(?P<alpha>[A-Za-z](?:-[A-Za-z])?)(?: (?P<number>[0-9]+-[0-9]+))?$"
+)
+
+
+def _is_valid_alpha_split_group_name(s: str, /) -> bool:
+    """Return whether `s` looks like an Eskin type + alpha split group label."""
+
+    return _GROUP_ALPHA_SPLIT_RE.fullmatch(s) is not None
+
+
+def _is_valid_alpha_only_group_name(s: str, /) -> bool:
+    """Return whether `s` looks like an Eskin alpha-only split group label."""
+
+    return _GROUP_ALPHA_ONLY_RE.fullmatch(s) is not None
+
+
+def _is_valid_tune_type_group_name(s: str, /) -> bool:
+    """Return whether `s` looks like a standalone tune type group label."""
+
+    return _TUNE_TYPE_RE.fullmatch(s) is not None
+
+
+def _normalize_tune_type(s: str, /) -> str:
+    """Normalize tune type labels parsed from Eskin group names."""
+
+    if s in {"Highland Schottish", "Highland Scottische"}:
+        return "Highland Schottische"
+
+    if s == "Set dance":
+        return "Set Dance"
+
+    m = re.fullmatch(r"(.+?) or ([A-Za-z][A-Za-z &'/-]*)", s)
+    if m is not None:
+        first, second = m.groups()
+        return f"{first} or {second.title()}"
+
+    return s
+
+
+def _normalize_group_name(s: str, /) -> str:
+    """Normalize parsed Eskin group labels to expected style."""
+
+    s = s.strip()
+    s = s.replace(" · ", " ")
+    s = s.replace("–", "-")
+
+    if _is_valid_alpha_split_group_name(s):
+        # Upstream alpha/number splits can churn; keep only tune type.
+        m = _GROUP_ALPHA_SPLIT_RE.fullmatch(s)
+        assert m is not None  # for typing
+        return _normalize_tune_type(m.group("tune_type"))
+
+    if _is_valid_alpha_only_group_name(s):
+        # Some tunebooks split by alpha range only; collapse to one generic group.
+        return "tunes"
+
+    if _is_valid_tune_type_group_name(s):
+        return _normalize_tune_type(s)
+
+    return s
+
+
+@functools.lru_cache(1)
+def _get_session() -> requests.Session:
+    import requests
+    from requests.adapters import HTTPAdapter
+    from urllib3.util import Retry
+
+    session = requests.Session()
+    session.headers.update({"User-Agent": "pyabc2"})
+    retries = Retry(
+        total=5,
+        backoff_factor=0.5,
+        backoff_jitter=0.5,
+        allowed_methods={"GET", "HEAD"},
+        status_forcelist=[415, 429, 500, 502, 503, 504],
+        # Eskin seems to sporadically return 415 (unsupported media type)
+        # possibly to indicate a temporary server issue or throttling/anti-bot
+    )
+    session.mount("https://", HTTPAdapter(max_retries=retries))
+    session.mount("http://", HTTPAdapter(max_retries=retries))
+
+    return session
 
 
 def _deflate(s: str, /) -> str:
@@ -233,22 +334,11 @@ def get_tunebook_info(key: str) -> EskinTunebookInfo:
     )
 
 
-def _download_data(key: str):
-    """Extract and save the tune data from the tunebook webpage as JSON."""
-    import gzip
-
-    import requests
-
-    tb_info = get_tunebook_info(key)
-
-    r = requests.get(tb_info.url, timeout=5)
-    r.raise_for_status()
-    html = r.text
-
+def _extract_data_from_html_2025(html: str, *, key: str):
     # First find the tune type options by searching for 'tunes = type;'
     types = sorted(set(re.findall(r"tunes = (.*?);", html)))
     if types:
-        pass
+        pass  # pragma: no cover
     elif "const tunes=[" in html:  # no types, just one list of tunes
         types = ["tunes"]
     else:
@@ -258,13 +348,13 @@ def _download_data(key: str):
     all_data = {}
     for type_ in types:
         m = re.search(rf"const {type_}=\[(.*?)\];", html, flags=re.DOTALL)
-        if m is None:
+        if m is None:  # pragma: no cover
             raise RuntimeError(f"Unable to find data for type {type_!r}")
         s_data = "[" + m.group(1) + "]"
 
         try:
             data = json.loads(s_data)
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError as e:  # pragma: no cover
             w = 25
             a = max(0, e.pos - w)
             b = min(len(s_data), e.pos + w)
@@ -281,9 +371,115 @@ def _download_data(key: str):
 
         all_data[type_] = data
 
+    return all_data
+
+
+def _extract_data_from_html_2026(html: str, *, key: str):
+    # The ABCs are in <script> tags, eg:
+    # <script type="text/plain" id="sir-john-fenwick-s-the-flower-amang-them-all-abc">
+    # Group IDs are `group-1`, `group-2`, etc.
+    # with names in <option> tags, eg:
+    # <option value="group-1">Air (13)</option>
+    # AFAICT, group assignment is only given in the <div class="toc-links">,
+    # using the data-group attribute, e.g.:
+    # <a href="#tune-farewell-to-whiskey" data-toc-entry="true" data-group="group-1" data-toc-title="Farewell to whiskey"><span>2</span>Farewell to whiskey</a>
+
+    from html import unescape
+
+    logger.info(f"Extracting data from HTML for Eskin tunebook {key!r}")
+
+    # Find group assignments
+    group_assignments = {}
+    for m in re.finditer(
+        # Note groups that aren't the default active one have the hidden attribute
+        # so we don't include the trailing `>` in the regex
+        r'<a href="#tune-([^"]+)" data-toc-entry="true" data-group="([^"]+)" data-toc-title="([^"]+)"',
+        html,
+        flags=re.DOTALL | re.MULTILINE,
+    ):
+        tune_id, group_id, tune_name = m.groups()
+        tune_name = unescape(tune_name)
+        logger.debug(f"Found group assignment: {tune_id=}, {group_id=}, {tune_name=}")
+        group_assignments[tune_id] = group_id
+    if not group_assignments:  # pragma: no cover
+        logger.debug("No group assignments found in HTML")
+
+    # Find group names
+    group_names = {}
+    if len(unique_group_ids := set(group_assignments.values())) == 1:
+        logger.info("One group, using name 'tunes'")
+        (group_id,) = unique_group_ids
+        group_names[group_id] = "tunes"
+    else:
+        for m in re.finditer(
+            r'<option value="([^"]+)">([^<]+)</option>',
+            html,
+            flags=re.DOTALL,
+        ):
+            group_id, group_name_raw = m.groups()
+            group_name = re.sub(r" *\([0-9]+\)$", "", unescape(group_name_raw))
+            group_name = _normalize_group_name(group_name)
+            logger.debug(f"Found group name: {group_id=}, {group_name=}")
+            group_names[group_id] = group_name
+        if not group_names:  # pragma: no cover
+            logger.debug("No group names found in HTML")
+
+    # Find tunes
+    tunes = []
+    for m in re.finditer(
+        r'<script type="text/plain" id="([^"]+)-abc">(.+?)</script>',
+        html,
+        flags=re.DOTALL | re.MULTILINE,
+    ):
+        tune_id, abc_raw = m.groups()
+
+        abc_lines = []
+        for line in abc_raw.splitlines():
+            line = line.strip()
+            if not line or line.startswith("%"):
+                continue
+            abc_lines.append(line)
+
+        tunes.append({"id": tune_id, "abc": "\n".join(abc_lines)})
+
+    # Group tunes
+    all_data = defaultdict(list)
+    for tune in tunes:
+        group_id = group_assignments.get(tune["id"])
+        if group_id is None:  # pragma: no cover
+            logger.warning(f"No group assignment found for tune {tune['id']}")
+            continue
+        group_name = group_names.get(group_id, f"Unknown group {group_id}")
+        all_data[group_name].append(tune)
+
+    return all_data
+
+
+def _download_data(key: str):
+    """Extract and save the tune data from the tunebook webpage as JSON."""
+    import gzip
+
+    session = _get_session()
+
+    tb_info = get_tunebook_info(key)
+
+    r = session.get(tb_info.url, timeout=5)
+    r.raise_for_status()
+    html = r.content.decode("utf-8")
+
+    try:
+        data = _extract_data_from_html_2025(html, key=key)
+    except RuntimeError as e:
+        if str(e) == "Unable to detect tune types":
+            # We can be pretty sure it's the new format
+            logger.debug("Tune groups array not detected, assuming new format.")
+            data = _extract_data_from_html_2026(html, key=key)
+        else:
+            raise
+
     SAVE_TO.mkdir(exist_ok=True)
     with gzip.open(tb_info.path, "wt") as f:
-        json.dump(all_data, f, indent=2)
+        json.dump(data, f, indent=2)
 
 
 def _load_data(key: str):
@@ -294,7 +490,7 @@ def _load_data(key: str):
         return json.load(f)
 
 
-def load_meta(key: str, *, redownload: bool = False) -> "pandas.DataFrame":
+def load_meta(key: str, *, redownload: bool = False) -> pandas.DataFrame:
     """Load the tunebook data, no parsing.
 
     Parameters
@@ -314,11 +510,11 @@ def load_meta(key: str, *, redownload: bool = False) -> "pandas.DataFrame":
              - CCE Dublin 2001
            * - ``cce_san_diego``
              - CCE San Diego
-           * - ``hardy_{2024,2025}``
+           * - ``hardy_{2024,2025,2026}``
              - Paul Hardy's Session Tunebook
            * - ``kss``
              - King Street Sessions Tunebook
-           * - ``oflaherty_2025``
+           * - ``oflaherty_{2025,2026}``
              - O'Flaherty's Retreat Tunes
            * - ``playford{1,2,3}``
              - Playford vols. 1--3
