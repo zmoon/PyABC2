@@ -64,6 +64,14 @@ for _alias, _target in _TUNEBOOK_ALIAS.items():
 _URL_NETLOCS = {"michaeleskin.com", "www.michaeleskin.com"}
 
 
+def _normalize_group_name(s: str, /) -> str:
+    """Normalize parsed Eskin group labels to expected style."""
+
+    s = s.replace(" · ", " ")
+    s = s.replace("–", "-")
+    return s
+
+
 @functools.lru_cache(1)
 def _get_session() -> requests.Session:
     import requests
@@ -346,6 +354,7 @@ def _extract_data_from_html_2026(html: str, *, key: str):
         ):
             group_id, group_name_raw = m.groups()
             group_name = re.sub(r" *\([0-9]+\)$", "", unescape(group_name_raw))
+            group_name = _normalize_group_name(group_name)
             logger.debug(f"Found group name: {group_id=}, {group_name=}")
             if group_name in {"Highland Schottish", "Highland Scottische"}:
                 group_name_norm = "Highland Schottische"
@@ -396,7 +405,7 @@ def _download_data(key: str):
 
     r = session.get(tb_info.url, timeout=5)
     r.raise_for_status()
-    html = r.text
+    html = r.content.decode("utf-8")
 
     try:
         data = _extract_data_from_html_2025(html, key=key)

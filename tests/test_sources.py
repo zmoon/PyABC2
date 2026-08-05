@@ -536,6 +536,12 @@ def test_eskin_inflate_pad_3():
     assert eskin._inflate(eskin._deflate(s)) == s
 
 
+@pytest.mark.xdist_group("eskin")
+def test_eskin_normalize_group_name():
+    assert eskin._normalize_group_name("Reel M · 1–50") == "Reel M 1-50"
+    assert eskin._normalize_group_name("Reel A-E") == "Reel A-E"
+
+
 @pytest.mark.web
 @pytest.mark.xdist_group("bill_black")
 def test_bill_black_https():
