@@ -41,6 +41,7 @@ _TUNEBOOK_KEY_TO_URL = {
     "carp": f"{_TBWS}/carp_celtic_jam_tunebook_29jun2026.html",
     "hardy_2024": f"{_TBWS}/paul_hardy_2024_8feb2025.html",
     "hardy_2025": f"{_TBWS}/paul_hardy_2025_29jun2026.html",
+    "hardy_2026": f"{_TBWS}/paul_hardy_2026_1aug2026.html",
     "cce_dublin_2001": f"{_CCE_SD}/cce_dublin_2001_tunebook_29jun2026.html",
     "cce_san_diego_jan2025": f"{_CCE_SD}/cce_san_diego_tunes_31jan2025.html",
     "cce_san_diego_jun2026": f"{_TBWS}/comhaltas-san-diego-tunebook-24jun2026.html",
@@ -509,7 +510,7 @@ def load_meta(key: str, *, redownload: bool = False) -> pandas.DataFrame:
              - CCE Dublin 2001
            * - ``cce_san_diego``
              - CCE San Diego
-           * - ``hardy_{2024,2025}``
+           * - ``hardy_{2024,2025,2026}``
              - Paul Hardy's Session Tunebook
            * - ``kss``
              - King Street Sessions Tunebook

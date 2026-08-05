@@ -308,6 +308,7 @@ def test_load_url_invalid_domain():
 
 @pytest.mark.web
 @pytest.mark.xdist_group("eskin")
+@pytest.mark.xfail(reason="now it does 404", strict=False)
 def test_eskin_tunebook_bad_url_redirects():
     session = eskin._get_session()
 
@@ -361,6 +362,7 @@ def test_eskin_tunebook_url_current():
     old_keys = {
         "cce_san_diego_jan2025",
         "hardy_2024",
+        "hardy_2025",
     }
     for key, tb_url in eskin._TUNEBOOK_KEY_TO_URL.items():
         m = re.search(rf'href=["\']({tb_url})["\']', html)
