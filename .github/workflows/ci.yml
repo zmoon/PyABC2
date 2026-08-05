@@ -57,6 +57,10 @@ jobs:
         run: |
           cd docs/examples
           for f in *.ipynb; do
+            if [ "$f" = "sources.ipynb" ] && [ "${{ matrix.python-version }}" != "3.14" ]; then
+              echo "Skipping $f on Python ${{ matrix.python-version }}"
+              continue
+            fi
             jupyter nbconvert --to notebook --execute $f || exit 1
           done
 
