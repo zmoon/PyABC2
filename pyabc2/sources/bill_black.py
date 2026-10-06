@@ -8,60 +8,105 @@ Requires:
 * `requests <https://requests.readthedocs.io/>`__
 """
 
+from __future__ import annotations
+
+import functools
 import logging
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pyabc2._util import get_logger as _get_logger
+
+if TYPE_CHECKING:  # pragma: no cover
+    import requests
 
 logger = _get_logger(__name__)
 
 HERE = Path(__file__).parent
 
 SAVE_TO = HERE / "_bill-black"
-TXT_FNS = [
-    "a-tunes-1.txt",
-    "b-tunes-1.txt",
-    "c-tunes-1.txt",
-    "d-tunes-1.txt",
-    "e-tunes-1.txt",
-    "f-tunes-1.txt",
-    "g-tunes-1.txt",
-    "h-tunes-1.txt",
-    "i-tunes-1.txt",
-    "j-tunes-1.txt",
-    "k-tunes-1.txt",
-    "l-tunes-1.txt",
-    "m-tunes-1.txt",
-    "n-tunes-1.txt",
-    "o-tunes-1.txt",
-    "pq-tunes-1.txt",
-    "r-tunes-1.txt",
-    "s-tunes-2.rtf",
-    "t-tunes-1.txt",
-    "uv-tunes-1.txt",
-    "wz-tunes-1.txt",
+TXT_RELATIVE_PATHS = [
+    Path("A-tunes/A-all-ABC.txt"),
+    Path("B-tunes/B-all-ABC.txt"),
+    Path("C-tunes/C-all-ABC.txt"),
+    Path("D-tunes/D-all-ABC.txt"),
+    Path("E-tunes/E-all-ABC.txt"),
+    Path("F-tunes/F-all-ABC.txt"),
+    Path("G-tunes/G-all-ABC.txt"),
+    Path("H-tunes/H-all-ABC.txt"),
+    Path("I-tunes/I-all-ABC.txt"),
+    Path("J-tunes/J-all-ABC.txt"),
+    Path("K-tunes/K-all-ABC.txt"),
+    Path("L-tunes/L-all-ABC.txt"),
+    Path("M-tunes/M-all-ABC.txt"),
+    Path("N-tunes/N-all-ABC.txt"),
+    Path("O-tunes/O-all-ABC.txt"),
+    Path("PQ-tunes/PQ-all-ABC.txt"),
+    Path("R-tunes/R-all-ABC.txt"),
+    Path("S-tunes/S-all-ABC.txt"),
+    Path("T-tunes/T-all-abc.txt"),
+    Path("UV-tunes/UV-all-abc.txt"),
+    Path("WZ-tunes/W_Z-all-abc.txt"),
 ]
 
 
+@functools.lru_cache(1)
+def _get_session() -> requests.Session:
+    return _build_session()
+
+
+def _build_session() -> requests.Session:
+    import requests
+    from requests.adapters import HTTPAdapter
+    from urllib3.util import Retry
+
+    session = requests.Session()
+    session.headers.update({"User-Agent": "pyabc2"})
+    retries = Retry(
+        total=5,
+        backoff_factor=0.5,
+        backoff_jitter=0.5,
+        allowed_methods={"GET", "HEAD"},
+        status_forcelist=[403, 429, 500, 502, 503, 504],
+        # Bill Black seems to sporadically return 403 (forbidden)
+        # possibly to indicate a temporary server issue or throttling/anti-bot
+    )
+    session.mount("https://", HTTPAdapter(max_retries=retries))
+    session.mount("http://", HTTPAdapter(max_retries=retries))
+
+    return session
+
+
 def download() -> None:
-    """Download the alphabetical text files from https://www.capeirish.com/ittl/alltunes/text/
+    """Download the alphabetical text files from https://www.capeirish.com/ittl/alltunes/
     and store them in a compressed archive.
     """
+    import threading
     import zipfile
     from concurrent.futures import ThreadPoolExecutor
 
-    import requests
+    thread_local = threading.local()
+
+    def get_worker_session() -> requests.Session:
+        # One Session per worker thread to avoid cross-thread Session sharing.
+        try:
+            return thread_local.session
+        except AttributeError:
+            session = _build_session()
+            thread_local.session = session
+            return session
 
     def download_one(url):
-        r = requests.get(url, headers={"User-Agent": "pyabc2"}, timeout=5)
+        session = get_worker_session()
+        r = session.get(url, timeout=5)
         r.raise_for_status()
         return r.text
 
     with ThreadPoolExecutor(max_workers=4) as executor:
         futures = []
-        for fn in TXT_FNS:
-            url = f"https://www.capeirish.com/ittl/alltunes/text/{fn}"
+        for p in TXT_RELATIVE_PATHS:
+            url = f"https://www.capeirish.com/ittl/alltunes/{p.as_posix()}"
             futures.append(executor.submit(download_one, url))
 
     SAVE_TO.mkdir(exist_ok=True)
@@ -71,9 +116,9 @@ def download() -> None:
         "w",
         compression=zipfile.ZIP_DEFLATED,
     ) as zf:
-        for fn, future in zip(TXT_FNS, futures, strict=True):
+        for p, future in zip(TXT_RELATIVE_PATHS, futures, strict=True):
             text = future.result()
-            zf.writestr(fn, text)
+            zf.writestr(p.name, text)
 
 
 def load_meta(*, redownload: bool = False, debug: bool = False) -> list[str]:
