@@ -1,6 +1,6 @@
 # Release notes
 
-## v0.1.4 (unreleased)
+## v0.1.4 (2026-10-06)
 
 * Updates for Eskin and Bill Black ({pull}`112`)
 
