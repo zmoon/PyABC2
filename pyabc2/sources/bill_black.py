@@ -26,28 +26,28 @@ logger = _get_logger(__name__)
 HERE = Path(__file__).parent
 
 SAVE_TO = HERE / "_bill-black"
-TXT_FNS = [
-    "a-tunes.txt",
-    "b-tunes.txt",
-    "c-tunes.txt",
-    "d-tunes.txt",
-    "e-tunes.txt",
-    "f-tunes.txt",
-    "g-tunes.txt",
-    "h-tunes.txt",
-    "i-tunes.txt",
-    "j-tunes.txt",
-    "k-tunes.txt",
-    "L-tunes.txt",
-    "m-tunes.txt",
-    "n-tunes.txt",
-    "o-tunes.txt",
-    "pq-tunes.txt",
-    "r-tunes.txt",
-    "s-tunes.txt",
-    "t-tunes.txt",
-    "uv-tunes.txt",
-    "wxyz-tunes.txt",
+TXT_RELATIVE_PATHS = [
+    Path("A-tunes/A-all-ABC.txt"),
+    Path("B-tunes/B-all-ABC.txt"),
+    Path("C-tunes/C-all-ABC.txt"),
+    Path("D-tunes/D-all-ABC.txt"),
+    Path("E-tunes/E-all-ABC.txt"),
+    Path("F-tunes/F-all-ABC.txt"),
+    Path("G-tunes/G-all-ABC.txt"),
+    Path("H-tunes/H-all-ABC.txt"),
+    Path("I-tunes/I-all-ABC.txt"),
+    Path("J-tunes/J-all-ABC.txt"),
+    Path("K-tunes/K-all-ABC.txt"),
+    Path("L-tunes/L-all-ABC.txt"),
+    Path("M-tunes/M-all-ABC.txt"),
+    Path("N-tunes/N-all-ABC.txt"),
+    Path("O-tunes/O-all-ABC.txt"),
+    Path("PQ-tunes/PQ-all-ABC.txt"),
+    Path("R-tunes/R-all-ABC.txt"),
+    Path("S-tunes/S-all-ABC.txt"),
+    Path("T-tunes/T-all-abc.txt"),
+    Path("UV-tunes/UV-all-abc.txt"),
+    Path("WZ-tunes/W_Z-all-abc.txt"),
 ]
 
 
@@ -79,7 +79,7 @@ def _build_session() -> requests.Session:
 
 
 def download() -> None:
-    """Download the alphabetical text files from https://www.capeirish.com/ittl/alltunes/alltunes-text/
+    """Download the alphabetical text files from https://www.capeirish.com/ittl/alltunes/
     and store them in a compressed archive.
     """
     import threading
@@ -105,8 +105,8 @@ def download() -> None:
 
     with ThreadPoolExecutor(max_workers=4) as executor:
         futures = []
-        for fn in TXT_FNS:
-            url = f"https://www.capeirish.com/ittl/alltunes/alltunes-text/{fn}"
+        for p in TXT_RELATIVE_PATHS:
+            url = f"https://www.capeirish.com/ittl/alltunes/{p.as_posix()}"
             futures.append(executor.submit(download_one, url))
 
     SAVE_TO.mkdir(exist_ok=True)
@@ -116,9 +116,9 @@ def download() -> None:
         "w",
         compression=zipfile.ZIP_DEFLATED,
     ) as zf:
-        for fn, future in zip(TXT_FNS, futures, strict=True):
+        for p, future in zip(TXT_RELATIVE_PATHS, futures, strict=True):
             text = future.result()
-            zf.writestr(fn, text)
+            zf.writestr(p.name, text)
 
 
 def load_meta(*, redownload: bool = False, debug: bool = False) -> list[str]:

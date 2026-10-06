@@ -655,16 +655,16 @@ def test_bill_black_tunefolders_invalid_key():
 def test_bill_black_text_fns():
     session = bill_black._get_session()
 
-    url = "http://www.capeirish.com/ittl/alltunes/alltunes-text/"
+    url = "http://www.capeirish.com/ittl/alltunes/"
     r = session.get(url, timeout=5)
     r.raise_for_status()
 
-    fns_web = sorted(
-        re.findall(r'href=["\']([a-zA-Z0-9\-]+\.(?:txt|rtf))["\']', r.text),
+    subdirs_web = sorted(
+        re.findall(r'href=["\']([a-zA-Z0-9\-]+/)["\']', r.text),
         key=lambda s: s.lower(),
     )
 
-    assert bill_black.TXT_FNS == fns_web
+    assert [f"{p.parent.name}/" for p in bill_black.TXT_RELATIVE_PATHS] == subdirs_web
 
 
 @pytest.mark.web
