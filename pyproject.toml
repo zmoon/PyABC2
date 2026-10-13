@@ -53,6 +53,7 @@ doc = [
     "sphinx ==8.*",
     "sphinx-copybutton",
     "sphinx-inline-tabs",
+    "voici",
 ]
 
 
