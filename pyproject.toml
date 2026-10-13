@@ -47,6 +47,7 @@ dev = [
 ]
 doc = [
     "furo",
+    "jupyterlite-sphinx",
     "matplotlib",
     "myst-nb",
     "sphinx ==8.*",

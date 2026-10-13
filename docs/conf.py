@@ -17,6 +17,7 @@ extensions = [
     "myst_nb",
     "sphinx_inline_tabs",
     "sphinx_copybutton",
+    "jupyterlite_sphinx",
 ]
 
 intersphinx_mapping = {
