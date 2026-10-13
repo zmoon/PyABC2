@@ -58,3 +58,5 @@ autodoc_typehints = "description"
 autosummary_generate = True
 
 nb_execution_raise_on_error = True
+
+jupyterlite_contents = ["examples/editor.ipynb"]
