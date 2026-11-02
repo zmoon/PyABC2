@@ -128,8 +128,7 @@ def load_url(url: str) -> Tune:
     setting: int | None
     if res.fragment:
         setting_str = res.fragment
-        if setting_str.startswith("setting"):
-            setting_str = setting_str[len("setting") :]
+        setting_str = setting_str.removeprefix("setting")
         setting = int(setting_str)
     else:
         setting = None
