@@ -54,6 +54,14 @@ doc = [
     "sphinx-inline-tabs",
 ]
 
+[tool.flit.sdist]
+exclude = [
+    ".flake8",
+    ".gitignore",
+    ".pre-commit-config.yaml",
+    ".readthedocs.yaml",
+    ".github/",
+]
 
 [tool.black]
 line-length = 100
