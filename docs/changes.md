@@ -1,6 +1,6 @@
 # Release notes
 
-## v0.1.5 (unreleased)
+## v0.1.5 (2026-11-03)
 
 * Update Bill Black ({pull}`117`)
 
