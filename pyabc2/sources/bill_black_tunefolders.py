@@ -72,40 +72,31 @@ COLLECTIONS: list[Collection] = [
         title="BB's Mostly Gems",
         folder="12",
         urls=[
-            f"{ITTL}tunefolders/12/12-AM-ABC.rtf",
-            f"{ITTL}tunefolders/12/12-NY-ABC.rtf",
+            f"{ITTL}tunefolders/12/12-all-ABC.rtf",
         ],
     ),
     Collection(
         key="bs",
         title="Bulmer & Sharpley",
         folder="13",
-        subfolders=[
-            "131",
-            "132",
-            "133",
-            "134",
+        urls=[
+            f"{ITTL}tunefolders/13/13-all-ABC.rtf",
         ],
     ),
     Collection(
         key="car",
         title="Carolan Tunes",
         folder="14",
-        subfolders=[
-            "14-AL",
-            "14-MY",
+        urls=[
+            f"{ITTL}tunefolders/14/14-all-ABC.rtf",
         ],
     ),
     Collection(
         key="cre",
         title="Ceol Rince na hÉireann",
         folder="18",
-        subfolders=[
-            "181",
-            "182",
-            "183",
-            "184",
-            "185",
+        urls=[
+            f"{ITTL}tunefolders/18/18-all-ABC.rtf",
         ],
     ),
     Collection(

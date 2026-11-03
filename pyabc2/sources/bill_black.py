@@ -45,9 +45,9 @@ TXT_RELATIVE_PATHS = [
     Path("PQ-tunes/PQ-all-ABC.txt"),
     Path("R-tunes/R-all-ABC.txt"),
     Path("S-tunes/S-all-ABC.txt"),
-    Path("T-tunes/T-all-abc.txt"),
-    Path("UV-tunes/UV-all-abc.txt"),
-    Path("WZ-tunes/W_Z-all-abc.txt"),
+    Path("T-tunes/T-all-ABC.txt"),
+    Path("UV-tunes/UV-all-ABC.txt"),
+    Path("WZ-tunes/W_Z-all-ABC.txt"),
 ]
 
 
